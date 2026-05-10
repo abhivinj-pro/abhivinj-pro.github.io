@@ -120,10 +120,26 @@
     }
   }
 
+  function getTitleSizeClass(title) {
+    var normalizedTitle = title.replace(/\s+/g, ' ').trim();
+
+    if (normalizedTitle.length <= 12) {
+      return 'habit-card--title-short';
+    }
+
+    if (normalizedTitle.length <= 15) {
+      return 'habit-card--title-medium';
+    }
+
+    return '';
+  }
+
   function createHabitCard(habit, index) {
     var button = document.createElement('button');
+    var titleSizeClass = getTitleSizeClass(habit.title);
+
     button.type = 'button';
-    button.className = 'habit-card';
+    button.className = titleSizeClass ? 'habit-card ' + titleSizeClass : 'habit-card';
     button.setAttribute('data-habit-id', habit.id);
     button.setAttribute('aria-pressed', 'false');
     button.innerHTML = [
