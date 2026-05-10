@@ -45,8 +45,9 @@
   var routineGrid = document.getElementById('routine-grid');
   var morningScreen = document.getElementById('morning-screen');
   var clockScreen = document.getElementById('clock-screen');
-  var clockTime = document.getElementById('clock-time');
-  var clockPeriod = document.getElementById('clock-period');
+  var clockTimeMain = document.getElementById('clock-time-main');
+  var clockMeridiem = document.getElementById('clock-meridiem');
+  var clockSeconds = document.getElementById('clock-seconds');
   var clockDay = document.getElementById('clock-day');
   var clockDate = document.getElementById('clock-date');
   var calendarPanel = document.getElementById('calendar-panel');
@@ -160,8 +161,9 @@
       hours12 = 12;
     }
 
-    clockTime.innerHTML = pad(hours12) + ':' + pad(minutes) + '<span>' + pad(seconds) + '</span>';
-    clockPeriod.textContent = hours24 >= 12 ? 'PM' : 'AM';
+    clockTimeMain.textContent = pad(hours12) + ':' + pad(minutes);
+    clockMeridiem.textContent = hours24 >= 12 ? 'PM' : 'AM';
+    clockSeconds.textContent = pad(seconds);
     clockDay.textContent = dayNames[now.getDay()];
     clockDate.textContent = monthNames[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
   }
