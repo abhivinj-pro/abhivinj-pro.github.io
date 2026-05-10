@@ -18,7 +18,7 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: "Avenir Next Rounded", "Avenir Next", "Trebuchet MS", sans-serif;
@@ -27,11 +27,16 @@ body {
 body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
+  overflow-y: auto;
   background-image:
     radial-gradient(circle at top left, rgba(255, 92, 138, 0.18), transparent 25%),
     radial-gradient(circle at top right, rgba(87, 213, 255, 0.14), transparent 24%),
     radial-gradient(circle at bottom center, rgba(255, 188, 89, 0.12), transparent 30%),
     linear-gradient(180deg, #070910 0%, #03050a 100%);
+}
+
+.top-scroll-buffer {
+  height: 88px;
 }
 
 .app-shell {
@@ -245,39 +250,180 @@ body {
 
 .clock-frame {
   width: 100%;
-  padding: 30px 26px;
+  height: 100%;
+  padding: 20px 22px;
   border-radius: 30px;
   background: linear-gradient(180deg, rgba(14, 19, 32, 0.92), rgba(7, 10, 18, 0.98));
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr;
+  grid-gap: 18px;
+}
+
+.clock-main {
+  min-width: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
   text-align: center;
 }
 
+.clock-day,
+.clock-date,
 .clock-period {
   margin: 0;
 }
 
-.clock-time {
-  margin: 0 0 10px;
-  font-size: 170px;
-  line-height: 0.9;
+.clock-day {
+  font-size: 48px;
+  line-height: 1;
   font-weight: 800;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.02em;
+  color: #80ffd6;
+  text-transform: uppercase;
+}
+
+.clock-date {
+  margin-top: 6px;
+  font-size: 36px;
+  color: #b6c6db;
+  font-weight: 700;
+}
+
+.clock-time {
+  margin: 10px 0 6px;
+  font-size: 260px;
+  line-height: 0.82;
+  font-weight: 800;
+  letter-spacing: -0.075em;
 }
 
 .clock-time span {
   display: block;
-  font-size: 84px;
-  letter-spacing: 0.02em;
+  font-size: 116px;
+  letter-spacing: 0.04em;
   color: #8db8ff;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 .clock-period {
-  font-size: 34px;
+  font-size: 42px;
   font-weight: 700;
   color: #ff9dc6;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.calendar-panel {
+  min-width: 0;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(18, 23, 37, 0.95), rgba(10, 14, 24, 0.97));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  grid-gap: 10px;
+}
+
+.calendar-toolbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  grid-gap: 8px;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.calendar-month-label {
+  margin: 0;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #f8fbff;
+  letter-spacing: 0.02em;
+}
+
+.calendar-nav {
+  border: 0;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  background: rgba(85, 114, 255, 0.24);
+  color: #dbe4ff;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar-nav:focus {
+  outline: 3px solid rgba(95, 191, 255, 0.72);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-gap: 6px;
+  color: #92a4c4;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  grid-gap: 6px;
+  min-height: 0;
+  touch-action: pan-y;
+}
+
+.calendar-day {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  border-radius: 10px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #d6e0f3;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.calendar-day.adjacent {
+  color: rgba(144, 160, 186, 0.62);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, #4dc7ff, #4e7eff);
+  color: #07102a;
+  box-shadow: 0 0 0 2px rgba(147, 195, 255, 0.45);
+}
+
+.calendar-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: #95a8c9;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -357,12 +503,32 @@ body {
     height: 96px;
   }
 
+  .clock-day {
+    font-size: 42px;
+  }
+
+  .clock-date {
+    font-size: 32px;
+  }
+
   .clock-time {
-    font-size: 138px;
+    font-size: 220px;
   }
 
   .clock-time span {
-    font-size: 66px;
+    font-size: 98px;
+  }
+
+  .clock-period {
+    font-size: 38px;
+  }
+
+  .calendar-month-label {
+    font-size: 22px;
+  }
+
+  .calendar-day {
+    font-size: 17px;
   }
 }
 
@@ -410,19 +576,49 @@ body {
   }
 
   .clock-frame {
-    padding: 24px 18px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    padding: 16px;
+    grid-gap: 12px;
+  }
+
+  .clock-day {
+    font-size: 34px;
+  }
+
+  .clock-date {
+    font-size: 26px;
   }
 
   .clock-time {
-    font-size: 118px;
+    font-size: 182px;
+    margin-top: 6px;
   }
 
   .clock-time span {
-    font-size: 58px;
+    font-size: 82px;
+    margin-top: 10px;
   }
 
   .clock-period {
-    font-size: 26px;
+    font-size: 32px;
+  }
+
+  .calendar-panel {
+    padding: 10px;
+    grid-gap: 8px;
+  }
+
+  .calendar-month-label {
+    font-size: 20px;
+  }
+
+  .calendar-day {
+    font-size: 17px;
+  }
+
+  .calendar-hint {
+    font-size: 12px;
   }
 }
 
@@ -501,18 +697,54 @@ body {
   }
 
   .clock-frame {
-    padding: 24px 18px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    padding: 12px;
+    grid-gap: 10px;
+  }
+
+  .clock-day {
+    font-size: 28px;
+  }
+
+  .clock-date {
+    font-size: 22px;
   }
 
   .clock-time {
-    font-size: 118px;
+    font-size: 146px;
+    margin: 4px 0;
   }
 
   .clock-time span {
-    font-size: 58px;
+    font-size: 62px;
+    margin-top: 8px;
   }
 
   .clock-period {
-    font-size: 26px;
+    font-size: 24px;
+  }
+
+  .calendar-month-label {
+    font-size: 18px;
+  }
+
+  .calendar-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 30px;
+  }
+
+  .calendar-day {
+    font-size: 15px;
+    border-radius: 8px;
+  }
+
+  .calendar-weekdays {
+    font-size: 12px;
+  }
+
+  .calendar-hint {
+    font-size: 11px;
   }
 }
