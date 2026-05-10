@@ -45,6 +45,7 @@
   var routineGrid = document.getElementById('routine-grid');
   var morningScreen = document.getElementById('morning-screen');
   var clockScreen = document.getElementById('clock-screen');
+  var topScrollBuffer = document.querySelector('.top-scroll-buffer');
   var clockTimeMain = document.getElementById('clock-time-main');
   var clockMeridiem = document.getElementById('clock-meridiem');
   var clockSeconds = document.getElementById('clock-seconds');
@@ -76,6 +77,22 @@
 
   function getDateKey(date) {
     return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+  }
+
+  function primeViewportScroll() {
+    if (!topScrollBuffer || !window.matchMedia || !window.matchMedia('(pointer: coarse)').matches) {
+      return;
+    }
+
+    if (window.scrollY > 4) {
+      return;
+    }
+
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        window.scrollTo(0, topScrollBuffer.offsetHeight);
+      });
+    });
   }
 
   function readState(dateKey) {
@@ -323,5 +340,6 @@
   setupCalendarInteractions();
   renderCards();
   syncView();
+  primeViewportScroll();
   window.setInterval(syncView, 1000);
 }());

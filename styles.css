@@ -7,7 +7,7 @@
   --done: rgba(167, 249, 120, 0.15);
   --done-border: rgba(167, 249, 120, 0.45);
   --shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
-  --top-buffer-size: clamp(28px, 5vh, 64px);
+  --top-buffer-size: 220px;
 }
 
 * {
@@ -42,10 +42,10 @@ body {
 
 .app-shell {
   width: 100%;
-  min-height: calc(100vh - var(--top-buffer-size));
-  min-height: calc(100dvh - var(--top-buffer-size));
-  height: calc(100vh - var(--top-buffer-size));
-  height: calc(100dvh - var(--top-buffer-size));
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   padding: 14px;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -303,7 +303,7 @@ body {
   line-height: 1;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #80ffd6;
+  color: #c7d0df;
   text-transform: uppercase;
 }
 
@@ -797,7 +797,7 @@ body {
 
 @media (min-width: 700px) and (max-width: 1024px) and (orientation: portrait) {
   :root {
-    --top-buffer-size: clamp(24px, 4vh, 40px);
+    --top-buffer-size: 220px;
   }
 
   .app-shell {
@@ -934,7 +934,7 @@ body {
 
 @media (min-width: 820px) and (max-width: 1366px) and (orientation: landscape) {
   :root {
-    --top-buffer-size: clamp(18px, 3vh, 30px);
+    --top-buffer-size: 220px;
   }
 
   .app-shell {
