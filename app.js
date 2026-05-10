@@ -45,6 +45,7 @@
   var routineGrid = document.getElementById('routine-grid');
   var morningScreen = document.getElementById('morning-screen');
   var clockScreen = document.getElementById('clock-screen');
+  var rootElement = document.documentElement;
   var topScrollBuffer = document.querySelector('.top-scroll-buffer');
   var clockTimeMain = document.getElementById('clock-time-main');
   var clockMeridiem = document.getElementById('clock-meridiem');
@@ -79,8 +80,64 @@
     return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
   }
 
+  function isLegacyIOSSafari() {
+    var userAgent = window.navigator.userAgent || '';
+
+    return /iP(ad|hone|od)/.test(userAgent) &&
+      /OS 12[_\d]*/.test(userAgent) &&
+      /WebKit/i.test(userAgent) &&
+      !/(CriOS|FxiOS|EdgiOS|OPiOS)/.test(userAgent);
+  }
+
+  function setViewportHeightVar() {
+    var viewportHeight = window.innerHeight;
+
+    if (window.visualViewport && window.visualViewport.height) {
+      viewportHeight = Math.round(window.visualViewport.height);
+    }
+
+    if (rootElement && viewportHeight > 0) {
+      rootElement.style.setProperty('--viewport-height', viewportHeight + 'px');
+    }
+  }
+
+  function shouldPrimeViewport() {
+    var hasTouchPoints = window.navigator && typeof window.navigator.maxTouchPoints === 'number' && window.navigator.maxTouchPoints > 0;
+    var hasTouchEvents = 'ontouchstart' in window;
+    var coarsePointer = Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+    return Boolean(topScrollBuffer) && (hasTouchPoints || hasTouchEvents || coarsePointer);
+  }
+
+  function scheduleViewportPrime() {
+    var delays;
+    var targetOffset;
+
+    if (!shouldPrimeViewport()) {
+      return;
+    }
+
+    targetOffset = topScrollBuffer.offsetHeight;
+
+    if (targetOffset < 1) {
+      return;
+    }
+
+    delays = isLegacyIOSSafari() ? [0, 120, 360, 900] : [0, 120, 320];
+
+    delays.forEach(function (delay) {
+      window.setTimeout(function () {
+        setViewportHeightVar();
+
+        if (window.scrollY < targetOffset - 2) {
+          window.scrollTo(0, targetOffset);
+        }
+      }, delay);
+    });
+  }
+
   function primeViewportScroll() {
-    if (!topScrollBuffer || !window.matchMedia || !window.matchMedia('(pointer: coarse)').matches) {
+    if (!shouldPrimeViewport()) {
       return;
     }
 
@@ -90,9 +147,37 @@
 
     window.requestAnimationFrame(function () {
       window.requestAnimationFrame(function () {
-        window.scrollTo(0, topScrollBuffer.offsetHeight);
+        scheduleViewportPrime();
       });
     });
+  }
+
+  function setupViewportPriming() {
+    var primeAfterInteraction;
+
+    setViewportHeightVar();
+
+    if (!shouldPrimeViewport()) {
+      return;
+    }
+
+    primeAfterInteraction = function () {
+      if (window.scrollY < topScrollBuffer.offsetHeight - 2) {
+        window.setTimeout(primeViewportScroll, 40);
+      }
+    };
+
+    window.addEventListener('pageshow', primeViewportScroll);
+    window.addEventListener('resize', setViewportHeightVar);
+    window.addEventListener('orientationchange', function () {
+      window.setTimeout(primeViewportScroll, 160);
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setViewportHeightVar);
+    }
+
+    document.addEventListener('touchend', primeAfterInteraction, { passive: true, once: true });
   }
 
   function readState(dateKey) {
@@ -338,6 +423,7 @@
   });
 
   setupCalendarInteractions();
+  setupViewportPriming();
   renderCards();
   syncView();
   primeViewportScroll();
