@@ -7,6 +7,7 @@
   --done: rgba(167, 249, 120, 0.15);
   --done-border: rgba(167, 249, 120, 0.45);
   --shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
+  --top-buffer-size: clamp(28px, 5vh, 64px);
 }
 
 * {
@@ -36,19 +37,22 @@ body {
 }
 
 .top-scroll-buffer {
-  height: 88px;
+  height: var(--top-buffer-size);
 }
 
 .app-shell {
   width: 100%;
-  height: 100vh;
-  height: -webkit-fill-available;
+  min-height: calc(100vh - var(--top-buffer-size));
+  min-height: calc(100dvh - var(--top-buffer-size));
+  height: calc(100vh - var(--top-buffer-size));
+  height: calc(100dvh - var(--top-buffer-size));
   padding: 14px;
 }
 
 .screen {
   width: 100%;
   height: 100%;
+  min-height: 0;
 }
 
 .screen.hidden {
@@ -240,17 +244,18 @@ body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  -webkit-box-align: stretch;
+      -ms-flex-align: stretch;
+          align-items: stretch;
+  -webkit-box-pack: stretch;
+      -ms-flex-pack: stretch;
+          justify-content: stretch;
 }
 
 .clock-frame {
   width: 100%;
   height: 100%;
+  min-height: 0;
   padding: 20px 22px;
   border-radius: 30px;
   background: linear-gradient(180deg, rgba(14, 19, 32, 0.92), rgba(7, 10, 18, 0.98));
@@ -746,5 +751,240 @@ body {
 
   .calendar-hint {
     font-size: 11px;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 1024px) and (orientation: portrait) {
+  :root {
+    --top-buffer-size: clamp(24px, 4vh, 40px);
+  }
+
+  .app-shell {
+    padding: 12px;
+  }
+
+  .routine-header {
+    margin-bottom: 10px;
+    padding-top: 0;
+  }
+
+  .routine-badge {
+    font-size: 18px;
+    padding: 9px 14px;
+  }
+
+  .routine-meta h1 {
+    font-size: 26px;
+  }
+
+  .routine-meta p {
+    font-size: 15px;
+  }
+
+  .routine-grid {
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    grid-gap: 10px;
+  }
+
+  .habit-card {
+    border-radius: 20px;
+  }
+
+  .habit-card-inner {
+    grid-template-columns: 88px 1fr 96px;
+  }
+
+  .habit-index {
+    font-size: 60px;
+    border-radius: 20px 0 0 20px;
+  }
+
+  .habit-content {
+    padding: 0 14px 0 16px;
+  }
+
+  .habit-title {
+    font-size: clamp(50px, 6.2vw, 62px);
+    line-height: 0.82;
+  }
+
+  .habit-icon svg {
+    width: 66px;
+    height: 66px;
+  }
+
+  .clock-frame {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    padding: 18px 16px 14px;
+    grid-gap: 16px;
+  }
+
+  .clock-main {
+    justify-content: flex-start;
+  }
+
+  .clock-day {
+    font-size: 36px;
+  }
+
+  .clock-date {
+    font-size: 28px;
+  }
+
+  .clock-time {
+    font-size: clamp(176px, 25vw, 204px);
+    line-height: 0.8;
+    margin: 6px 0 2px;
+  }
+
+  .clock-time span {
+    font-size: clamp(72px, 10vw, 86px);
+    margin-top: 10px;
+  }
+
+  .clock-period {
+    font-size: 28px;
+    letter-spacing: 0.14em;
+  }
+
+  .calendar-panel {
+    padding: 14px 14px 12px;
+    border-radius: 22px;
+    grid-gap: 10px;
+  }
+
+  .calendar-toolbar {
+    grid-template-columns: 46px 1fr 46px;
+  }
+
+  .calendar-month-label {
+    font-size: 24px;
+  }
+
+  .calendar-nav {
+    width: 46px;
+    height: 46px;
+    font-size: 32px;
+  }
+
+  .calendar-weekdays {
+    font-size: 13px;
+    grid-gap: 8px;
+  }
+
+  .calendar-grid {
+    grid-gap: 8px;
+  }
+
+  .calendar-day {
+    font-size: 18px;
+    border-radius: 10px;
+  }
+
+  .calendar-hint {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 820px) and (max-width: 1366px) and (orientation: landscape) {
+  :root {
+    --top-buffer-size: clamp(18px, 3vh, 30px);
+  }
+
+  .app-shell {
+    padding: 10px 12px 12px;
+  }
+
+  .routine-header {
+    margin-bottom: 10px;
+  }
+
+  .routine-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    grid-gap: 10px;
+  }
+
+  .habit-card {
+    border-radius: 20px;
+  }
+
+  .habit-card-inner {
+    grid-template-columns: 92px 1fr 98px;
+  }
+
+  .habit-index {
+    font-size: 64px;
+    border-radius: 20px 0 0 20px;
+  }
+
+  .habit-content {
+    padding: 0 14px 0 18px;
+  }
+
+  .habit-title {
+    font-size: clamp(52px, 4.8vw, 66px);
+    line-height: 0.8;
+  }
+
+  .habit-icon svg {
+    width: 68px;
+    height: 68px;
+  }
+
+  .clock-frame {
+    grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.92fr);
+    grid-gap: 16px;
+    padding: 16px 18px;
+  }
+
+  .clock-main {
+    padding-right: 8px;
+  }
+
+  .clock-day {
+    font-size: 40px;
+  }
+
+  .clock-date {
+    font-size: 30px;
+  }
+
+  .clock-time {
+    font-size: clamp(176px, 18vw, 206px);
+    margin: 6px 0 4px;
+  }
+
+  .clock-time span {
+    font-size: clamp(74px, 7vw, 88px);
+    margin-top: 10px;
+  }
+
+  .clock-period {
+    font-size: 34px;
+    letter-spacing: 0.14em;
+  }
+
+  .calendar-panel {
+    padding: 12px;
+    border-radius: 22px;
+  }
+
+  .calendar-month-label {
+    font-size: 21px;
+  }
+
+  .calendar-weekdays {
+    font-size: 12px;
+  }
+
+  .calendar-grid {
+    grid-gap: 5px;
+  }
+
+  .calendar-day {
+    font-size: 16px;
+    border-radius: 9px;
   }
 }
