@@ -25,6 +25,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: "Avenir Next Rounded", "Avenir Next", "Trebuchet MS", sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -834,6 +836,7 @@ body {
   }
 
   .habit-title {
+    font-size: 50px;
     font-size: clamp(50px, 6.2vw, 62px);
     line-height: 0.82;
   }
@@ -958,6 +961,7 @@ body {
   }
 
   .habit-title {
+    font-size: 66px;
     font-size: clamp(66px, 5.8vw, 82px);
     line-height: 0.76;
   }
