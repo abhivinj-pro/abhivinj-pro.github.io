@@ -32,6 +32,7 @@ body {
   min-height: -webkit-fill-available;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--top-buffer-size);
   background-image:
     radial-gradient(circle at top left, rgba(255, 92, 138, 0.18), transparent 25%),
     radial-gradient(circle at top right, rgba(87, 213, 255, 0.14), transparent 24%),
@@ -40,7 +41,7 @@ body {
 }
 
 .top-scroll-buffer {
-  height: var(--top-buffer-size);
+  height: 0;
 }
 
 .app-shell {
