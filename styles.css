@@ -8,6 +8,7 @@
   --done-border: rgba(167, 249, 120, 0.45);
   --shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
   --top-buffer-size: 220px;
+  --viewport-height: 100vh;
 }
 
 * {
@@ -44,8 +45,10 @@ body {
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: var(--viewport-height);
   height: 100vh;
   height: 100dvh;
+  height: var(--viewport-height);
   padding: 14px;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -956,26 +959,30 @@ body {
   }
 
   .habit-card-inner {
-    grid-template-columns: 92px 1fr 98px;
+    grid-template-columns: 104px 1fr 108px;
   }
 
   .habit-index {
-    font-size: 64px;
+    font-size: 78px;
     border-radius: 20px 0 0 20px;
   }
 
   .habit-content {
-    padding: 0 14px 0 18px;
+    padding: 0 8px 0 18px;
   }
 
   .habit-title {
-    font-size: clamp(52px, 4.8vw, 66px);
-    line-height: 0.8;
+    font-size: clamp(66px, 5.8vw, 82px);
+    line-height: 0.76;
+  }
+
+  .habit-icon {
+    padding-right: 8px;
   }
 
   .habit-icon svg {
-    width: 68px;
-    height: 68px;
+    width: 88px;
+    height: 88px;
   }
 
   .clock-frame {
