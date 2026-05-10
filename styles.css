@@ -134,7 +134,12 @@ body {
   box-shadow: var(--shadow);
   padding: 0;
   cursor: pointer;
-  display: block;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   width: 100%;
   min-width: 0;
   text-align: left;
@@ -149,7 +154,11 @@ body {
 .habit-card-inner {
   display: grid;
   grid-template-columns: 110px 1fr 152px;
-  height: 100%;
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
 }
 
 .habit-index {
@@ -186,14 +195,6 @@ body {
   line-height: 0.88;
   font-weight: 800;
   letter-spacing: -0.03em;
-}
-
-.habit-card--title-medium .habit-title {
-  font-size: 62px;
-}
-
-.habit-card--title-short .habit-title {
-  font-size: 66px;
 }
 
 .habit-icon {
@@ -849,16 +850,6 @@ body {
     line-height: 0.82;
   }
 
-  .habit-card--title-medium .habit-title {
-    font-size: 58px;
-    font-size: clamp(58px, 6.9vw, 70px);
-  }
-
-  .habit-card--title-short .habit-title {
-    font-size: 62px;
-    font-size: clamp(62px, 7.4vw, 74px);
-  }
-
   .habit-icon svg {
     width: 66px;
     height: 66px;
@@ -982,16 +973,6 @@ body {
     font-size: 70px;
     font-size: clamp(70px, 6.2vw, 86px);
     line-height: 0.76;
-  }
-
-  .habit-card--title-medium .habit-title {
-    font-size: 76px;
-    font-size: clamp(76px, 6.7vw, 92px);
-  }
-
-  .habit-card--title-short .habit-title {
-    font-size: 84px;
-    font-size: clamp(84px, 7.3vw, 100px);
   }
 
   .habit-icon {

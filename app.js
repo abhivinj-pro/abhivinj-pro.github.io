@@ -120,26 +120,11 @@
     }
   }
 
-  function getTitleSizeClass(title) {
-    var normalizedTitle = title.replace(/\s+/g, ' ').trim();
-
-    if (normalizedTitle.length <= 12) {
-      return 'habit-card--title-short';
-    }
-
-    if (normalizedTitle.length <= 15) {
-      return 'habit-card--title-medium';
-    }
-
-    return '';
-  }
-
   function createHabitCard(habit, index) {
     var button = document.createElement('button');
-    var titleSizeClass = getTitleSizeClass(habit.title);
 
     button.type = 'button';
-    button.className = titleSizeClass ? 'habit-card ' + titleSizeClass : 'habit-card';
+    button.className = 'habit-card';
     button.setAttribute('data-habit-id', habit.id);
     button.setAttribute('aria-pressed', 'false');
     button.innerHTML = [
@@ -351,6 +336,55 @@
     }
   }
 
+  var fitTimer = null;
+
+  function fitTitles() {
+    var cards = routineGrid.querySelectorAll('.habit-card');
+    if (!cards.length) return;
+
+    var i, title, heights = [];
+
+    // Reset all titles so grid determines card heights
+    for (i = 0; i < cards.length; i += 1) {
+      cards[i].querySelector('.habit-title').style.fontSize = '';
+    }
+
+    // Force layout
+    void routineGrid.offsetHeight;
+
+    // Measure each card height (set by parent grid, not content)
+    for (i = 0; i < cards.length; i += 1) {
+      heights.push(cards[i].getBoundingClientRect().height);
+    }
+
+    // Binary-search the largest font-size whose text fits per card
+    for (i = 0; i < cards.length; i += 1) {
+      title = cards[i].querySelector('.habit-title');
+      var availH = heights[i] - 12;
+      var lo = 20;
+      var hi = Math.min(200, Math.round(availH));
+      var mid;
+
+      while (hi - lo > 1) {
+        mid = Math.floor((lo + hi) / 2);
+        title.style.fontSize = mid + 'px';
+
+        if (title.getBoundingClientRect().height <= availH) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+
+      title.style.fontSize = lo + 'px';
+    }
+  }
+
+  function debouncedFitTitles() {
+    if (fitTimer) { clearTimeout(fitTimer); }
+    fitTimer = setTimeout(fitTitles, 120);
+  }
+
   routineGrid.addEventListener('click', function (event) {
     var node = event.target;
 
@@ -367,5 +401,17 @@
   setupViewportSizing();
   renderCards();
   syncView();
+
+  // Fit titles after first paint, and re-fit on resize / orientation change
+  if (window.requestAnimationFrame) {
+    window.requestAnimationFrame(fitTitles);
+  } else {
+    setTimeout(fitTitles, 60);
+  }
+  window.addEventListener('resize', debouncedFitTitles);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(fitTitles, 250);
+  });
+
   window.setInterval(syncView, 1000);
 }());
