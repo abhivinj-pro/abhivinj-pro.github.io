@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Habit Board</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <section class="screen morning-screen" id="morning-screen" aria-live="polite">
+      <header class="routine-header">
+        <div class="routine-badge">Morning reset</div>
+        <div class="routine-meta">
+          <h1>Start with:</h1>
+          <p>7:00 AM to 9:30 AM</p>
+        </div>
+      </header>
+
+      <main class="routine-grid" id="routine-grid"></main>
+    </section>
+
+    <section class="screen clock-screen hidden" id="clock-screen" aria-live="polite">
+      <div class="clock-frame">
+        <div class="clock-time" id="clock-time">00:00<span>00</span></div>
+        <p class="clock-period" id="clock-period">AM</p>
+      </div>
+    </section>
+  </div>
+
+  <noscript>
+    <div class="noscript-note">This page needs JavaScript enabled to show the routine and live clock.</div>
+  </noscript>
+
+  <script src="app.js"></script>
+</body>
+</html>
