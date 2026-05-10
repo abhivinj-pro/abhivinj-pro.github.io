@@ -47,6 +47,20 @@
   var clockScreen = document.getElementById('clock-screen');
   var clockTime = document.getElementById('clock-time');
   var clockPeriod = document.getElementById('clock-period');
+  var clockDay = document.getElementById('clock-day');
+  var clockDate = document.getElementById('clock-date');
+  var calendarPanel = document.getElementById('calendar-panel');
+  var calendarMonthLabel = document.getElementById('calendar-month-label');
+  var calendarGrid = document.getElementById('calendar-grid');
+  var calendarPrevButton = document.getElementById('calendar-prev');
+  var calendarNextButton = document.getElementById('calendar-next');
+
+  var calendarMonthCursor = null;
+  var touchStartY = 0;
+  var touchEndY = 0;
+
+  var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   function pad(value) {
     return value < 10 ? '0' + value : String(value);
@@ -148,6 +162,127 @@
 
     clockTime.innerHTML = pad(hours12) + ':' + pad(minutes) + '<span>' + pad(seconds) + '</span>';
     clockPeriod.textContent = hours24 >= 12 ? 'PM' : 'AM';
+    clockDay.textContent = dayNames[now.getDay()];
+    clockDate.textContent = monthNames[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+  }
+
+  function isSameDate(leftDate, rightDate) {
+    return leftDate.getFullYear() === rightDate.getFullYear() &&
+      leftDate.getMonth() === rightDate.getMonth() &&
+      leftDate.getDate() === rightDate.getDate();
+  }
+
+  function renderCalendar(todayDate) {
+    var year;
+    var month;
+    var monthFirstDay;
+    var monthStartWeekday;
+    var monthDays;
+    var previousMonthDays;
+    var index;
+
+    if (!calendarGrid || !calendarMonthLabel || !calendarMonthCursor) {
+      return;
+    }
+
+    year = calendarMonthCursor.getFullYear();
+    month = calendarMonthCursor.getMonth();
+    monthFirstDay = new Date(year, month, 1);
+    monthStartWeekday = monthFirstDay.getDay();
+    monthDays = new Date(year, month + 1, 0).getDate();
+    previousMonthDays = new Date(year, month, 0).getDate();
+
+    calendarMonthLabel.textContent = monthNames[month] + ' ' + year;
+
+    while (calendarGrid.firstChild) {
+      calendarGrid.removeChild(calendarGrid.firstChild);
+    }
+
+    for (index = 0; index < 42; index += 1) {
+      var dayCell = document.createElement('div');
+      var cellDate;
+      var dayNumber;
+
+      dayCell.className = 'calendar-day';
+
+      if (index < monthStartWeekday) {
+        dayNumber = (previousMonthDays - monthStartWeekday) + index + 1;
+        dayCell.className += ' adjacent';
+        cellDate = new Date(year, month - 1, dayNumber);
+      } else if (index < monthStartWeekday + monthDays) {
+        dayNumber = index - monthStartWeekday + 1;
+        cellDate = new Date(year, month, dayNumber);
+      } else {
+        dayNumber = index - (monthStartWeekday + monthDays) + 1;
+        dayCell.className += ' adjacent';
+        cellDate = new Date(year, month + 1, dayNumber);
+      }
+
+      dayCell.textContent = String(dayNumber);
+
+      if (isSameDate(cellDate, todayDate)) {
+        dayCell.className += ' today';
+      }
+
+      calendarGrid.appendChild(dayCell);
+    }
+  }
+
+  function moveCalendarMonth(step, todayDate) {
+    if (!calendarMonthCursor) {
+      return;
+    }
+
+    calendarMonthCursor.setMonth(calendarMonthCursor.getMonth() + step);
+    renderCalendar(todayDate || new Date());
+  }
+
+  function setupCalendarInteractions() {
+    if (!calendarPanel || !calendarPrevButton || !calendarNextButton) {
+      return;
+    }
+
+    calendarPrevButton.addEventListener('click', function () {
+      moveCalendarMonth(-1, new Date());
+    });
+
+    calendarNextButton.addEventListener('click', function () {
+      moveCalendarMonth(1, new Date());
+    });
+
+    calendarPanel.addEventListener('wheel', function (event) {
+      if (Math.abs(event.deltaY) < 12) {
+        return;
+      }
+
+      event.preventDefault();
+      moveCalendarMonth(event.deltaY > 0 ? 1 : -1, new Date());
+    }, { passive: false });
+
+    calendarPanel.addEventListener('touchstart', function (event) {
+      if (!event.touches || !event.touches[0]) {
+        return;
+      }
+      touchStartY = event.touches[0].clientY;
+      touchEndY = touchStartY;
+    });
+
+    calendarPanel.addEventListener('touchmove', function (event) {
+      if (!event.touches || !event.touches[0]) {
+        return;
+      }
+      touchEndY = event.touches[0].clientY;
+    });
+
+    calendarPanel.addEventListener('touchend', function () {
+      var deltaY = touchStartY - touchEndY;
+
+      if (Math.abs(deltaY) < 30) {
+        return;
+      }
+
+      moveCalendarMonth(deltaY > 0 ? 1 : -1, new Date());
+    });
   }
 
   function syncView() {
@@ -164,6 +299,10 @@
     } else {
       morningScreen.classList.add('hidden');
       clockScreen.classList.remove('hidden');
+      if (!calendarMonthCursor) {
+        calendarMonthCursor = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+      renderCalendar(now);
     }
   }
 
@@ -179,6 +318,7 @@
     }
   });
 
+  setupCalendarInteractions();
   renderCards();
   syncView();
   window.setInterval(syncView, 1000);
