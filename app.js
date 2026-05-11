@@ -36,6 +36,7 @@
   var manualScreen = null;
   var lastNaturalScreen = null;
   var currentMyDayTasks = [];
+  var lastMyDayHour = -1;
 
   var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -60,6 +61,24 @@
       now.setDate(now.getDate() - 1);
     }
     return now;
+  }
+
+  function slugifyTime(text) {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function isWithinTimeWindow(slot, currentHour) {
+    if (slot.from <= slot.to) {
+      return currentHour >= slot.from && currentHour < slot.to;
+    }
+    return currentHour >= slot.from || currentHour < slot.to;
+  }
+
+  function isExpiredTimeWindow(slot, nowHour) {
+    if (slot.from <= slot.to) {
+      return nowHour >= slot.to;
+    }
+    return false;
   }
 
   function setViewportHeightVar() {
@@ -110,7 +129,9 @@
     card.innerHTML = [
       '<div class="habit-card-inner">',
       '<div class="habit-index ', habit.accentClass || accentClasses[index % accentClasses.length], '">', index + 1, '</div>',
-      '<div class="habit-content"><div class="habit-title">', habit.title, '</div></div>',
+      '<div class="habit-content"><div class="habit-title">', habit.title, '</div>',
+      (habit.timeLabel ? '<div class="habit-time-label">' + habit.timeLabel + '</div>' : ''),
+      '</div>',
       '<div class="habit-icon">', habit.icon || '', '</div>',
       '</div>'
     ].join('');
@@ -207,7 +228,10 @@
   function renderMyDay() {
     var logicalDate = getLogicalDate();
     var todayTasks = [];
-    var i, isLandscape, minRows, actualRows, rows;
+    var i, t, task, nowHour, expandedTasks, missedTasks, carryForwardTasks;
+    var dateKey, state, compositeId, todayTaskIds;
+    var yesterday, yesterdayKey, yesterdayState;
+    var allTasks, isLandscape, minRows, actualRows, rows;
 
     for (i = 0; i < mydayTasks.length; i += 1) {
       if (isTaskForDate(mydayTasks[i], logicalDate)) {
@@ -215,32 +239,108 @@
       }
     }
 
-    currentMyDayTasks = todayTasks;
+    dateKey = getDateKey(logicalDate);
+    state = readState(MYDAY_STORAGE_PREFIX, dateKey);
+    nowHour = new Date().getHours();
+    expandedTasks = [];
+    missedTasks = [];
+
+    for (i = 0; i < todayTasks.length; i += 1) {
+      task = todayTasks[i];
+      if (task.times && task.times.length > 0) {
+        for (t = 0; t < task.times.length; t += 1) {
+          compositeId = task.id + '__' + slugifyTime(task.times[t].label);
+          if (isWithinTimeWindow(task.times[t], nowHour)) {
+            expandedTasks.push({
+              id: compositeId,
+              title: task.title,
+              timeLabel: task.times[t].label,
+              accentClass: task.accentClass,
+              icon: task.icon
+            });
+          } else if (isExpiredTimeWindow(task.times[t], nowHour) && !state[compositeId]) {
+            missedTasks.push({
+              id: compositeId,
+              title: task.title,
+              timeLabel: task.times[t].label,
+              accentClass: task.accentClass,
+              icon: task.icon,
+              missed: true
+            });
+          }
+        }
+      } else {
+        expandedTasks.push(task);
+      }
+    }
+
+    todayTaskIds = {};
+    for (i = 0; i < todayTasks.length; i += 1) {
+      todayTaskIds[todayTasks[i].id] = true;
+    }
+
+    yesterday = new Date(logicalDate.getTime());
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterdayKey = getDateKey(yesterday);
+    yesterdayState = readState(MYDAY_STORAGE_PREFIX, yesterdayKey);
+    carryForwardTasks = [];
+
+    for (i = 0; i < mydayTasks.length; i += 1) {
+      task = mydayTasks[i];
+      if (task.times && task.times.length > 0) { continue; }
+      if (!task.frequency || task.frequency.type === 'daily') { continue; }
+      if (todayTaskIds[task.id]) { continue; }
+      if (!isTaskForDate(task, yesterday)) { continue; }
+      if (yesterdayState[task.id]) { continue; }
+      carryForwardTasks.push({
+        id: task.id,
+        title: task.title,
+        accentClass: task.accentClass,
+        icon: task.icon,
+        missed: true
+      });
+    }
+
+    expandedTasks.sort(function (a, b) {
+      var aT = a.timeLabel ? 0 : 1;
+      var bT = b.timeLabel ? 0 : 1;
+      return aT - bT;
+    });
+
+    allTasks = expandedTasks.concat(carryForwardTasks).concat(missedTasks);
+    currentMyDayTasks = allTasks;
 
     if (mydayDateHeading) {
       mydayDateHeading.textContent = dayNames[logicalDate.getDay()] + ', ' + monthNames[logicalDate.getMonth()] + ' ' + logicalDate.getDate();
     }
     if (mydayTaskCount) {
-      mydayTaskCount.textContent = todayTasks.length + (todayTasks.length === 1 ? ' task today' : ' tasks today');
+      mydayTaskCount.textContent = allTasks.length + (allTasks.length === 1 ? ' task now' : ' tasks now');
     }
 
-    if (todayTasks.length === 0) {
+    if (allTasks.length === 0) {
       while (mydayGrid.firstChild) {
         mydayGrid.removeChild(mydayGrid.firstChild);
       }
       var emptyMsg = document.createElement('div');
       emptyMsg.className = 'myday-empty';
-      emptyMsg.textContent = 'No tasks today';
+      emptyMsg.textContent = 'No tasks right now';
       mydayGrid.appendChild(emptyMsg);
       return;
     }
 
-    renderCardsInto(mydayGrid, todayTasks);
-    applyState(mydayGrid, MYDAY_STORAGE_PREFIX, getDateKey(logicalDate));
+    renderCardsInto(mydayGrid, allTasks);
+    applyState(mydayGrid, MYDAY_STORAGE_PREFIX, dateKey);
+
+    var cards = mydayGrid.querySelectorAll('.habit-card');
+    for (i = 0; i < allTasks.length; i += 1) {
+      if (allTasks[i].missed) {
+        cards[i].classList.add('missed');
+      }
+    }
 
     isLandscape = window.innerWidth > window.innerHeight;
     minRows = isLandscape ? 3 : 6;
-    actualRows = isLandscape ? Math.ceil(todayTasks.length / 2) : todayTasks.length;
+    actualRows = isLandscape ? Math.ceil(allTasks.length / 2) : allTasks.length;
     rows = Math.max(actualRows, minRows);
     mydayGrid.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
   }
@@ -413,6 +513,12 @@
       applyState(routineGrid, MORNING_STORAGE_PREFIX, getDateKey(now));
     } else if (activeScreen === 'myday') {
       mydayScreen.classList.remove('hidden');
+      var currentHour = now.getHours();
+      if (currentHour !== lastMyDayHour) {
+        lastMyDayHour = currentHour;
+        renderMyDay();
+        fitAllTitles();
+      }
       applyState(mydayGrid, MYDAY_STORAGE_PREFIX, getDateKey(getLogicalDate()));
     } else {
       clockScreen.classList.remove('hidden');

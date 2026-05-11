@@ -20,7 +20,11 @@
   const exportOutput = document.getElementById('export-output');
   const weeklyPanel = document.getElementById('weekly-panel');
   const intervalPanel = document.getElementById('interval-panel');
+  const timesPanel = document.getElementById('times-panel');
+  const timeSlotsList = document.getElementById('time-slots-list');
+  const addSlotBtn = document.getElementById('add-slot-btn');
   const freqRadios = document.querySelectorAll('input[name="freq-type"]');
+  const timesModeRadios = document.querySelectorAll('input[name="times-mode"]');
 
   function loadTasks() {
     if (window.MYDAY_TASKS && Array.isArray(window.MYDAY_TASKS)) {
@@ -42,21 +46,57 @@
     return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  function describeFrequency(freq) {
-    if (!freq || freq.type === 'daily') return 'Every day';
-    if (freq.type === 'weekly') {
-      if (!freq.days || freq.days.length === 0) return 'No days selected';
-      if (freq.days.length === 7) return 'Every day';
-      return freq.days.map(d => DAY_SHORT[d]).join(', ');
+  function describeFrequency(freq, times) {
+    let desc;
+    if (!freq || freq.type === 'daily') desc = 'Every day';
+    else if (freq.type === 'weekly') {
+      if (!freq.days || freq.days.length === 0) desc = 'No days selected';
+      else if (freq.days.length === 7) desc = 'Every day';
+      else desc = freq.days.map(d => DAY_SHORT[d]).join(', ');
+    } else if (freq.type === 'interval') {
+      desc = 'Every ' + freq.every + ' weeks on ' + DAY_NAMES[freq.day] + ' (from ' + freq.startDate + ')';
+    } else {
+      desc = 'Unknown';
     }
-    if (freq.type === 'interval') {
-      return 'Every ' + freq.every + ' weeks on ' + DAY_NAMES[freq.day] + ' (from ' + freq.startDate + ')';
+    if (times && times.length > 0) {
+      desc += ' \u00b7 ' + times.map(t => t.label + ' (' + formatHour(t.from) + '\u2013' + formatHour(t.to) + ')').join(', ');
     }
-    return 'Unknown';
+    return desc;
   }
 
   function getAccentForIndex(index) {
     return ACCENT_CLASSES[index % ACCENT_CLASSES.length];
+  }
+
+  function formatHour(h) {
+    if (h === 0) return '12 AM';
+    if (h < 12) return h + ' AM';
+    if (h === 12) return '12 PM';
+    return (h - 12) + ' PM';
+  }
+
+  function buildHourOptions(selected) {
+    let html = '';
+    for (let h = 0; h < 24; h++) {
+      html += '<option value="' + h + '"' + (h === selected ? ' selected' : '') + '>' + formatHour(h) + '</option>';
+    }
+    return html;
+  }
+
+  function addSlotRow(label, from, to) {
+    const row = document.createElement('div');
+    row.className = 'time-slot-row';
+    row.innerHTML =
+      '<input type="text" placeholder="Label (e.g. Morning)" class="form-input slot-label" value="' + escapeHtml(label || '') + '">' +
+      '<select class="form-input form-input-sm slot-from">' + buildHourOptions(from != null ? from : 7) + '</select>' +
+      '<span class="slot-separator">to</span>' +
+      '<select class="form-input form-input-sm slot-to">' + buildHourOptions(to != null ? to : 12) + '</select>' +
+      '<button type="button" class="btn btn-danger slot-remove">&times;</button>';
+    timeSlotsList.appendChild(row);
+  }
+
+  function clearSlots() {
+    timeSlotsList.innerHTML = '';
   }
 
   function renderTaskList() {
@@ -88,7 +128,7 @@
         <div class="task-dot" style="background: ${colors[accentClass] || '#64748b'}"></div>
         <div class="task-info">
           <p class="task-title">${escapeHtml(task.title)}</p>
-          <p class="task-freq">${describeFrequency(task.frequency)}</p>
+          <p class="task-freq">${describeFrequency(task.frequency, task.times)}</p>
         </div>
         <button type="button" class="btn btn-edit" data-action="edit" data-index="${index}">Edit</button>
         <button type="button" class="btn btn-danger" data-action="delete" data-index="${index}">Delete</button>
@@ -132,6 +172,16 @@
       document.getElementById('interval-start').value = getTodayStr();
     }
 
+    clearSlots();
+    if (task && task.times && task.times.length > 0) {
+      timesModeRadios.forEach(r => { r.checked = r.value === 'multiple'; });
+      timesPanel.classList.remove('hidden');
+      task.times.forEach(slot => addSlotRow(slot.label, slot.from, slot.to));
+    } else {
+      timesModeRadios.forEach(r => { r.checked = r.value === 'once'; });
+      timesPanel.classList.add('hidden');
+    }
+
     taskNameInput.focus();
   }
 
@@ -173,7 +223,24 @@
       frequency.startDate = document.getElementById('interval-start').value || getTodayStr();
     }
 
-    return { title, frequency };
+    const result = { title, frequency };
+
+    const timesMode = document.querySelector('input[name="times-mode"]:checked').value;
+    if (timesMode === 'multiple') {
+      const rows = document.querySelectorAll('.time-slot-row');
+      const times = Array.from(rows).map(row => ({
+        label: row.querySelector('.slot-label').value.trim(),
+        from: parseInt(row.querySelector('.slot-from').value),
+        to: parseInt(row.querySelector('.slot-to').value)
+      })).filter(s => s.label.length > 0);
+      if (times.length === 0) {
+        alert('Please add at least one time slot with a label.');
+        return null;
+      }
+      result.times = times;
+    }
+
+    return result;
   }
 
   function saveTask(data) {
@@ -182,6 +249,11 @@
       if (idx !== -1) {
         tasks[idx].title = data.title;
         tasks[idx].frequency = data.frequency;
+        if (data.times) {
+          tasks[idx].times = data.times;
+        } else {
+          delete tasks[idx].times;
+        }
       }
     } else {
       const id = slugify(data.title) || ('task-' + Date.now());
@@ -190,13 +262,17 @@
         alert('A task with a similar name already exists. Please use a different name.');
         return false;
       }
-      tasks.push({
+      const newTask = {
         id,
         title: data.title,
         accentClass: getAccentForIndex(tasks.length),
         icon: DEFAULT_ICON,
         frequency: data.frequency
-      });
+      };
+      if (data.times) {
+        newTask.times = data.times;
+      }
+      tasks.push(newTask);
     }
 
     saveDraft();
@@ -227,11 +303,19 @@
 
       const freq = task.frequency;
       if (!freq || freq.type === 'daily') {
-        lines.push("    frequency: { type: 'daily' }");
+        lines.push("    frequency: { type: 'daily' }" + (task.times && task.times.length > 0 ? ',' : ''));
       } else if (freq.type === 'weekly') {
-        lines.push("    frequency: { type: 'weekly', days: [" + freq.days.join(', ') + '] }');
+        lines.push("    frequency: { type: 'weekly', days: [" + freq.days.join(', ') + '] }' + (task.times && task.times.length > 0 ? ',' : ''));
       } else if (freq.type === 'interval') {
-        lines.push("    frequency: { type: 'interval', day: " + freq.day + ", every: " + freq.every + ", startDate: '" + freq.startDate + "' }");
+        lines.push("    frequency: { type: 'interval', day: " + freq.day + ", every: " + freq.every + ", startDate: '" + freq.startDate + "' }" + (task.times && task.times.length > 0 ? ',' : ''));
+      }
+
+      if (task.times && task.times.length > 0) {
+        lines.push('    times: [');
+        task.times.forEach((slot, si) => {
+          lines.push("      { label: '" + escapeJsString(slot.label) + "', from: " + slot.from + ', to: ' + slot.to + ' }' + (si < task.times.length - 1 ? ',' : ''));
+        });
+        lines.push('    ]');
       }
 
       lines.push('  }' + (i < tasks.length - 1 ? ',' : ''));
@@ -253,6 +337,25 @@
     radio.addEventListener('change', () => {
       updateFreqPanels(radio.value);
     });
+  });
+
+  timesModeRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      timesPanel.classList.toggle('hidden', radio.value !== 'multiple');
+      if (radio.value === 'multiple' && timeSlotsList.children.length === 0) {
+        addSlotRow('', 7, 12);
+      }
+    });
+  });
+
+  addSlotBtn.addEventListener('click', () => {
+    addSlotRow('', 7, 12);
+  });
+
+  timeSlotsList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('slot-remove')) {
+      e.target.closest('.time-slot-row').remove();
+    }
   });
 
   taskForm.addEventListener('submit', (e) => {
