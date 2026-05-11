@@ -9,8 +9,8 @@
 <body>
   <div class="todo-app">
     <header class="todo-header">
-      <h1>My Day Tasks</h1>
-      <p class="todo-subtitle">Manage tasks that appear on your habit board</p>
+      <h1>Task Manager</h1>
+      <p class="todo-subtitle">Manage tasks for Morning Routine and My Day</p>
     </header>
 
     <div class="todo-layout">
@@ -18,6 +18,14 @@
         <div class="section-bar">
           <h2>Tasks</h2>
           <button type="button" class="btn btn-primary" id="add-task-btn">+ Add Task</button>
+        </div>
+        <div class="filter-bar" id="filter-bar">
+          <button type="button" class="filter-chip active" data-filter="all">All</button>
+          <button type="button" class="filter-chip" data-filter="Morning Routine">Morning Routine</button>
+          <button type="button" class="filter-chip" data-filter="Self Care">Self Care</button>
+          <button type="button" class="filter-chip" data-filter="Chores">Chores</button>
+          <button type="button" class="filter-chip" data-filter="Groceries">Groceries</button>
+          <button type="button" class="filter-chip" data-filter="General">General</button>
         </div>
         <div class="task-list" id="task-list"></div>
       </section>
@@ -31,6 +39,17 @@
           </div>
 
           <div class="form-group">
+            <label for="task-category">Category</label>
+            <select id="task-category" class="form-input">
+              <option value="General">General</option>
+              <option value="Self Care">Self Care</option>
+              <option value="Chores">Chores</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Morning Routine">Morning Routine</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="freq-section">
             <label>Frequency</label>
             <div class="radio-group">
               <label class="radio-label">
@@ -82,7 +101,7 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group" id="times-section">
             <label>Times per day</label>
             <div class="radio-group">
               <label class="radio-label">
@@ -116,11 +135,11 @@
         <button type="button" class="btn btn-secondary hidden" id="copy-btn">Copy to Clipboard</button>
       </div>
       <textarea class="export-output hidden" id="export-output" readonly rows="12"></textarea>
-      <p class="export-hint">Generate the config, copy it, and paste into <code>myday-config.js</code> in your repo.</p>
+      <p class="export-hint">Generate the config, copy it, and paste into <code>tasks-config.js</code> in your repo.</p>
     </section>
   </div>
 
-  <script src="myday-config.js"></script>
+  <script src="tasks-config.js"></script>
   <script src="todo.js"></script>
 </body>
 </html>

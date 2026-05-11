@@ -5,9 +5,16 @@
   var MORNING_START_SECONDS = 7 * 60 * 60;
   var MORNING_END_SECONDS = 10 * 60 * 60;
 
-  var morningConfig = window.MORNING_CONFIG || { habits: [], badge: 'Morning reset', heading: 'Start with:', timeLabel: '' };
-  var morningHabits = morningConfig.habits;
-  var mydayTasks = window.MYDAY_TASKS || [];
+  var allTasks = window.ALL_TASKS || [];
+  var morningHabits = [];
+  var mydayTasks = [];
+  for (var _i = 0; _i < allTasks.length; _i += 1) {
+    if (allTasks[_i].category === 'Morning Routine') {
+      morningHabits.push(allTasks[_i]);
+    } else {
+      mydayTasks.push(allTasks[_i]);
+    }
+  }
 
   var accentClasses = ['accent-pink', 'accent-blue', 'accent-green', 'accent-cyan', 'accent-amber', 'accent-purple'];
 
@@ -641,9 +648,9 @@
     var badgeEl = document.getElementById('morning-badge');
     var headingEl = document.getElementById('morning-heading');
     var timeLabelEl = document.getElementById('morning-time-label');
-    if (badgeEl) { badgeEl.textContent = morningConfig.badge; }
-    if (headingEl) { headingEl.textContent = morningConfig.heading; }
-    if (timeLabelEl) { timeLabelEl.textContent = morningConfig.timeLabel; }
+    if (badgeEl) { badgeEl.textContent = 'Morning reset'; }
+    if (headingEl) { headingEl.textContent = 'Start with:'; }
+    if (timeLabelEl) { timeLabelEl.textContent = '7:00 AM to 10:00 AM'; }
   }
 
   applyMorningConfig();
