@@ -159,6 +159,9 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
 }
 
 .habit-index {
@@ -171,6 +174,8 @@ body {
   -webkit-box-pack: center;
       -ms-flex-pack: center;
           justify-content: center;
+  -ms-flex-item-align: stretch;
+      align-self: stretch;
   font-size: 74px;
   font-weight: 800;
   border-radius: 22px 0 0 22px;
