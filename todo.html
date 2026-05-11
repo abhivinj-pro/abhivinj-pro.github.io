@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Day - Task Manager</title>
+  <link rel="stylesheet" href="todo.css">
+</head>
+<body>
+  <div class="todo-app">
+    <header class="todo-header">
+      <h1>My Day Tasks</h1>
+      <p class="todo-subtitle">Manage tasks that appear on your habit board</p>
+    </header>
+
+    <div class="todo-layout">
+      <section class="task-list-section">
+        <div class="section-bar">
+          <h2>Tasks</h2>
+          <button type="button" class="btn btn-primary" id="add-task-btn">+ Add Task</button>
+        </div>
+        <div class="task-list" id="task-list"></div>
+      </section>
+
+      <section class="editor-section hidden" id="editor-section">
+        <h2 id="editor-title">Add Task</h2>
+        <form id="task-form" autocomplete="off">
+          <div class="form-group">
+            <label for="task-name">Task Name</label>
+            <input type="text" id="task-name" class="form-input" placeholder="e.g. Exercise, Read, Meditate..." required>
+          </div>
+
+          <div class="form-group">
+            <label>Frequency</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="freq-type" value="daily" checked>
+                <span class="radio-text">Every day</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="freq-type" value="weekly">
+                <span class="radio-text">Specific days of the week</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="freq-type" value="interval">
+                <span class="radio-text">Every N weeks on a day</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group freq-panel hidden" id="weekly-panel">
+            <label>Which days?</label>
+            <div class="day-checkboxes">
+              <label class="day-check"><input type="checkbox" name="day" value="0"><span>Sun</span></label>
+              <label class="day-check"><input type="checkbox" name="day" value="1"><span>Mon</span></label>
+              <label class="day-check"><input type="checkbox" name="day" value="2"><span>Tue</span></label>
+              <label class="day-check"><input type="checkbox" name="day" value="3"><span>Wed</span></label>
+              <label class="day-check"><input type="checkbox" name="day" value="4"><span>Thu</span></label>
+              <label class="day-check"><input type="checkbox" name="day" value="5"><span>Fri</span></label>
+              <label class="day-check"><input type="checkbox" name="day" value="6"><span>Sat</span></label>
+            </div>
+          </div>
+
+          <div class="form-group freq-panel hidden" id="interval-panel">
+            <div class="interval-row">
+              <label>Every</label>
+              <input type="number" id="interval-weeks" class="form-input form-input-sm" min="2" max="52" value="2">
+              <label>weeks on</label>
+              <select id="interval-day" class="form-input form-input-sm">
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+              </select>
+            </div>
+            <div class="interval-row">
+              <label for="interval-start">Starting from</label>
+              <input type="date" id="interval-start" class="form-input form-input-sm">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="save-btn">Save Task</button>
+            <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <section class="export-section">
+      <div class="section-bar">
+        <h2>Export Config</h2>
+        <button type="button" class="btn btn-accent" id="export-btn">Generate Config</button>
+        <button type="button" class="btn btn-secondary hidden" id="copy-btn">Copy to Clipboard</button>
+      </div>
+      <textarea class="export-output hidden" id="export-output" readonly rows="12"></textarea>
+      <p class="export-hint">Generate the config, copy it, and paste into <code>myday-config.js</code> in your repo.</p>
+    </section>
+  </div>
+
+  <script src="myday-config.js"></script>
+  <script src="todo.js"></script>
+</body>
+</html>
