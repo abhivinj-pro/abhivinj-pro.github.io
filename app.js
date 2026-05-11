@@ -342,79 +342,70 @@
     var cards = routineGrid.querySelectorAll('.habit-card');
     if (!cards.length) return;
 
-    var i, title, content, heights = [];
+    var i, w, titles = [], words, longest, cardH;
 
-    // Create an off-screen measurer for true text width
+    // Off-screen measurer for single-word width
     var measurer = document.createElement('span');
-    measurer.style.cssText = 'position:absolute;left:-9999px;top:-9999px;white-space:nowrap;visibility:hidden;pointer-events:none;';
+    measurer.style.cssText = 'position:absolute;left:-9999px;top:-9999px;white-space:nowrap;visibility:hidden;';
     document.body.appendChild(measurer);
 
-    // Reset all titles so grid determines card heights
+    // Reset all titles and collect longest word across all cards
+    longest = '';
     for (i = 0; i < cards.length; i += 1) {
-      cards[i].querySelector('.habit-title').style.fontSize = '';
+      titles.push(cards[i].querySelector('.habit-title'));
+      titles[i].style.fontSize = '';
+      words = titles[i].textContent.split(/\s+/);
+      for (w = 0; w < words.length; w += 1) {
+        if (words[w].length > longest.length) { longest = words[w]; }
+      }
     }
-
-    // Force layout
     void routineGrid.offsetHeight;
 
-    // Measure each card height (set by parent grid, not content)
-    for (i = 0; i < cards.length; i += 1) {
-      heights.push(cards[i].getBoundingClientRect().height);
+    // Copy font properties to measurer
+    var ts = window.getComputedStyle(titles[0]);
+    measurer.style.fontFamily = ts.fontFamily;
+    measurer.style.fontWeight = ts.fontWeight;
+    measurer.style.letterSpacing = ts.letterSpacing;
+
+    // Available dimensions
+    cardH = cards[0].getBoundingClientRect().height;
+    var availH = cardH - 16;
+    var content = cards[0].querySelector('.habit-content');
+    var cs = window.getComputedStyle(content);
+    var availW = content.getBoundingClientRect().width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - 4;
+
+    // Binary-search the largest uniform font-size
+    var lo = 20;
+    var hi = Math.min(200, Math.round(availH));
+    var mid;
+
+    while (hi - lo > 1) {
+      mid = Math.floor((lo + hi) / 2);
+      for (i = 0; i < titles.length; i += 1) {
+        titles[i].style.fontSize = mid + 'px';
+      }
+
+      // Check longest word fits horizontally
+      measurer.style.fontSize = mid + 'px';
+      measurer.textContent = longest;
+      var wordFits = measurer.getBoundingClientRect().width <= availW;
+
+      // Check all titles fit vertically
+      var allFit = wordFits;
+      if (allFit) {
+        for (i = 0; i < titles.length; i += 1) {
+          if (titles[i].getBoundingClientRect().height > availH) {
+            allFit = false;
+            break;
+          }
+        }
+      }
+
+      if (allFit) { lo = mid; } else { hi = mid; }
     }
 
-    // Binary-search the largest font-size whose text fits per card
-    for (i = 0; i < cards.length; i += 1) {
-      title = cards[i].querySelector('.habit-title');
-      content = cards[i].querySelector('.habit-content');
-      var availH = heights[i] - 16;
-      var contentRect = content.getBoundingClientRect();
-      var contentStyle = window.getComputedStyle(content);
-      var padL = parseFloat(contentStyle.paddingLeft) || 0;
-      var padR = parseFloat(contentStyle.paddingRight) || 0;
-      var availW = contentRect.width - padL - padR - 4;
-
-      // Copy font properties to measurer
-      var titleStyle = window.getComputedStyle(title);
-      measurer.style.fontFamily = titleStyle.fontFamily;
-      measurer.style.fontWeight = titleStyle.fontWeight;
-      measurer.style.letterSpacing = titleStyle.letterSpacing;
-      measurer.textContent = '';
-
-      // Find the widest single word in the title
-      var words = title.textContent.split(/\s+/);
-      var longestWord = '';
-      var w;
-      for (w = 0; w < words.length; w += 1) {
-        if (words[w].length > longestWord.length) {
-          longestWord = words[w];
-        }
-      }
-
-      var lo = 20;
-      var hi = Math.min(200, Math.round(availH));
-      var mid;
-
-      while (hi - lo > 1) {
-        mid = Math.floor((lo + hi) / 2);
-        title.style.fontSize = mid + 'px';
-        measurer.style.fontSize = mid + 'px';
-
-        // Check height in block context (wrapping)
-        var fitsH = title.getBoundingClientRect().height <= availH;
-
-        // Check that the widest single word fits in one line
-        measurer.textContent = longestWord;
-        var wordW = measurer.getBoundingClientRect().width;
-        var fitsW = wordW <= availW;
-
-        if (fitsH && fitsW) {
-          lo = mid;
-        } else {
-          hi = mid;
-        }
-      }
-
-      title.style.fontSize = lo + 'px';
+    for (i = 0; i < titles.length; i += 1) {
+      titles[i].style.fontSize = lo + 'px';
     }
 
     document.body.removeChild(measurer);
