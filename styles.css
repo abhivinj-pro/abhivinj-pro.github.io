@@ -217,6 +217,7 @@ body {
       -ms-flex-pack: center;
           justify-content: center;
   padding-right: 6px;
+  color: #e2e8f0;
 }
 
 .habit-icon svg {

@@ -3,11 +3,16 @@
   const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const DEFAULT_ICON = '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>';
+  const DEFAULT_ICON = (window.ICON_LIBRARY && window.ICON_LIBRARY.length)
+    ? window.ICON_LIBRARY[0].svg
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
 
   let tasks = [];
   let editingId = null;
   let activeFilters = new Set();
+  let selectedIcon = DEFAULT_ICON;
+  let iconPickerOpen = false;
+  let iconCategoryFilter = 'All';
 
   const taskList = document.getElementById('task-list');
   const editorSection = document.getElementById('editor-section');
@@ -29,6 +34,89 @@
   const taskCategory = document.getElementById('task-category');
   const freqSection = document.getElementById('freq-section');
   const timesSection = document.getElementById('times-section');
+  const iconPreview = document.getElementById('icon-preview');
+  const openIconPickerBtn = document.getElementById('open-icon-picker-btn');
+  const iconPickerPanel = document.getElementById('icon-picker-panel');
+  const iconSearchInput = document.getElementById('icon-search');
+  const iconGrid = document.getElementById('icon-grid');
+  const iconFilterChips = document.getElementById('icon-filter-chips');
+
+  // ── Icon picker ───────────────────────────────────────────────────────────
+
+  const ICON_CATEGORIES = ['All', ...new Set((window.ICON_LIBRARY || []).map(i => i.category))];
+
+  function buildIconFilterChips() {
+    iconFilterChips.innerHTML = '';
+    ICON_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'icon-cat-chip' + (cat === iconCategoryFilter ? ' active' : '');
+      chip.textContent = cat;
+      chip.addEventListener('click', () => {
+        iconCategoryFilter = cat;
+        buildIconFilterChips();
+        renderIconGrid(iconSearchInput.value.trim().toLowerCase());
+      });
+      iconFilterChips.appendChild(chip);
+    });
+  }
+
+  function renderIconGrid(query) {
+    const lib = window.ICON_LIBRARY || [];
+    const filtered = lib.filter(icon => {
+      const matchCat = iconCategoryFilter === 'All' || icon.category === iconCategoryFilter;
+      if (!matchCat) return false;
+      if (!query) return true;
+      return icon.name.toLowerCase().includes(query) ||
+        (icon.tags || []).some(t => t.includes(query)) ||
+        icon.category.toLowerCase().includes(query);
+    });
+
+    iconGrid.innerHTML = '';
+    if (filtered.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'icon-grid-empty';
+      empty.textContent = 'No icons match "' + query + '"';
+      iconGrid.appendChild(empty);
+      return;
+    }
+
+    filtered.forEach(icon => {
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'icon-tile' + (selectedIcon === icon.svg ? ' selected' : '');
+      tile.title = icon.name;
+      tile.innerHTML = icon.svg + '<span class="icon-tile-label">' + escapeHtml(icon.name) + '</span>';
+      tile.addEventListener('click', () => {
+        selectedIcon = icon.svg;
+        updateIconPreview();
+        closeIconPicker();
+      });
+      iconGrid.appendChild(tile);
+    });
+  }
+
+  function updateIconPreview() {
+    iconPreview.innerHTML = selectedIcon;
+  }
+
+  function openIconPicker() {
+    iconPickerOpen = true;
+    iconPickerPanel.classList.remove('hidden');
+    openIconPickerBtn.textContent = 'Close';
+    buildIconFilterChips();
+    renderIconGrid('');
+    iconSearchInput.value = '';
+    iconSearchInput.focus();
+  }
+
+  function closeIconPicker() {
+    iconPickerOpen = false;
+    iconPickerPanel.classList.add('hidden');
+    openIconPickerBtn.textContent = 'Choose Icon';
+  }
+
+  // ── End icon picker ───────────────────────────────────────────────────────
 
   function loadTasks() {
     if (window.ALL_TASKS && Array.isArray(window.ALL_TASKS)) {
@@ -204,6 +292,10 @@
     }
 
     updateCategoryVisibility();
+    selectedIcon = (task && task.icon) ? task.icon : DEFAULT_ICON;
+    closeIconPicker();
+    iconCategoryFilter = 'All';
+    updateIconPreview();
     taskNameInput.focus();
   }
 
@@ -278,6 +370,7 @@
       if (idx !== -1) {
         tasks[idx].title = data.title;
         tasks[idx].category = data.category;
+        tasks[idx].icon = selectedIcon;
         if (data.category === 'Morning Routine') {
           delete tasks[idx].frequency;
           delete tasks[idx].times;
@@ -302,7 +395,7 @@
         title: data.title,
         category: data.category,
         accentClass: getAccentForIndex(tasks.length),
-        icon: DEFAULT_ICON
+        icon: selectedIcon
       };
       if (data.category !== 'Morning Routine') {
         newTask.frequency = data.frequency;
@@ -473,6 +566,15 @@
       copyBtn.textContent = 'Copied!';
       setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
     });
+  });
+
+  openIconPickerBtn.addEventListener('click', () => {
+    if (iconPickerOpen) closeIconPicker();
+    else openIconPicker();
+  });
+
+  iconSearchInput.addEventListener('input', () => {
+    renderIconGrid(iconSearchInput.value.trim().toLowerCase());
   });
 
   // Initialize

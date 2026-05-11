@@ -439,3 +439,155 @@ input[type="date"].form-input {
   font-size: 18px;
   line-height: 1;
 }
+
+/* ── Icon picker ──────────────────────────────────────────────────────────── */
+
+.icon-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  flex-shrink: 0;
+}
+
+.icon-preview svg {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-picker-panel {
+  margin-top: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.icon-picker-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.icon-picker-header .form-input {
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+.icon-filter-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.icon-cat-chip {
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.icon-cat-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.icon-cat-chip.active {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: var(--accent);
+  color: #a5b4fc;
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 4px;
+  padding: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.icon-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.icon-grid::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 3px;
+}
+
+.icon-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
+  min-height: 70px;
+}
+
+.icon-tile:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.icon-tile.selected {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: var(--accent);
+  color: #a5b4fc;
+}
+
+.icon-tile svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.icon-tile-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+}
+
+.icon-grid-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 20px;
+  margin: 0;
+}
