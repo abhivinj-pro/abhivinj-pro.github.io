@@ -121,20 +121,21 @@
   }
 
   function createHabitCard(habit, index) {
-    var button = document.createElement('button');
+    var card = document.createElement('div');
 
-    button.type = 'button';
-    button.className = 'habit-card';
-    button.setAttribute('data-habit-id', habit.id);
-    button.setAttribute('aria-pressed', 'false');
-    button.innerHTML = [
+    card.className = 'habit-card';
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('data-habit-id', habit.id);
+    card.setAttribute('aria-pressed', 'false');
+    card.innerHTML = [
       '<div class="habit-card-inner">',
       '<div class="habit-index ', habit.accentClass, '">', index + 1, '</div>',
       '<div class="habit-content"><div class="habit-title">', habit.title, '</div></div>',
       '<div class="habit-icon">', habit.icon, '</div>',
       '</div>'
     ].join('');
-    return button;
+    return card;
   }
 
   function renderCards() {
@@ -425,6 +426,16 @@
 
     if (node && node.getAttribute && node.getAttribute('data-habit-id')) {
       toggleHabit(node.getAttribute('data-habit-id'));
+    }
+  });
+
+  routineGrid.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      var node = event.target;
+      if (node && node.getAttribute && node.getAttribute('data-habit-id')) {
+        event.preventDefault();
+        toggleHabit(node.getAttribute('data-habit-id'));
+      }
     }
   });
 
