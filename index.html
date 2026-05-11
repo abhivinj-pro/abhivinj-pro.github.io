@@ -6,25 +6,44 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Habit Board</title>
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
   <div class="top-scroll-buffer" aria-hidden="true"></div>
   <div class="app-shell">
     <section class="screen morning-screen" id="morning-screen" aria-live="polite">
       <header class="routine-header">
-        <div class="routine-badge">Morning reset</div>
+        <div class="routine-badge" id="morning-badge">Morning reset</div>
         <div class="routine-meta">
-          <h1>Start with:</h1>
-          <p>7:00 AM to 9:30 AM</p>
+          <h1 id="morning-heading">Start with:</h1>
+          <p id="morning-time-label">7:00 AM to 10:00 AM</p>
         </div>
       </header>
-
+      <nav class="screen-nav" aria-label="Screen navigation">
+        <button type="button" class="nav-btn" id="morning-to-clock">Clock</button>
+      </nav>
       <main class="routine-grid" id="routine-grid"></main>
+    </section>
+
+    <section class="screen myday-screen hidden" id="myday-screen" aria-live="polite">
+      <header class="routine-header">
+        <div class="routine-badge myday-badge">My Day</div>
+        <div class="routine-meta">
+          <h1 id="myday-date-heading">Today</h1>
+          <p id="myday-task-count">0 tasks today</p>
+        </div>
+      </header>
+      <nav class="screen-nav" aria-label="Screen navigation">
+        <button type="button" class="nav-btn" id="myday-to-clock">Clock</button>
+      </nav>
+      <main class="routine-grid myday-grid" id="myday-grid"></main>
     </section>
 
     <section class="screen clock-screen hidden" id="clock-screen" aria-live="polite">
       <div class="clock-frame">
+        <nav class="screen-nav clock-nav" aria-label="Screen navigation">
+          <button type="button" class="nav-btn" id="clock-to-home">Home</button>
+        </nav>
         <div class="clock-main">
           <p class="clock-day" id="clock-day">Sunday</p>
           <p class="clock-date" id="clock-date">May 10, 2026</p>
@@ -55,6 +74,8 @@
     <div class="noscript-note">This page needs JavaScript enabled to show the routine and live clock.</div>
   </noscript>
 
-  <script src="app.js?v=14"></script>
+  <script src="morning-config.js?v=1"></script>
+  <script src="myday-config.js?v=1"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

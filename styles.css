@@ -264,6 +264,7 @@ body {
 }
 
 .clock-frame {
+  position: relative;
   width: 100%;
   min-height: calc(var(--viewport-height) - 28px);
   padding: 20px 22px;
@@ -496,6 +497,89 @@ body {
   background: linear-gradient(180deg, #7d4fd7, #5d33b4);
 }
 
+.myday-screen {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+}
+
+.myday-badge {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+}
+
+.myday-grid {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 10px;
+}
+
+.myday-empty {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--muted);
+  min-height: 200px;
+}
+
+.screen-nav {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: flex-end;
+  padding: 0 2px 8px;
+}
+
+.nav-btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-btn:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.nav-btn:focus {
+  outline: 3px solid rgba(95, 191, 255, 0.7);
+  outline-offset: 2px;
+}
+
+.clock-nav {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  padding: 0;
+}
+
 @media (orientation: landscape) {
   .routine-header {
     margin-bottom: 10px;
@@ -516,6 +600,11 @@ body {
   .routine-grid {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(3, minmax(0, 1fr));
+    grid-gap: 12px;
+  }
+
+  .myday-grid {
+    grid-template-columns: 1fr 1fr;
     grid-gap: 12px;
   }
 
@@ -917,6 +1006,11 @@ body {
   .routine-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(3, minmax(0, 1fr));
+    grid-gap: 10px;
+  }
+
+  .myday-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-gap: 10px;
   }
 

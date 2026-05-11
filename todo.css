@@ -1,0 +1,351 @@
+:root {
+  --bg: #05070d;
+  --panel: #0d111b;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --text: #f6f8fb;
+  --muted: #adb9cb;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --success: #22c55e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "Inter", -apple-system, sans-serif;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.todo-app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.todo-header {
+  margin-bottom: 32px;
+}
+
+.todo-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.todo-subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.todo-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.section-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-bar h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+}
+
+.btn-accent:hover {
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  padding: 6px 10px;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.btn-edit {
+  background: transparent;
+  color: var(--accent);
+  padding: 6px 10px;
+}
+
+.btn-edit:hover {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item {
+  display: grid;
+  grid-template-columns: 10px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+}
+
+.task-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.task-info {
+  min-width: 0;
+}
+
+.task-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.task-freq {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+
+.task-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 15px;
+  background: var(--panel);
+  border: 1px dashed var(--panel-border);
+  border-radius: 12px;
+}
+
+.editor-section {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.editor-section h2 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group > label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.form-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.form-input-sm {
+  width: auto;
+  min-width: 80px;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.radio-label:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.radio-label input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.radio-text {
+  font-size: 15px;
+}
+
+.day-checkboxes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.day-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 52px;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.day-check:has(input:checked) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: var(--accent);
+}
+
+.day-check input {
+  accent-color: var(--accent);
+}
+
+.day-check span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.interval-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.interval-row label {
+  font-size: 15px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.export-section {
+  margin-top: 32px;
+}
+
+.export-output {
+  width: 100%;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  color: #a5f3a0;
+  font-family: "Cascadia Code", "Fira Code", monospace;
+  font-size: 13px;
+  resize: vertical;
+  margin-top: 12px;
+}
+
+.export-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.export-hint code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+select.form-input {
+  appearance: auto;
+}
+
+input[type="date"].form-input {
+  color-scheme: dark;
+}
