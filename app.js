@@ -342,7 +342,12 @@
     var cards = routineGrid.querySelectorAll('.habit-card');
     if (!cards.length) return;
 
-    var i, title, heights = [];
+    var i, title, content, heights = [];
+
+    // Create an off-screen measurer for true text width
+    var measurer = document.createElement('span');
+    measurer.style.cssText = 'position:absolute;left:-9999px;top:-9999px;white-space:nowrap;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(measurer);
 
     // Reset all titles so grid determines card heights
     for (i = 0; i < cards.length; i += 1) {
@@ -360,7 +365,31 @@
     // Binary-search the largest font-size whose text fits per card
     for (i = 0; i < cards.length; i += 1) {
       title = cards[i].querySelector('.habit-title');
-      var availH = heights[i] - 12;
+      content = cards[i].querySelector('.habit-content');
+      var availH = heights[i] - 16;
+      var contentRect = content.getBoundingClientRect();
+      var contentStyle = window.getComputedStyle(content);
+      var padL = parseFloat(contentStyle.paddingLeft) || 0;
+      var padR = parseFloat(contentStyle.paddingRight) || 0;
+      var availW = contentRect.width - padL - padR - 4;
+
+      // Copy font properties to measurer
+      var titleStyle = window.getComputedStyle(title);
+      measurer.style.fontFamily = titleStyle.fontFamily;
+      measurer.style.fontWeight = titleStyle.fontWeight;
+      measurer.style.letterSpacing = titleStyle.letterSpacing;
+      measurer.textContent = '';
+
+      // Find the widest single word in the title
+      var words = title.textContent.split(/\s+/);
+      var longestWord = '';
+      var w;
+      for (w = 0; w < words.length; w += 1) {
+        if (words[w].length > longestWord.length) {
+          longestWord = words[w];
+        }
+      }
+
       var lo = 20;
       var hi = Math.min(200, Math.round(availH));
       var mid;
@@ -368,8 +397,17 @@
       while (hi - lo > 1) {
         mid = Math.floor((lo + hi) / 2);
         title.style.fontSize = mid + 'px';
+        measurer.style.fontSize = mid + 'px';
 
-        if (title.getBoundingClientRect().height <= availH) {
+        // Check height in block context (wrapping)
+        var fitsH = title.getBoundingClientRect().height <= availH;
+
+        // Check that the widest single word fits in one line
+        measurer.textContent = longestWord;
+        var wordW = measurer.getBoundingClientRect().width;
+        var fitsW = wordW <= availW;
+
+        if (fitsH && fitsW) {
           lo = mid;
         } else {
           hi = mid;
@@ -378,6 +416,8 @@
 
       title.style.fontSize = lo + 'px';
     }
+
+    document.body.removeChild(measurer);
   }
 
   function debouncedFitTitles() {
