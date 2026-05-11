@@ -128,11 +128,11 @@
     button.setAttribute('data-habit-id', habit.id);
     button.setAttribute('aria-pressed', 'false');
     button.innerHTML = [
-      '<span class="habit-card-inner">',
-      '<span class="habit-index ', habit.accentClass, '">', index + 1, '</span>',
-      '<span class="habit-content"><span class="habit-title">', habit.title, '</span></span>',
-      '<span class="habit-icon">', habit.icon, '</span>',
-      '</span>'
+      '<div class="habit-card-inner">',
+      '<div class="habit-index ', habit.accentClass, '">', index + 1, '</div>',
+      '<div class="habit-content"><div class="habit-title">', habit.title, '</div></div>',
+      '<div class="habit-icon">', habit.icon, '</div>',
+      '</div>'
     ].join('');
     return button;
   }
