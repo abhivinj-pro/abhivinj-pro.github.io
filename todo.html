@@ -82,6 +82,25 @@
             </div>
           </div>
 
+          <div class="form-group">
+            <label>Times per day</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="times-mode" value="once" checked>
+                <span class="radio-text">Once (visible all day)</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="times-mode" value="multiple">
+                <span class="radio-text">Multiple times</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group freq-panel hidden" id="times-panel">
+            <div class="time-slots-list" id="time-slots-list"></div>
+            <button type="button" class="btn btn-secondary" id="add-slot-btn">+ Add time slot</button>
+          </div>
+
           <div class="form-actions">
             <button type="submit" class="btn btn-primary" id="save-btn">Save Task</button>
             <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
