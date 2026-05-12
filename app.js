@@ -135,11 +135,10 @@
     card.setAttribute('aria-pressed', 'false');
     card.innerHTML = [
       '<div class="habit-card-inner">',
-      '<div class="habit-index ', habit.accentClass || accentClasses[index % accentClasses.length], '">', index + 1, '</div>',
+      '<div class="habit-index ', habit.accentClass || accentClasses[index % accentClasses.length], '">', habit.icon || '', '</div>',
       '<div class="habit-content"><div class="habit-title">', habit.title, '</div>',
       (habit.timeLabel ? '<div class="habit-time-label">' + habit.timeLabel + '</div>' : ''),
       '</div>',
-      '<div class="habit-icon">', habit.icon || '', '</div>',
       '</div>'
     ].join('');
     return card;

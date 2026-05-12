@@ -356,7 +356,7 @@ window.ICON_LIBRARY = [
     name: 'Shower',
     category: 'Personal Care',
     tags: ['shower', 'bath', 'hygiene', 'clean'],
-    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4c0-1.5 1-2.5 3-2.5h4c2 0 3 1 3 2.5v6h4"/><circle cx="18" cy="11" r="1.5"/><path d="M8 13v8"/><path d="M8 16H6"/><path d="M8 19H6"/><path d="M12 14v7"/><path d="M12 17h-2"/><path d="M16 14v7"/><path d="M16 17h-2"/></svg>'
+    svg: '<svg viewBox="0 0 284.999 284.999" fill="white" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.193,138.356h270.613c3.977,0,7.193-3.219,7.193-7.181c0-3.977-3.216-7.193-7.193-7.193H7.193 c-3.977,0-7.193,3.216-7.193,7.193C0,135.137,3.216,138.356,7.193,138.356z"/><path d="M12.89,237.123l-9.688,6.447c-3.306,2.208-4.193,6.667-1.989,9.977c1.389,2.078,3.659,3.201,5.987,3.201 c1.373,0,2.759-0.393,3.971-1.212l12.646-8.424C19.767,244.238,16.1,240.891,12.89,237.123z"/><path d="M272.11,237.126c-3.216,3.77-6.877,7.116-10.929,9.988l12.648,8.421c1.212,0.819,2.598,1.212,3.97,1.212 c2.326,0,4.602-1.123,5.987-3.201c2.202-3.312,1.317-7.771-1.992-9.977L272.11,237.126z"/><path d="M276.545,198.829v-42.283c0-3.977-3.216-7.193-7.181-7.193H15.639c-3.968,0-7.184,3.216-7.184,7.193v42.283 c0,27.275,22.191,49.46,49.479,49.46h169.132C254.354,248.29,276.545,226.104,276.545,198.829z"/><path d="M186.304,47.071l39.581,10.619l38.056,52.961h-19.637c-1.992,0-3.59,1.614-3.59,3.597c0,1.982,1.599,3.596,3.59,3.596 h26.638c1.354,0,2.592-0.764,3.198-1.955c0.606-1.203,0.513-2.641-0.272-3.738L231.826,53.62 c0.625-4.079-0.127-8.362-2.366-12.255c-3.333-5.768-9.349-10.181-16.517-12.092c-2.523-0.668-5.09-1.023-7.654-1.023 c-10.573,0-19.226,5.805-21.539,14.43C183.249,44.591,184.384,46.57,186.304,47.071z"/></svg>'
   },
   {
     id: 'icon-soap',
@@ -385,6 +385,20 @@ window.ICON_LIBRARY = [
     category: 'Personal Care',
     tags: ['cream', 'lotion', 'skincare', 'moisturize'],
     svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6l1 3H8L9 3z"/><path d="M7 6h10v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6z"/><path d="M10 11h4"/><path d="M10 15h4"/></svg>'
+  },
+  {
+    id: 'icon-serum-bottle-color',
+    name: 'Serum Bottle (Color)',
+    category: 'Personal Care',
+    tags: ['serum', 'bottle', 'skincare', 'drop', 'color'],
+    svg: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="0.5" fill="#de7375"/><rect x="6.2" y="7.5" width="11.6" height="14.5" rx="2" fill="#b8d39d"/><path d="M6.2 10.5h11.6M6.2 18.8h11.6" stroke="#000" stroke-width="0.4"/><circle cx="12" cy="14.5" r="3.2" fill="#a9c0d6" stroke="#000" stroke-width="0.5"/><path d="M12 12.4c-.7 1.1-1.5 2.1-1.5 3 0 1 .7 1.8 1.5 1.8s1.5-.8 1.5-1.8c0-.9-.8-1.9-1.5-3z" fill="none" stroke="#000" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  },
+  {
+    id: 'icon-dropper-bottle-color',
+    name: 'Dropper Bottle (Color)',
+    category: 'Personal Care',
+    tags: ['dropper', 'serum', 'bottle', 'skincare', 'oil', 'color'],
+    svg: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.2" y="7" width="9.2" height="15" rx="0.5" fill="#c3d7e1"/><rect x="4.2" y="2" width="3.6" height="3" rx="0.4" fill="#8993a8"/><path d="M6.8 10.2c1.2.9 2.3 2.7 2.3 4s-1 2.8-2.3 3.8c-1.2-1-2.3-2.4-2.3-3.8s1.1-3.1 2.3-4z" fill="#d2e579" stroke="#000" stroke-width="0.45" stroke-linejoin="round"/><path d="M6.8 14.2v2.8" stroke="#000" stroke-width="0.45" stroke-linecap="round"/><path d="M17.4 2h2.2c1.1 0 2 .9 2 2v1.4h-6.2V4c0-1.1.9-2 2-2z" fill="#80c1d6"/><path d="M15.6 6h6.2v1.6h-6.2z" fill="#80c1d6"/><rect x="16.2" y="8.6" width="3" height="6.6" rx="1.2" fill="#b5cdd6"/><path d="M17.7 17.4c.7.9 1.4 1.7 1.4 2.3 0 .8-.6 1.4-1.4 1.4s-1.4-.6-1.4-1.4c0-.6.7-1.4 1.4-2.3z" fill="#80c1d6"/></svg>'
   },
   {
     id: 'icon-hairbrush',

@@ -46,7 +46,7 @@ window.ALL_TASKS = [
     title: 'Exercise',
     category: 'Self Care',
     accentClass: 'accent-green',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="exGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7ad730"/><stop offset="100%" stop-color="#55ab1e"/></linearGradient></defs><circle cx="70" cy="30" r="14" fill="url(#exGrad)"/><path fill="url(#exGrad)" d="M50 52h40l6 36H44z"/><rect x="16" y="68" width="108" height="12" rx="6" fill="url(#exGrad)"/><rect x="16" y="60" width="16" height="28" rx="4" fill="#55ab1e"/><rect x="108" y="60" width="16" height="28" rx="4" fill="#55ab1e"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5h2v11h-2z"/><path d="M15.5 6.5h2v11h-2z"/><rect x="3" y="8.5" width="3.5" height="7" rx="1"/><rect x="17.5" y="8.5" width="3.5" height="7" rx="1"/><path d="M8.5 12h7"/></svg>',
     frequency: { type: 'daily' }
   },
   {
@@ -54,7 +54,7 @@ window.ALL_TASKS = [
     title: 'Pedicure',
     category: 'Self Care',
     accentClass: 'accent-cyan',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3 7 13"/><path d="M4 16c-1.5 1.5-1.5 3.5 0 5s3.5 1.5 5 0l4.5-4.5-5-5L4 16z"/><path d="m16 10 4-4"/></svg>',
     frequency: { type: 'weekly', days: [0, 3] }
   },
   {
@@ -62,7 +62,7 @@ window.ALL_TASKS = [
     title: 'Hair serum',
     category: 'Self Care',
     accentClass: 'accent-pink',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="serumGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff5d90"/><stop offset="100%" stop-color="#ff9d67"/></linearGradient></defs><path fill="url(#serumGrad)" d="M55 20h30l5 10H50zM50 34h40v10H50zM52 48h36l4 52c1 10-7 20-18 20H66c-11 0-19-10-18-20z"/><path fill="#ffb6c7" d="M60 68h20l2 20c0 5-4 10-10 10h-4c-6 0-10-5-10-10z" opacity="0.6"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.2" y="7" width="9.2" height="15" rx="0.5" fill="#c3d7e1"/><rect x="4.2" y="2" width="3.6" height="3" rx="0.4" fill="#8993a8"/><path d="M6.8 10.2c1.2.9 2.3 2.7 2.3 4s-1 2.8-2.3 3.8c-1.2-1-2.3-2.4-2.3-3.8s1.1-3.1 2.3-4z" fill="#d2e579" stroke="#000" stroke-width="0.45" stroke-linejoin="round"/><path d="M6.8 14.2v2.8" stroke="#000" stroke-width="0.45" stroke-linecap="round"/><path d="M17.4 2h2.2c1.1 0 2 .9 2 2v1.4h-6.2V4c0-1.1.9-2 2-2z" fill="#80c1d6"/><path d="M15.6 6h6.2v1.6h-6.2z" fill="#80c1d6"/><rect x="16.2" y="8.6" width="3" height="6.6" rx="1.2" fill="#b5cdd6"/><path d="M17.7 17.4c.7.9 1.4 1.7 1.4 2.3 0 .8-.6 1.4-1.4 1.4s-1.4-.6-1.4-1.4c0-.6.7-1.4 1.4-2.3z" fill="#80c1d6"/></svg>',
     frequency: { type: 'daily' },
     times: [
       { label: 'Morning', from: 7, to: 12 },
@@ -74,7 +74,7 @@ window.ALL_TASKS = [
     title: 'Washroom Cleaning',
     category: 'Chores',
     accentClass: 'accent-cyan',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><path d="M7 13h10l-2 6H9l-2-6z"/><path d="M7 21h10"/><path d="M5 9c1-1 2-1 4 0s3 1 5 0 3-1 5 0"/></svg>',
     frequency: { type: 'weekly', days: [3] }
   },
   {
@@ -82,7 +82,7 @@ window.ALL_TASKS = [
     title: 'Change Bedsheet',
     category: 'Chores',
     accentClass: 'accent-amber',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4v16"/><path d="M2 8h20"/><path d="M2 20h20"/><path d="M22 8v12"/><path d="M4 8V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M14 8V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M2 14h20"/></svg>',
     frequency: { type: 'weekly', days: [0] }
   },
   {
@@ -90,7 +90,7 @@ window.ALL_TASKS = [
     title: 'Wash blanket',
     category: 'Chores',
     accentClass: 'accent-purple',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v8"/><path d="M2 17h20"/><path d="M6 8v9"/><rect x="6" y="6" width="8" height="2" rx="1"/></svg>',
     frequency: { type: 'weekly', days: [1] }
   },
   {
@@ -98,7 +98,7 @@ window.ALL_TASKS = [
     title: 'Towel Wash',
     category: 'Chores',
     accentClass: 'accent-pink',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M7 6h.01"/><path d="M11 6h2"/><path d="M10 13a2 2 0 0 1 4 0"/></svg>',
     frequency: { type: 'weekly', days: [2] }
   },
   {
@@ -106,7 +106,7 @@ window.ALL_TASKS = [
     title: 'Re-organize closet',
     category: 'Chores',
     accentClass: 'accent-blue',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M7 8c1 1 1 2 0 3"/><path d="M17 8c1 1 1 2 0 3"/></svg>',
     frequency: { type: 'interval', day: 0, every: 4, startDate: '2026-05-12' }
   },
   {
@@ -114,7 +114,7 @@ window.ALL_TASKS = [
     title: 'Water Plants',
     category: 'Chores',
     accentClass: 'accent-green',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V12"/><path d="M12 12C12 7.5 7.5 4.5 3 6c0 3.5 3.5 6.5 9 6"/><path d="M12 12c0-4.5 4.5-7.5 9-6 0 3.5-3.5 6.5-9 6"/></svg>',
     frequency: { type: 'daily' },
     times: [
       { label: 'Balcony', from: 10, to: 18 }
@@ -125,7 +125,7 @@ window.ALL_TASKS = [
     title: 'Buy Tofu',
     category: 'Groceries',
     accentClass: 'accent-cyan',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h20"/><path d="M20 12a9 9 0 1 1-18 0"/><path d="M12 2v3"/><path d="m8.5 3.5 1.5 2.5"/><path d="m15.5 3.5-1.5 2.5"/></svg>',
     frequency: { type: 'interval', day: 5, every: 2, startDate: '2026-05-15' }
   },
   {
@@ -133,7 +133,7 @@ window.ALL_TASKS = [
     title: 'Antibiotic',
     category: 'Self Care',
     accentClass: 'accent-amber',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5a5 5 0 0 0-7.07 7.07l7.07 7.07a5 5 0 0 0 7.07-7.07L10.5 3.5z"/><path d="M7 7l10 10"/></svg>',
     frequency: { type: 'daily' },
     times: [
       { label: 'Morning', from: 10, to: 16 },
@@ -145,7 +145,7 @@ window.ALL_TASKS = [
     title: 'Supplements',
     category: 'Self Care',
     accentClass: 'accent-purple',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5a5 5 0 0 0-7.07 7.07l7.07 7.07a5 5 0 0 0 7.07-7.07L10.5 3.5z"/><path d="M7 7l10 10"/></svg>',
     frequency: { type: 'daily' },
     times: [
       { label: 'Iron', from: 10, to: 14 },
@@ -158,7 +158,7 @@ window.ALL_TASKS = [
     title: 'Skin Care',
     category: 'Self Care',
     accentClass: 'accent-pink',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/><path d="M9.5 7.5c.5.5 1 .5 1.5 0"/><path d="M13 7.5c.5.5 1 .5 1.5 0"/><path d="M10 11c.7.7 3.3.7 4 0"/></svg>',
     frequency: { type: 'daily' },
     times: [
       { label: 'Morning', from: 10, to: 14 },
@@ -170,7 +170,7 @@ window.ALL_TASKS = [
     title: 'Face Mask',
     category: 'Self Care',
     accentClass: 'accent-blue',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/><path d="M9.5 7.5c.5.5 1 .5 1.5 0"/><path d="M13 7.5c.5.5 1 .5 1.5 0"/><path d="M10 11c.7.7 3.3.7 4 0"/></svg>',
     frequency: { type: 'weekly', days: [0] }
   },
   {
@@ -178,7 +178,7 @@ window.ALL_TASKS = [
     title: 'Hair Mask',
     category: 'Self Care',
     accentClass: 'accent-green',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3c-1.5 0-4 2-4 6s2.5 6 4 6h8c1.5 0 4-2 4-6s-2.5-6-4-6H8z"/><line x1="12" y1="15" x2="12" y2="21"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="8" y1="7" x2="8.01" y2="7"/><line x1="12" y1="7" x2="12.01" y2="7"/><line x1="16" y1="7" x2="16.01" y2="7"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/></svg>',
     frequency: { type: 'weekly', days: [6] }
   },
   {
@@ -186,7 +186,7 @@ window.ALL_TASKS = [
     title: 'Headbath',
     category: 'Self Care',
     accentClass: 'accent-cyan',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 284.999 284.999" fill="white" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.193,138.356h270.613c3.977,0,7.193-3.219,7.193-7.181c0-3.977-3.216-7.193-7.193-7.193H7.193 c-3.977,0-7.193,3.216-7.193,7.193C0,135.137,3.216,138.356,7.193,138.356z"/><path d="M12.89,237.123l-9.688,6.447c-3.306,2.208-4.193,6.667-1.989,9.977c1.389,2.078,3.659,3.201,5.987,3.201 c1.373,0,2.759-0.393,3.971-1.212l12.646-8.424C19.767,244.238,16.1,240.891,12.89,237.123z"/><path d="M272.11,237.126c-3.216,3.77-6.877,7.116-10.929,9.988l12.648,8.421c1.212,0.819,2.598,1.212,3.97,1.212 c2.326,0,4.602-1.123,5.987-3.201c2.202-3.312,1.317-7.771-1.992-9.977L272.11,237.126z"/><path d="M276.545,198.829v-42.283c0-3.977-3.216-7.193-7.181-7.193H15.639c-3.968,0-7.184,3.216-7.184,7.193v42.283 c0,27.275,22.191,49.46,49.479,49.46h169.132C254.354,248.29,276.545,226.104,276.545,198.829z"/><path d="M186.304,47.071l39.581,10.619l38.056,52.961h-19.637c-1.992,0-3.59,1.614-3.59,3.597c0,1.982,1.599,3.596,3.59,3.596 h26.638c1.354,0,2.592-0.764,3.198-1.955c0.606-1.203,0.513-2.641-0.272-3.738L231.826,53.62 c0.625-4.079-0.127-8.362-2.366-12.255c-3.333-5.768-9.349-10.181-16.517-12.092c-2.523-0.668-5.09-1.023-7.654-1.023 c-10.573,0-19.226,5.805-21.539,14.43C183.249,44.591,184.384,46.57,186.304,47.071z"/></svg>',
     frequency: { type: 'weekly', days: [2, 4, 6] }
   },
   {
@@ -194,7 +194,7 @@ window.ALL_TASKS = [
     title: 'Oiling',
     category: 'Self Care',
     accentClass: 'accent-amber',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="taskGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#64748b"/></linearGradient></defs><circle cx="70" cy="70" r="44" fill="none" stroke="url(#taskGrad)" stroke-width="8"/><path fill="url(#taskGrad)" d="M62 88l-20-20 8-8 12 12 28-28 8 8z"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="0.5" fill="#de7375"/><rect x="6.2" y="7.5" width="11.6" height="14.5" rx="2" fill="#b8d39d"/><path d="M6.2 10.5h11.6M6.2 18.8h11.6" stroke="#000" stroke-width="0.4"/><circle cx="12" cy="14.5" r="3.2" fill="#a9c0d6" stroke="#000" stroke-width="0.5"/><path d="M12 12.4c-.7 1.1-1.5 2.1-1.5 3 0 1 .7 1.8 1.5 1.8s1.5-.8 1.5-1.8c0-.9-.8-1.9-1.5-3z" fill="none" stroke="#000" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     frequency: { type: 'weekly', days: [1, 3, 5] }
   }
 ];
