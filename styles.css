@@ -147,7 +147,7 @@ body {
 
 .habit-card-inner {
   display: grid;
-  grid-template-columns: 110px 1fr 90px;
+  grid-template-columns: 110px 1fr;
   grid-template-rows: 1fr;
   height: 100%;
   min-height: 0;
@@ -167,21 +167,28 @@ body {
           justify-content: center;
   -ms-flex-item-align: stretch;
       align-self: stretch;
-  font-size: 74px;
-  font-weight: 800;
   border-radius: 22px 0 0 22px;
   color: #ffffff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.habit-index svg {
+  width: 58px;
+  height: 58px;
+  opacity: 0.92;
 }
 
 .habit-content {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  padding: 0 20px;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  padding: 0 32px;
   min-width: 0;
   overflow: hidden;
 }
@@ -189,7 +196,7 @@ body {
 .habit-title {
   margin: 0;
   font-size: 58px;
-  line-height: 0.88;
+  line-height: 1;
   font-weight: 800;
   letter-spacing: -0.03em;
   display: block;
@@ -198,31 +205,14 @@ body {
 }
 
 .habit-time-label {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 6px;
 }
 
-.habit-icon {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  padding-right: 6px;
-}
-
-.habit-icon svg {
-  width: 64px;
-  height: 64px;
-}
 
 .habit-card.completed {
   border-color: var(--done-border);
@@ -230,7 +220,6 @@ body {
 }
 
 .habit-card.completed .habit-title,
-.habit-card.completed .habit-icon,
 .habit-card.completed .habit-index {
   opacity: 0.58;
 }
@@ -649,11 +638,7 @@ body {
   }
 
   .habit-card-inner {
-    grid-template-columns: 92px 1fr 80px;
-  }
-
-  .habit-index {
-    font-size: 64px;
+    grid-template-columns: 92px 1fr;
   }
 
   .habit-title {
@@ -662,11 +647,6 @@ body {
 
   .habit-time-label {
     font-size: 14px;
-  }
-
-  .habit-icon svg {
-    width: 56px;
-    height: 56px;
   }
 
   .clock-day {
@@ -722,11 +702,7 @@ body {
   }
 
   .habit-card-inner {
-    grid-template-columns: 88px 1fr 72px;
-  }
-
-  .habit-index {
-    font-size: 58px;
+    grid-template-columns: 88px 1fr;
   }
 
   .habit-content {
@@ -739,11 +715,6 @@ body {
 
   .habit-time-label {
     font-size: 13px;
-  }
-
-  .habit-icon svg {
-    width: 52px;
-    height: 52px;
   }
 
   .habit-card.completed:after {
@@ -824,11 +795,7 @@ body {
   }
 
   .habit-card-inner {
-    grid-template-columns: 72px 1fr 60px;
-  }
-
-  .habit-index {
-    font-size: 48px;
+    grid-template-columns: 72px 1fr;
   }
 
   .habit-content {
@@ -841,11 +808,6 @@ body {
 
   .habit-time-label {
     font-size: 12px;
-  }
-
-  .habit-icon svg {
-    width: 44px;
-    height: 44px;
   }
 
   .clock-frame {
@@ -942,11 +904,10 @@ body {
   }
 
   .habit-card-inner {
-    grid-template-columns: 92px 1fr 66px;
+    grid-template-columns: 92px 1fr;
   }
 
   .habit-index {
-    font-size: 64px;
     border-radius: 20px 0 0 20px;
   }
 
@@ -964,10 +925,6 @@ body {
     font-size: 13px;
   }
 
-  .habit-icon svg {
-    width: 50px;
-    height: 50px;
-  }
   .clock-frame {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -1075,11 +1032,10 @@ body {
   }
 
   .habit-card-inner {
-    grid-template-columns: 110px 1fr 72px;
+    grid-template-columns: 110px 1fr;
   }
 
   .habit-index {
-    font-size: 84px;
     border-radius: 20px 0 0 20px;
   }
 
@@ -1095,15 +1051,6 @@ body {
 
   .habit-time-label {
     font-size: 14px;
-  }
-
-  .habit-icon {
-    padding-right: 6px;
-  }
-
-  .habit-icon svg {
-    width: 56px;
-    height: 56px;
   }
 
   .clock-frame {

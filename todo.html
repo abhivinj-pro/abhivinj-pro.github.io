@@ -49,6 +49,21 @@
             </select>
           </div>
 
+          <div class="form-group">
+            <label>Icon</label>
+            <div class="icon-field">
+              <div class="icon-preview" id="icon-preview" title="Current icon"></div>
+              <button type="button" class="btn btn-secondary" id="open-icon-picker-btn">Choose Icon</button>
+            </div>
+            <div class="icon-picker-panel hidden" id="icon-picker-panel">
+              <div class="icon-picker-header">
+                <input type="text" class="form-input" id="icon-search" placeholder="Search icons… e.g. water, run, clean">
+                <div class="icon-filter-chips" id="icon-filter-chips"></div>
+              </div>
+              <div class="icon-grid" id="icon-grid"></div>
+            </div>
+          </div>
+
           <div class="form-group" id="freq-section">
             <label>Frequency</label>
             <div class="radio-group">
@@ -140,6 +155,7 @@
   </div>
 
   <script src="tasks-config.js"></script>
+  <script src="icon-library.js"></script>
   <script src="todo.js"></script>
 </body>
 </html>
