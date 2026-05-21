@@ -61,6 +61,10 @@ body {
   display: none !important;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .morning-screen {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -188,7 +192,7 @@ body {
   -webkit-box-pack: center;
       -ms-flex-pack: center;
           justify-content: center;
-  padding: 0 32px;
+  padding: 0 18px;
   min-width: 0;
   overflow: hidden;
 }
@@ -196,9 +200,11 @@ body {
 .habit-title {
   margin: 0;
   font-size: 58px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  -webkit-text-stroke: 1px currentColor;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
   display: block;
   width: 100%;
   min-width: 0;
@@ -526,6 +532,7 @@ body {
   -webkit-box-direction: normal;
       -ms-flex-direction: column;
           flex-direction: column;
+  min-height: 0;
 }
 
 .myday-badge {
@@ -540,7 +547,166 @@ body {
   min-height: 0;
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-rows: none;
+  grid-auto-rows: 140px;
   grid-gap: 10px;
+  align-content: start;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 2px;
+}
+
+.myday-grid.compact {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 auto;
+          flex: 0 0 auto;
+  overflow-y: visible;
+}
+
+.myday-quote {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 auto;
+          flex: 1 1 auto;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  text-align: center;
+  padding: 28px 32px;
+  margin-top: 18px;
+  min-height: 160px;
+  position: relative;
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at top, rgba(255, 92, 138, 0.10), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(87, 213, 255, 0.08), transparent 60%),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  -webkit-animation: quoteFade 600ms ease-out;
+          animation: quoteFade 600ms ease-out;
+}
+
+.myday-quote-mark {
+  font-family: "Playfair Display", "Cormorant Garamond", "Didot", "Bodoni 72", Georgia, serif;
+  font-style: italic;
+  font-size: 140px;
+  line-height: 0.6;
+  color: rgba(255, 255, 255, 0.18);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.myday-quote-text {
+  margin: 0;
+  font-family: "Cormorant Garamond", "Playfair Display", "Didot", "Bodoni 72", Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.25;
+  letter-spacing: 0.005em;
+  max-width: 920px;
+  background: linear-gradient(135deg, #ffe6b8 0%, #ff9cb3 45%, #9fd9ff 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 2px 24px rgba(255, 156, 179, 0.18);
+}
+
+.myday-quote-author {
+  display: block;
+  margin-top: 18px;
+  font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(16px, 1.6vw, 22px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.myday-quote-author:not(:empty)::before {
+  content: "\2014\00a0\00a0";
+  color: rgba(255, 255, 255, 0.35);
+}
+
+@-webkit-keyframes quoteFade {
+  from { opacity: 0; -webkit-transform: translateY(8px); transform: translateY(8px); }
+  to { opacity: 1; -webkit-transform: translateY(0); transform: translateY(0); }
+}
+
+@keyframes quoteFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.done-missed-section {
+  margin-top: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.done-missed-toggle {
+  cursor: pointer;
+  list-style: none;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.done-missed-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.done-missed-count {
+  min-width: 26px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 150, 100, 0.2);
+  color: #ffc3a8;
+  font-size: 12px;
+  text-align: center;
+}
+
+.done-missed-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: 140px;
+  grid-gap: 10px;
+  padding: 0 10px 10px;
+  max-height: 40vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.myday-grid .habit-card,
+.done-missed-grid .habit-card {
+  min-height: 0;
 }
 
 .myday-empty {
@@ -626,7 +792,13 @@ body {
 
   .myday-grid {
     grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 130px;
     grid-gap: 12px;
+  }
+
+  .done-missed-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 130px;
   }
 
   .habit-card-inner {
@@ -814,6 +986,14 @@ body {
     font-size: 12px;
   }
 
+  .myday-grid {
+    grid-auto-rows: 110px;
+  }
+
+  .done-missed-grid {
+    grid-auto-rows: 110px;
+  }
+
   .clock-frame {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
@@ -922,7 +1102,7 @@ body {
   .habit-title {
     font-size: 54px;
     font-size: clamp(54px, 6.5vw, 66px);
-    line-height: 0.82;
+    line-height: 1.15;
   }
 
   .habit-time-label {
@@ -1050,7 +1230,7 @@ body {
   .habit-title {
     font-size: 70px;
     font-size: clamp(70px, 6.2vw, 86px);
-    line-height: 0.76;
+    line-height: 1.15;
   }
 
   .habit-time-label {

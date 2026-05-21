@@ -133,11 +133,10 @@ window.ALL_TASKS = [
     title: 'Antibiotic',
     category: 'Self Care',
     accentClass: 'accent-amber',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5a5 5 0 0 0-7.07 7.07l7.07 7.07a5 5 0 0 0 7.07-7.07L10.5 3.5z"/><path d="M7 7l10 10"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="medColorBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffd84d"/><stop offset="100%" stop-color="#ff9a1f"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#medColorBg)"/><g transform="rotate(-40 11 9)"><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="#ffffff"/><rect x="10" y="6.4" width="7" height="5.2" rx="2.6" fill="#f04444"/><path d="M11.5 7.2c1.8-.1 3.5.1 5 .6" stroke="#ffffff" stroke-width="0.35" stroke-linecap="round" fill="none" opacity="0.55"/><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="none" stroke="#b0b0b0" stroke-width="0.18" opacity="0.6"/></g><g><circle cx="16.7" cy="11" r="2.1" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M15.2 10.3l3 1.4" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/><circle cx="13.7" cy="16.6" r="2.6" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M12 15.7l3.4 1.8" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/></g></svg>',
     frequency: { type: 'daily' },
     times: [
-      { label: 'Morning', from: 10, to: 16 },
-      { label: 'Night', from: 20, to: 1 }
+      { label: 'Morning', from: 10, to: 16 }
     ]
   },
   {
@@ -145,7 +144,7 @@ window.ALL_TASKS = [
     title: 'Supplements',
     category: 'Self Care',
     accentClass: 'accent-purple',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5a5 5 0 0 0-7.07 7.07l7.07 7.07a5 5 0 0 0 7.07-7.07L10.5 3.5z"/><path d="M7 7l10 10"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="medColorBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffd84d"/><stop offset="100%" stop-color="#ff9a1f"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#medColorBg)"/><g transform="rotate(-40 11 9)"><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="#ffffff"/><rect x="10" y="6.4" width="7" height="5.2" rx="2.6" fill="#f04444"/><path d="M11.5 7.2c1.8-.1 3.5.1 5 .6" stroke="#ffffff" stroke-width="0.35" stroke-linecap="round" fill="none" opacity="0.55"/><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="none" stroke="#b0b0b0" stroke-width="0.18" opacity="0.6"/></g><g><circle cx="16.7" cy="11" r="2.1" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M15.2 10.3l3 1.4" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/><circle cx="13.7" cy="16.6" r="2.6" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M12 15.7l3.4 1.8" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/></g></svg>',
     frequency: { type: 'daily' },
     times: [
       { label: 'Iron', from: 10, to: 14 },
@@ -158,7 +157,7 @@ window.ALL_TASKS = [
     title: 'Skin Care',
     category: 'Self Care',
     accentClass: 'accent-pink',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/><path d="M9.5 7.5c.5.5 1 .5 1.5 0"/><path d="M13 7.5c.5.5 1 .5 1.5 0"/><path d="M10 11c.7.7 3.3.7 4 0"/></svg>',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="0.5" fill="#de7375"/><rect x="6.2" y="7.5" width="11.6" height="14.5" rx="2" fill="#b8d39d"/><path d="M6.2 10.5h11.6M6.2 18.8h11.6" stroke="#000" stroke-width="0.4"/><circle cx="12" cy="14.5" r="3.2" fill="#a9c0d6" stroke="#000" stroke-width="0.5"/><path d="M12 12.4c-.7 1.1-1.5 2.1-1.5 3 0 1 .7 1.8 1.5 1.8s1.5-.8 1.5-1.8c0-.9-.8-1.9-1.5-3z" fill="none" stroke="#000" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     frequency: { type: 'daily' },
     times: [
       { label: 'Morning', from: 10, to: 14 },
@@ -196,5 +195,29 @@ window.ALL_TASKS = [
     accentClass: 'accent-amber',
     icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="0.5" fill="#de7375"/><rect x="6.2" y="7.5" width="11.6" height="14.5" rx="2" fill="#b8d39d"/><path d="M6.2 10.5h11.6M6.2 18.8h11.6" stroke="#000" stroke-width="0.4"/><circle cx="12" cy="14.5" r="3.2" fill="#a9c0d6" stroke="#000" stroke-width="0.5"/><path d="M12 12.4c-.7 1.1-1.5 2.1-1.5 3 0 1 .7 1.8 1.5 1.8s1.5-.8 1.5-1.8c0-.9-.8-1.9-1.5-3z" fill="none" stroke="#000" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     frequency: { type: 'weekly', days: [1, 3, 5] }
+  },
+  {
+    id: 'eye-drops',
+    title: 'Eye Drops',
+    category: 'Self Care',
+    accentClass: 'accent-purple',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
+    frequency: { type: 'daily' },
+    times: [
+      { label: 'First', from: 7, to: 12 },
+      { label: 'Second', from: 12, to: 14 },
+      { label: 'Third', from: 14, to: 17 },
+      { label: 'Fourth', from: 17, to: 20 },
+      { label: 'Fifth', from: 20, to: 22 },
+      { label: 'Sixth', from: 22, to: 1 }
+    ]
+  },
+  {
+    id: 'aligners',
+    title: 'Aligners',
+    category: 'Self Care',
+    accentClass: 'accent-pink',
+    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="alnBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff3b0"/><stop offset="100%" stop-color="#ffb347"/></linearGradient><linearGradient id="alnTrayU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfe9ff"/></linearGradient><linearGradient id="alnTrayL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cfe9ff"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#alnBg)" stroke="#d98a1a" stroke-width="0.6"/><g stroke="#1d4d7a" stroke-width="0.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4.5 9c0-2.4 3.4-3.6 7.5-3.6S19.5 6.6 19.5 9c0 1.3-.5 2.3-1.4 3.1-.7-.9-1.6-1.4-2.8-1.4H8.7c-1.2 0-2.1.5-2.8 1.4C5 11.3 4.5 10.3 4.5 9z" fill="url(#alnTrayU)"/><path d="M7.4 9.2v2.2M9.7 9v2.5M12 8.95v2.55M14.3 9v2.5M16.6 9.2v2.2" stroke-width="0.45" opacity="0.85"/><path d="M4.5 15c0 2.4 3.4 3.6 7.5 3.6s7.5-1.2 7.5-3.6c0-1.3-.5-2.3-1.4-3.1-.7.9-1.6 1.4-2.8 1.4H8.7c-1.2 0-2.1-.5-2.8-1.4-.9.8-1.4 1.8-1.4 3.1z" fill="url(#alnTrayL)"/><path d="M7.4 14.8v-2.2M9.7 15v-2.5M12 15.05v-2.55M14.3 15v-2.5M16.6 14.8v-2.2" stroke-width="0.45" opacity="0.85"/></g><path d="M6.5 7c1.5-.8 3.5-1.2 5.5-1.2" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M17.5 17c-1.5.8-3.5 1.2-5.5 1.2" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" fill="none" opacity="0.7"/></svg>',
+    frequency: { type: 'daily' }
   }
 ];
