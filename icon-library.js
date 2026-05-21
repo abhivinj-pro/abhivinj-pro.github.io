@@ -36,6 +36,13 @@ window.ICON_LIBRARY = [
     svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></svg>'
   },
   {
+    id: 'icon-medicine-color',
+    name: 'Medicine (Color)',
+    category: 'Health',
+    tags: ['medicine', 'pill', 'capsule', 'tablet', 'pharmacy', 'health', 'color'],
+    svg: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="medColorBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffd84d"/><stop offset="100%" stop-color="#ff9a1f"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#medColorBg)"/><g transform="rotate(-40 11 9)"><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="#ffffff"/><rect x="10" y="6.4" width="7" height="5.2" rx="2.6" fill="#f04444"/><path d="M11.5 7.2c1.8-.1 3.5.1 5 .6" stroke="#ffffff" stroke-width="0.35" stroke-linecap="round" fill="none" opacity="0.55"/><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="none" stroke="#b0b0b0" stroke-width="0.18" opacity="0.6"/></g><g><circle cx="16.7" cy="11" r="2.1" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M15.2 10.3l3 1.4" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/><circle cx="13.7" cy="16.6" r="2.6" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M12 15.7l3.4 1.8" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/></g></svg>'
+  },
+  {
     id: 'icon-heart',
     name: 'Heart',
     category: 'Health',
@@ -55,6 +62,13 @@ window.ICON_LIBRARY = [
     category: 'Health',
     tags: ['dental', 'teeth', 'brush', 'hygiene'],
     svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5.5c-2.76 0-5 1.79-5 4 0 1.23.65 2.34 1.69 3.13L9 19c.25.75.66 1 1 1s.72-.37.9-1l.6-3 .5-1 .5 1 .6 3c.18.63.57 1 .9 1s.75-.25 1-1l.31-6.37C15.35 11.84 16 10.73 16 9.5c0-2.21-2.24-4-5-4z"/></svg>'
+  },
+  {
+    id: 'icon-aligners-color',
+    name: 'Aligners (Color)',
+    category: 'Health',
+    tags: ['aligners', 'invisalign', 'teeth', 'dental', 'orthodontics', 'braces', 'retainer', 'color'],
+    svg: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="alnBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff3b0"/><stop offset="100%" stop-color="#ffb347"/></linearGradient><linearGradient id="alnTrayU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfe9ff"/></linearGradient><linearGradient id="alnTrayL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cfe9ff"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#alnBg)" stroke="#d98a1a" stroke-width="0.6"/><g stroke="#1d4d7a" stroke-width="0.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4.5 9c0-2.4 3.4-3.6 7.5-3.6S19.5 6.6 19.5 9c0 1.3-.5 2.3-1.4 3.1-.7-.9-1.6-1.4-2.8-1.4H8.7c-1.2 0-2.1.5-2.8 1.4C5 11.3 4.5 10.3 4.5 9z" fill="url(#alnTrayU)"/><path d="M7.4 9.2v2.2M9.7 9v2.5M12 8.95v2.55M14.3 9v2.5M16.6 9.2v2.2" stroke-width="0.45" opacity="0.85"/><path d="M4.5 15c0 2.4 3.4 3.6 7.5 3.6s7.5-1.2 7.5-3.6c0-1.3-.5-2.3-1.4-3.1-.7.9-1.6 1.4-2.8 1.4H8.7c-1.2 0-2.1-.5-2.8-1.4-.9.8-1.4 1.8-1.4 3.1z" fill="url(#alnTrayL)"/><path d="M7.4 14.8v-2.2M9.7 15v-2.5M12 15.05v-2.55M14.3 15v-2.5M16.6 14.8v-2.2" stroke-width="0.45" opacity="0.85"/></g><path d="M6.5 7c1.5-.8 3.5-1.2 5.5-1.2" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M17.5 17c-1.5.8-3.5 1.2-5.5 1.2" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" fill="none" opacity="0.7"/></svg>'
   },
   {
     id: 'icon-thermometer',

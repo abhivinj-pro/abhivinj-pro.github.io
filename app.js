@@ -36,6 +36,40 @@
   var calendarNextButton = document.getElementById('calendar-next');
   var mydayDateHeading = document.getElementById('myday-date-heading');
   var mydayTaskCount = document.getElementById('myday-task-count');
+  var doneMissedSection = document.getElementById('done-missed-section');
+  var doneMissedCount = document.getElementById('done-missed-count');
+  var doneMissedGrid = document.getElementById('done-missed-grid');
+  var mydayQuote = document.getElementById('myday-quote');
+  var mydayQuoteText = document.getElementById('myday-quote-text');
+  var mydayQuoteAuthor = document.getElementById('myday-quote-author');
+
+  var MYDAY_QUOTES = [
+    { text: 'Small steps every day.', author: '' },
+    { text: 'Discipline is the bridge between goals and accomplishment.', author: 'Jim Rohn' },
+    { text: 'You do not rise to the level of your goals. You fall to the level of your systems.', author: 'James Clear' },
+    { text: 'Habits are the compound interest of self\u2011improvement.', author: 'James Clear' },
+    { text: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.', author: 'Will Durant' },
+    { text: 'Done is better than perfect.', author: 'Sheryl Sandberg' },
+    { text: 'Consistency over intensity.', author: '' },
+    { text: 'One percent better today.', author: '' },
+    { text: 'Showing up is the secret.', author: '' },
+    { text: 'The body achieves what the mind believes.', author: '' },
+    { text: 'Take care of your body. It\u2019s the only place you have to live.', author: 'Jim Rohn' },
+    { text: 'Motivation gets you going. Habit keeps you growing.', author: 'John C. Maxwell' },
+    { text: 'A river cuts through rock not because of its power, but its persistence.', author: 'James N. Watkins' },
+    { text: 'Make each day your masterpiece.', author: 'John Wooden' },
+    { text: 'Tiny changes, remarkable results.', author: 'James Clear' }
+  ];
+
+  function pickQuoteForKey(key) {
+    var hash = 0;
+    var src = String(key || '');
+    for (var i = 0; i < src.length; i += 1) {
+      hash = ((hash << 5) - hash + src.charCodeAt(i)) | 0;
+    }
+    var idx = Math.abs(hash) % MYDAY_QUOTES.length;
+    return MYDAY_QUOTES[idx];
+  }
 
   var calendarMonthCursor = null;
   var touchStartY = 0;
@@ -182,7 +216,12 @@
     var state = readState(prefix, dateKey);
     state[habitId] = !state[habitId];
     writeState(prefix, dateKey, state);
-    applyState(grid, prefix, dateKey);
+    if (prefix === MYDAY_STORAGE_PREFIX) {
+      renderMyDay();
+      fitAllTitles();
+    } else {
+      applyState(grid, prefix, dateKey);
+    }
   }
 
   function setupGridInteraction(grid, storagePrefix) {
@@ -237,7 +276,7 @@
     var i, t, task, nowHour, expandedTasks, missedTasks, carryForwardTasks;
     var dateKey, state, compositeId, todayTaskIds;
     var yesterday, yesterdayKey, yesterdayState;
-    var allTasks, isLandscape, minRows, actualRows, rows;
+    var allTasks, visibleTasks, doneMissedTasks;
 
     for (i = 0; i < mydayTasks.length; i += 1) {
       if (isTaskForDate(mydayTasks[i], logicalDate)) {
@@ -314,16 +353,28 @@
     });
 
     allTasks = expandedTasks.concat(carryForwardTasks).concat(missedTasks);
-    currentMyDayTasks = allTasks;
+    visibleTasks = [];
+    doneMissedTasks = [];
+
+    for (i = 0; i < allTasks.length; i += 1) {
+      task = allTasks[i];
+      if (task.missed && state[task.id]) {
+        doneMissedTasks.push(task);
+      } else {
+        visibleTasks.push(task);
+      }
+    }
+
+    currentMyDayTasks = visibleTasks;
 
     if (mydayDateHeading) {
       mydayDateHeading.textContent = dayNames[logicalDate.getDay()] + ', ' + monthNames[logicalDate.getMonth()] + ' ' + logicalDate.getDate();
     }
     if (mydayTaskCount) {
-      mydayTaskCount.textContent = allTasks.length + (allTasks.length === 1 ? ' task now' : ' tasks now');
+      mydayTaskCount.textContent = visibleTasks.length + (visibleTasks.length === 1 ? ' task now' : ' tasks now');
     }
 
-    if (allTasks.length === 0) {
+    if (visibleTasks.length === 0) {
       while (mydayGrid.firstChild) {
         mydayGrid.removeChild(mydayGrid.firstChild);
       }
@@ -331,24 +382,55 @@
       emptyMsg.className = 'myday-empty';
       emptyMsg.textContent = 'No tasks right now';
       mydayGrid.appendChild(emptyMsg);
-      return;
-    }
+    } else {
+      renderCardsInto(mydayGrid, visibleTasks);
+      applyState(mydayGrid, MYDAY_STORAGE_PREFIX, dateKey);
 
-    renderCardsInto(mydayGrid, allTasks);
-    applyState(mydayGrid, MYDAY_STORAGE_PREFIX, dateKey);
-
-    var cards = mydayGrid.querySelectorAll('.habit-card');
-    for (i = 0; i < allTasks.length; i += 1) {
-      if (allTasks[i].missed) {
-        cards[i].classList.add('missed');
+      var cards = mydayGrid.querySelectorAll('.habit-card');
+      for (i = 0; i < visibleTasks.length; i += 1) {
+        if (visibleTasks[i].missed) {
+          cards[i].classList.add('missed');
+        }
       }
     }
 
-    isLandscape = window.innerWidth > window.innerHeight;
-    minRows = isLandscape ? 3 : 6;
-    actualRows = isLandscape ? Math.ceil(allTasks.length / 2) : allTasks.length;
-    rows = Math.max(actualRows, minRows);
-    mydayGrid.style.gridTemplateRows = 'repeat(' + rows + ', minmax(0, 1fr))';
+    if (doneMissedSection && doneMissedGrid) {
+      if (doneMissedTasks.length === 0) {
+        doneMissedSection.classList.add('hidden');
+        while (doneMissedGrid.firstChild) {
+          doneMissedGrid.removeChild(doneMissedGrid.firstChild);
+        }
+      } else {
+        doneMissedSection.classList.remove('hidden');
+        if (doneMissedCount) {
+          doneMissedCount.textContent = String(doneMissedTasks.length);
+        }
+        renderCardsInto(doneMissedGrid, doneMissedTasks);
+        applyState(doneMissedGrid, MYDAY_STORAGE_PREFIX, dateKey);
+
+        var doneCards = doneMissedGrid.querySelectorAll('.habit-card');
+        for (i = 0; i < doneMissedTasks.length; i += 1) {
+          doneCards[i].classList.add('missed');
+        }
+      }
+    }
+
+    // Motivational quote in the leftover space when there are few cards.
+    if (mydayGrid && mydayQuote && mydayQuoteText) {
+      var isLandscape = window.innerWidth >= window.innerHeight;
+      var quoteThreshold = isLandscape ? 4 : 3;
+      var showQuote = visibleTasks.length > 0 && visibleTasks.length <= quoteThreshold && doneMissedTasks.length <= quoteThreshold;
+      if (showQuote) {
+        var q = pickQuoteForKey(dateKey);
+        mydayQuoteText.textContent = q.text;
+        if (mydayQuoteAuthor) { mydayQuoteAuthor.textContent = q.author || ''; }
+        mydayQuote.classList.remove('hidden');
+        mydayGrid.classList.add('compact');
+      } else {
+        mydayQuote.classList.add('hidden');
+        mydayGrid.classList.remove('compact');
+      }
+    }
   }
 
   function getActiveScreen(date) {
@@ -537,56 +619,98 @@
 
   var fitTimer = null;
 
-  function fitTitlesForGrid(grid) {
-    var cards = grid.querySelectorAll('.habit-card');
-    if (!cards.length) return;
+  function fitTitlesForGrid(grid, extraGrids) {
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.habit-card'));
+    var allTitles = Array.prototype.slice.call(grid.querySelectorAll('.habit-title'));
+    if (extraGrids && extraGrids.length) {
+      for (var g = 0; g < extraGrids.length; g += 1) {
+        if (!extraGrids[g]) continue;
+        var moreTitles = extraGrids[g].querySelectorAll('.habit-title');
+        for (var m = 0; m < moreTitles.length; m += 1) { allTitles.push(moreTitles[m]); }
+      }
+    }
+    if (!cards.length || !allTitles.length) return;
 
-    var i, w, titles = [], words, longest, cardH;
+    var i, w, words, longest;
+
+    // Reset inline sizes so measurement isn't biased by previous run.
+    for (i = 0; i < allTitles.length; i += 1) {
+      allTitles[i].style.fontSize = '';
+    }
 
     var measurer = document.createElement('span');
     measurer.style.cssText = 'position:absolute;left:-9999px;top:-9999px;white-space:nowrap;visibility:hidden;';
     document.body.appendChild(measurer);
 
+    // Collect title texts and longest single word from ALL titles (visible + hidden).
     longest = '';
-    for (i = 0; i < cards.length; i += 1) {
-      titles.push(cards[i].querySelector('.habit-title'));
-      titles[i].style.fontSize = '';
-      words = titles[i].textContent.split(/\s+/);
+    var titleTexts = [];
+    for (i = 0; i < allTitles.length; i += 1) {
+      var txt = allTitles[i].textContent;
+      titleTexts.push(txt);
+      words = txt.split(/\s+/);
       for (w = 0; w < words.length; w += 1) {
         if (words[w].length > longest.length) { longest = words[w]; }
       }
     }
-    void grid.offsetHeight;
 
-    var ts = window.getComputedStyle(titles[0]);
+    var ts = window.getComputedStyle(allTitles[0]);
     measurer.style.fontFamily = ts.fontFamily;
     measurer.style.fontWeight = ts.fontWeight;
     measurer.style.letterSpacing = ts.letterSpacing;
+    var lineHeightMult = parseFloat(ts.lineHeight) / parseFloat(ts.fontSize);
+    if (!isFinite(lineHeightMult) || lineHeightMult <= 0) { lineHeightMult = 1.15; }
 
-    cardH = cards[0].getBoundingClientRect().height;
-    var availH = cardH - 16;
+    // Card height is fixed via grid-auto-rows — use first visible card.
+    var cardH = cards[0].getBoundingClientRect().height;
+    var availH = cardH - 24;
     var content = cards[0].querySelector('.habit-content');
     var cs = window.getComputedStyle(content);
     var availW = content.getBoundingClientRect().width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - 4;
 
+    // Greedy line-wrap simulation using measurer, so hidden titles can be measured.
+    function countLines(text, fontPx) {
+      measurer.style.fontSize = fontPx + 'px';
+      var ws = text.split(/\s+/);
+      if (!ws.length) return 1;
+      var lines = 1;
+      var current = '';
+      for (var k = 0; k < ws.length; k += 1) {
+        var trial = current ? current + ' ' + ws[k] : ws[k];
+        measurer.textContent = trial;
+        if (measurer.getBoundingClientRect().width <= availW) {
+          current = trial;
+        } else {
+          if (!current) {
+            // Single word exceeds width — counts as one line but doesn't fit.
+            return Infinity;
+          }
+          lines += 1;
+          current = ws[k];
+          measurer.textContent = current;
+          if (measurer.getBoundingClientRect().width > availW) { return Infinity; }
+        }
+      }
+      return lines;
+    }
+
     var lo = 20;
-    var hi = Math.min(200, Math.round(availH));
+    var hi = Math.min(220, Math.round(availH));
     var mid;
 
     while (hi - lo > 1) {
       mid = Math.floor((lo + hi) / 2);
-      for (i = 0; i < titles.length; i += 1) {
-        titles[i].style.fontSize = mid + 'px';
-      }
 
+      // Quick reject: longest single word must fit on one line.
       measurer.style.fontSize = mid + 'px';
       measurer.textContent = longest;
       var wordFits = measurer.getBoundingClientRect().width <= availW;
 
       var allFit = wordFits;
       if (allFit) {
-        for (i = 0; i < titles.length; i += 1) {
-          if (titles[i].getBoundingClientRect().height > availH) {
+        for (i = 0; i < titleTexts.length; i += 1) {
+          var lines = countLines(titleTexts[i], mid);
+          if (!isFinite(lines) || lines * mid * lineHeightMult > availH) {
             allFit = false;
             break;
           }
@@ -596,8 +720,8 @@
       if (allFit) { lo = mid; } else { hi = mid; }
     }
 
-    for (i = 0; i < titles.length; i += 1) {
-      titles[i].style.fontSize = lo + 'px';
+    for (i = 0; i < allTitles.length; i += 1) {
+      allTitles[i].style.fontSize = lo + 'px';
     }
 
     document.body.removeChild(measurer);
@@ -608,7 +732,15 @@
       fitTitlesForGrid(routineGrid);
     }
     if (mydayGrid && !mydayScreen.classList.contains('hidden') && currentMyDayTasks.length > 0) {
-      fitTitlesForGrid(mydayGrid);
+      var extras = [];
+      // Always include done-missed grid (even when collapsed/hidden) so
+      // fit basis stays constant when tasks move between sections.
+      if (doneMissedGrid) {
+        extras.push(doneMissedGrid);
+      }
+      fitTitlesForGrid(mydayGrid, extras);
+    } else if (doneMissedGrid && doneMissedSection && !doneMissedSection.classList.contains('hidden')) {
+      fitTitlesForGrid(doneMissedGrid);
     }
   }
 
@@ -659,6 +791,16 @@
   renderMyDay();
   setupGridInteraction(routineGrid, MORNING_STORAGE_PREFIX);
   setupGridInteraction(mydayGrid, MYDAY_STORAGE_PREFIX);
+  if (doneMissedGrid) {
+    setupGridInteraction(doneMissedGrid, MYDAY_STORAGE_PREFIX);
+  }
+  if (doneMissedSection) {
+    doneMissedSection.addEventListener('toggle', function () {
+      if (doneMissedSection.open) {
+        fitAllTitles();
+      }
+    });
+  }
   setupNavButtons();
   syncView();
 
