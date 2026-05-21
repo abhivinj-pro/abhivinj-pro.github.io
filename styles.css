@@ -234,50 +234,42 @@ body {
   text-decoration-thickness: 6px;
 }
 
-.habit-card.completed:after {
-  content: "Done";
-  position: absolute;
-  right: 18px;
-  top: 10px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(167, 249, 120, 0.18);
-  color: #d8ffc0;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .habit-card.missed {
-  opacity: 0.45;
   border-color: rgba(255, 150, 100, 0.3);
 }
 
-.habit-card.missed:after {
-  content: "Missed";
+/* Small missed-marker pinned to the top-left of every missed card.
+   Sits as ::before on .habit-card (outside .habit-card-inner) so it stays
+   at full opacity even while the inner content is dimmed. Hidden once the
+   task is also completed. */
+.habit-card.missed:not(.completed)::before {
+  content: "";
   position: absolute;
-  right: 18px;
-  top: 10px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(255, 150, 100, 0.18);
-  color: #ffd4b8;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  top: 2px;
+  left: 2px;
+  width: 40px;
+  height: 40px;
+  background-image: url("resources/missed.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Dim only the inner content so future overlays (e.g. count chip) can stay
+   at full brightness while the card itself reads as inactive. */
+.habit-card.missed .habit-card-inner {
+  opacity: 0.45;
 }
 
 .habit-card.missed.completed {
-  opacity: 0.58;
   border-color: var(--done-border);
 }
 
-.habit-card.missed.completed:after {
-  content: "Done";
-  background: rgba(167, 249, 120, 0.18);
-  color: #d8ffc0;
+.habit-card.missed.completed .habit-card-inner {
+  opacity: 0.58;
 }
 
 .clock-screen {
@@ -641,6 +633,10 @@ body {
     grid-template-columns: 92px 1fr;
   }
 
+  .habit-card {
+    --tile-width: 92px;
+  }
+
   .habit-title {
     font-size: 54px;
   }
@@ -705,6 +701,12 @@ body {
     grid-template-columns: 88px 1fr;
   }
 
+  .habit-card {
+    --tile-width: 88px;
+    --status-badge-size: 34px;
+    --status-badge-icon: 24px;
+  }
+
   .habit-content {
     padding: 0 16px;
   }
@@ -715,10 +717,6 @@ body {
 
   .habit-time-label {
     font-size: 13px;
-  }
-
-  .habit-card.completed:after {
-    font-size: 14px;
   }
 
   .clock-frame {
@@ -796,6 +794,12 @@ body {
 
   .habit-card-inner {
     grid-template-columns: 72px 1fr;
+  }
+
+  .habit-card {
+    --tile-width: 72px;
+    --status-badge-size: 30px;
+    --status-badge-icon: 22px;
   }
 
   .habit-content {
