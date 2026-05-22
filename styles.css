@@ -599,10 +599,11 @@ body {
 .myday-quote-mark {
   font-family: "Playfair Display", "Cormorant Garamond", "Didot", "Bodoni 72", Georgia, serif;
   font-style: italic;
-  font-size: 140px;
+  font-size: 150px;
+  font-size: clamp(120px, 16vw, 200px);
   line-height: 0.6;
   color: rgba(255, 255, 255, 0.18);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   display: block;
 }
 
@@ -611,8 +612,9 @@ body {
   font-family: "Cormorant Garamond", "Playfair Display", "Didot", "Bodoni 72", Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  font-size: clamp(36px, 5vw, 64px);
-  line-height: 1.25;
+  font-size: 64px;
+  font-size: clamp(48px, 7vw, 84px);
+  line-height: 1.2;
   letter-spacing: 0.005em;
   max-width: 920px;
   background: linear-gradient(135deg, #ffe6b8 0%, #ff9cb3 45%, #9fd9ff 100%);
@@ -629,7 +631,8 @@ body {
   font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  font-size: clamp(16px, 1.6vw, 22px);
+  font-size: 22px;
+  font-size: clamp(18px, 2vw, 26px);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
@@ -1125,6 +1128,7 @@ body {
   }
 
   .myday-quote-text {
+    font-size: 68px;
     font-size: clamp(54px, 7.6vw, 78px);
     line-height: 1.2;
   }
@@ -1284,6 +1288,7 @@ body {
   }
 
   .myday-quote-text {
+    font-size: 72px;
     font-size: clamp(60px, 7vw, 84px);
     line-height: 1.18;
   }

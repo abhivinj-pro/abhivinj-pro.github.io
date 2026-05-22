@@ -214,9 +214,22 @@
       dateKey = getDateKey(new Date());
     }
     var state = readState(prefix, dateKey);
+    var wasMissed = false;
+    if (prefix === MYDAY_STORAGE_PREFIX && grid) {
+      var card = grid.querySelector('[data-habit-id="' + habitId + '"]');
+      if (card && card.classList && card.classList.contains('missed')) {
+        wasMissed = true;
+      }
+    }
     state[habitId] = !state[habitId];
     writeState(prefix, dateKey, state);
     if (prefix === MYDAY_STORAGE_PREFIX) {
+      // When a Missed task is caught up, auto-open the Caught Up section so
+      // the user sees where the card moved (otherwise it appears to vanish
+      // into the collapsed <details>).
+      if (wasMissed && state[habitId] && doneMissedSection) {
+        doneMissedSection.open = true;
+      }
       renderMyDay();
       fitAllTitles();
     } else {
