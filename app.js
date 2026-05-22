@@ -288,15 +288,60 @@
   }
 
   function setupGridInteraction(grid, storagePrefix) {
-    grid.addEventListener('click', function (event) {
-      var node = event.target;
-      while (node && node !== grid && !node.getAttribute('data-habit-id')) {
+    function findHabitNode(target) {
+      var node = target;
+      while (node && node !== grid) {
+        if (node.getAttribute && node.getAttribute('data-habit-id')) {
+          return node;
+        }
         node = node.parentNode;
       }
-      if (node && node.getAttribute && node.getAttribute('data-habit-id')) {
+      return null;
+    }
+
+    grid.addEventListener('click', function (event) {
+      var node = findHabitNode(event.target);
+      if (node) {
         toggleHabit(grid, storagePrefix, node.getAttribute('data-habit-id'));
       }
     });
+
+    // iOS 9 / iPad 1: click events on non-anchor/button divs are unreliable
+    // (especially inside scrollable containers with momentum scrolling).
+    // Track a touch and synthesize the toggle on touchend if it stayed put.
+    var tapStartX = 0;
+    var tapStartY = 0;
+    var tapNode = null;
+    var TAP_SLOP = 12;
+
+    grid.addEventListener('touchstart', function (event) {
+      if (!event.touches || !event.touches[0]) { return; }
+      tapStartX = event.touches[0].clientX;
+      tapStartY = event.touches[0].clientY;
+      tapNode = findHabitNode(event.target);
+    }, false);
+
+    grid.addEventListener('touchmove', function (event) {
+      if (!tapNode || !event.touches || !event.touches[0]) { return; }
+      var dx = Math.abs(event.touches[0].clientX - tapStartX);
+      var dy = Math.abs(event.touches[0].clientY - tapStartY);
+      if (dx > TAP_SLOP || dy > TAP_SLOP) {
+        tapNode = null; // it's a scroll, not a tap
+      }
+    }, false);
+
+    grid.addEventListener('touchend', function (event) {
+      if (!tapNode) { return; }
+      var node = tapNode;
+      tapNode = null;
+      // Suppress the synthesized click so we don't toggle twice on modern iOS.
+      if (event.cancelable) { event.preventDefault(); }
+      toggleHabit(grid, storagePrefix, node.getAttribute('data-habit-id'));
+    }, false);
+
+    grid.addEventListener('touchcancel', function () {
+      tapNode = null;
+    }, false);
 
     grid.addEventListener('keydown', function (event) {
       if (event.key === 'Enter' || event.key === ' ') {
@@ -483,8 +528,7 @@
       }
     }
 
-    // Motivational quote always shown between the task list and Caught Up
-    // section, for a consistent MyDay layout.
+    // Motivational quote is always shown below the task list.
     if (mydayGrid && mydayQuote && mydayQuoteText) {
       var q = pickQuoteForKey(dateKey);
       mydayQuoteText.textContent = q.text;
