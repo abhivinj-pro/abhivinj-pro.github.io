@@ -707,9 +707,6 @@ body {
   grid-auto-rows: 140px;
   grid-gap: 10px;
   padding: 0 10px 10px;
-  max-height: 40vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .myday-grid .habit-card,

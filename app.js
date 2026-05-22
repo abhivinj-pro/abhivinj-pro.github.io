@@ -316,7 +316,12 @@
               accentClass: task.accentClass,
               icon: task.icon
             });
-          } else if (isExpiredTimeWindow(task.times[t], nowHour) && !state[compositeId]) {
+          } else if (isExpiredTimeWindow(task.times[t], nowHour)) {
+            // Always push expired time-slot tasks as missed. Whether the user
+            // has checked them off is decided downstream by the visible-vs-
+            // Caught-Up split (task.missed && state[task.id]). Filtering out
+            // completed ones here would make the card disappear entirely
+            // instead of moving into Caught Up.
             missedTasks.push({
               id: compositeId,
               title: task.title,
@@ -428,21 +433,19 @@
       }
     }
 
-    // Motivational quote in the leftover space when there are few cards.
+    // Motivational quote always shown between the task list and Caught Up
+    // section, for a consistent MyDay layout.
     if (mydayGrid && mydayQuote && mydayQuoteText) {
-      var isLandscape = window.innerWidth >= window.innerHeight;
-      var quoteThreshold = isLandscape ? 4 : 3;
-      var showQuote = visibleTasks.length > 0 && visibleTasks.length <= quoteThreshold && doneMissedTasks.length <= quoteThreshold;
-      if (showQuote) {
-        var q = pickQuoteForKey(dateKey);
-        mydayQuoteText.textContent = q.text;
-        if (mydayQuoteAuthor) { mydayQuoteAuthor.textContent = q.author || ''; }
-        mydayQuote.classList.remove('hidden');
-        mydayGrid.classList.add('compact');
-      } else {
-        mydayQuote.classList.add('hidden');
-        mydayGrid.classList.remove('compact');
-      }
+      var q = pickQuoteForKey(dateKey);
+      mydayQuoteText.textContent = q.text;
+      if (mydayQuoteAuthor) { mydayQuoteAuthor.textContent = q.author || ''; }
+      mydayQuote.classList.remove('hidden');
+
+      // The grid normally uses flex:1 to fill the viewport. Since the quote
+      // (and possibly the Caught Up section) sits below the grid, switch the
+      // grid to size-to-content so those elements remain on-screen instead of
+      // being pushed below the fold.
+      mydayGrid.classList.add('compact');
     }
   }
 
