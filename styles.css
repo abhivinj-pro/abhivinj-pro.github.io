@@ -1387,3 +1387,172 @@ body {
     font-size: 10px;
   }
 }
+
+
+/* =========================================================================
+   iOS 9 / pre-CSS-Grid fallback (iPad 1, Safari < 10.1).
+   Modern iPads (iOS 10+) support CSS Grid and `@supports`, so this entire
+   block is ignored on iPad Air 1 (iOS 12) and newer devices. Only browsers
+   that BOTH lack Grid AND understand `@supports` (Safari 9.x on iOS 9)
+   actually apply these rules.
+   ========================================================================= */
+@supports not (display: grid) {
+  /* Card list: stack vertically with flexbox. Cards get an explicit min
+     height since grid-auto-rows is gone. */
+  .routine-grid,
+  .myday-grid,
+  .done-missed-grid {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+            flex-direction: column;
+  }
+
+  .routine-grid > .habit-card,
+  .myday-grid > .habit-card,
+  .done-missed-grid > .habit-card {
+    width: 100%;
+    min-height: 120px;
+    margin-bottom: 10px;
+  }
+
+  /* Card body: icon column + content column side by side via flex. */
+  .habit-card-inner {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    -webkit-box-align: stretch;
+    -webkit-align-items: stretch;
+        -ms-flex-align: stretch;
+            align-items: stretch;
+    width: 100%;
+    min-height: 120px;
+  }
+
+  .habit-index {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 110px;
+        -ms-flex: 0 0 110px;
+            flex: 0 0 110px;
+    width: 110px;
+  }
+
+  .habit-content {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 auto;
+        -ms-flex: 1 1 auto;
+            flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Tame the huge title sizes so they fit the iPad 1 (1024x768) screen. */
+  .habit-title {
+    font-size: 44px;
+    line-height: 1.1;
+    -webkit-text-stroke: 0;
+  }
+
+  .habit-time-label {
+    font-size: 13px;
+  }
+
+  /* Clock screen: stack the time and calendar instead of a 2-col grid. */
+  .clock-frame {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+            flex-direction: column;
+  }
+
+  .clock-main {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 auto;
+        -ms-flex: 0 0 auto;
+            flex: 0 0 auto;
+  }
+
+  .clock-time-main { font-size: 160px; }
+  .clock-seconds   { font-size: 72px; }
+  .clock-meridiem  { font-size: 36px; padding-bottom: 20px; }
+
+  /* Calendar panel: flex column. */
+  .calendar-panel {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+            flex-direction: column;
+  }
+
+  .calendar-toolbar {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .calendar-month-label {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 auto;
+        -ms-flex: 1 1 auto;
+            flex: 1 1 auto;
+  }
+
+  /* 7-column calendar via flex wrap. Each cell is ~1/7 of the row. */
+  .calendar-weekdays,
+  .calendar-grid {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+        -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+    margin: 0 -3px;
+  }
+
+  .calendar-weekdays > span,
+  .calendar-grid > .calendar-day {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 calc(14.2857% - 6px);
+        -ms-flex: 0 0 calc(14.2857% - 6px);
+            flex: 0 0 calc(14.2857% - 6px);
+    width: calc(14.2857% - 6px);
+    margin: 3px;
+    min-height: 38px;
+  }
+}
