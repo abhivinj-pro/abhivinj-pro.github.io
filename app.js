@@ -61,14 +61,64 @@
     { text: 'Tiny changes, remarkable results.', author: 'James Clear' }
   ];
 
-  function pickQuoteForKey(key) {
-    var hash = 0;
+  function parseQuotesText(text) {
+    var lines = String(text || '').split(/\r?\n/);
+    var out = [];
+    for (var i = 0; i < lines.length; i += 1) {
+      var line = lines[i].trim();
+      if (!line || line.charAt(0) === '#') { continue; }
+      // Support optional "Quote -- Author" or "Quote — Author" formats.
+      var m = line.match(/^(.*?)\s+(?:--|\u2014|\u2013)\s+(.+)$/);
+      if (m) {
+        out.push({ text: m[1].trim(), author: m[2].trim() });
+      } else {
+        out.push({ text: line, author: '' });
+      }
+    }
+    return out;
+  }
+
+  function dayIndexFromKey(key) {
+    // Cycle quotes by day. Use the YYYY-MM-DD key to compute a stable
+    // day index (days since epoch) so each consecutive day advances by one.
     var src = String(key || '');
+    var m = src.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      var d = Date.UTC(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+      return Math.floor(d / 86400000);
+    }
+    // Fallback: hash the key.
+    var hash = 0;
     for (var i = 0; i < src.length; i += 1) {
       hash = ((hash << 5) - hash + src.charCodeAt(i)) | 0;
     }
-    var idx = Math.abs(hash) % MYDAY_QUOTES.length;
+    return Math.abs(hash);
+  }
+
+  function pickQuoteForKey(key) {
+    if (!MYDAY_QUOTES.length) { return { text: '', author: '' }; }
+    var idx = dayIndexFromKey(key) % MYDAY_QUOTES.length;
     return MYDAY_QUOTES[idx];
+  }
+
+  function loadQuotesFromFile() {
+    if (typeof fetch !== 'function') { return; }
+    fetch('resources/quotes.txt', { cache: 'no-cache' })
+      .then(function (resp) { return resp.ok ? resp.text() : ''; })
+      .then(function (text) {
+        var parsed = parseQuotesText(text);
+        if (parsed.length) {
+          MYDAY_QUOTES = parsed;
+          // If the MyDay quote is already on screen, refresh it so the
+          // user sees the file-driven quote without a reload.
+          if (mydayQuote && !mydayQuote.classList.contains('hidden') && mydayQuoteText) {
+            var q = pickQuoteForKey(getDateKey(getLogicalDate()));
+            mydayQuoteText.textContent = q.text;
+            if (mydayQuoteAuthor) { mydayQuoteAuthor.textContent = q.author || ''; }
+          }
+        }
+      })
+      .catch(function () { /* keep inline fallback */ });
   }
 
   var calendarMonthCursor = null;
@@ -361,7 +411,12 @@
               accentClass: task.accentClass,
               icon: task.icon
             });
-          } else if (isExpiredTimeWindow(task.times[t], nowHour) && !state[compositeId]) {
+          } else if (isExpiredTimeWindow(task.times[t], nowHour)) {
+            // Always push expired time-slot tasks as missed. Whether the user
+            // has checked them off is decided downstream by the visible-vs-
+            // Caught-Up split (task.missed && state[task.id]). Filtering out
+            // completed ones here would make the card disappear entirely
+            // instead of moving into Caught Up.
             missedTasks.push({
               id: compositeId,
               title: task.title,
@@ -479,6 +534,11 @@
       mydayQuoteText.textContent = q.text;
       if (mydayQuoteAuthor) { mydayQuoteAuthor.textContent = q.author || ''; }
       mydayQuote.classList.remove('hidden');
+
+      // The grid normally uses flex:1 to fill the viewport. Since the quote
+      // (and possibly the Caught Up section) sits below the grid, switch the
+      // grid to size-to-content so those elements remain on-screen instead of
+      // being pushed below the fold.
       mydayGrid.classList.add('compact');
     }
   }
@@ -839,6 +899,7 @@
   setupViewportSizing();
   renderCardsInto(routineGrid, morningHabits);
   renderMyDay();
+  loadQuotesFromFile();
   setupGridInteraction(routineGrid, MORNING_STORAGE_PREFIX);
   setupGridInteraction(mydayGrid, MYDAY_STORAGE_PREFIX);
   if (doneMissedGrid) {
