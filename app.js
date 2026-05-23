@@ -845,6 +845,7 @@
   function setupNavButtons() {
     var morningToClockBtn = document.getElementById('morning-to-clock');
     var mydayToClockBtn = document.getElementById('myday-to-clock');
+    var mydayToMorningBtn = document.getElementById('myday-to-morning');
     var clockToHomeBtn = document.getElementById('clock-to-home');
 
     if (morningToClockBtn) {
@@ -857,6 +858,13 @@
       mydayToClockBtn.addEventListener('click', function () {
         manualScreen = 'clock';
         syncView();
+      });
+    }
+    if (mydayToMorningBtn) {
+      mydayToMorningBtn.addEventListener('click', function () {
+        manualScreen = 'morning';
+        syncView();
+        fitAllTitles();
       });
     }
     if (clockToHomeBtn) {
