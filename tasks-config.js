@@ -219,5 +219,13 @@ window.ALL_TASKS = [
     accentClass: 'accent-pink',
     icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="alnBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff3b0"/><stop offset="100%" stop-color="#ffb347"/></linearGradient><linearGradient id="alnTrayU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfe9ff"/></linearGradient><linearGradient id="alnTrayL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cfe9ff"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#alnBg)" stroke="#d98a1a" stroke-width="0.6"/><g stroke="#1d4d7a" stroke-width="0.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4.5 9c0-2.4 3.4-3.6 7.5-3.6S19.5 6.6 19.5 9c0 1.3-.5 2.3-1.4 3.1-.7-.9-1.6-1.4-2.8-1.4H8.7c-1.2 0-2.1.5-2.8 1.4C5 11.3 4.5 10.3 4.5 9z" fill="url(#alnTrayU)"/><path d="M7.4 9.2v2.2M9.7 9v2.5M12 8.95v2.55M14.3 9v2.5M16.6 9.2v2.2" stroke-width="0.45" opacity="0.85"/><path d="M4.5 15c0 2.4 3.4 3.6 7.5 3.6s7.5-1.2 7.5-3.6c0-1.3-.5-2.3-1.4-3.1-.7.9-1.6 1.4-2.8 1.4H8.7c-1.2 0-2.1-.5-2.8-1.4-.9.8-1.4 1.8-1.4 3.1z" fill="url(#alnTrayL)"/><path d="M7.4 14.8v-2.2M9.7 15v-2.5M12 15.05v-2.55M14.3 15v-2.5M16.6 14.8v-2.2" stroke-width="0.45" opacity="0.85"/></g><path d="M6.5 7c1.5-.8 3.5-1.2 5.5-1.2" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M17.5 17c-1.5.8-3.5 1.2-5.5 1.2" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" fill="none" opacity="0.7"/></svg>',
     frequency: { type: 'daily' }
+  },
+  {
+    id: 'cut-nails',
+    title: 'Cut Nails',
+    category: 'Self Care',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C8.5 7.5 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3.5-7.5-7-13z"/></svg>',
+    frequency: { type: 'once', date: '2026-05-23' }
   }
 ];
