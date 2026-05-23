@@ -26,6 +26,8 @@
   const exportOutput = document.getElementById('export-output');
   const weeklyPanel = document.getElementById('weekly-panel');
   const intervalPanel = document.getElementById('interval-panel');
+  const oncePanel = document.getElementById('once-panel');
+  const onceDateInput = document.getElementById('once-date');
   const timesPanel = document.getElementById('times-panel');
   const timeSlotsList = document.getElementById('time-slots-list');
   const addSlotBtn = document.getElementById('add-slot-btn');
@@ -147,6 +149,8 @@
       else desc = freq.days.map(d => DAY_SHORT[d]).join(', ');
     } else if (freq.type === 'interval') {
       desc = 'Every ' + freq.every + ' weeks on ' + DAY_NAMES[freq.day] + ' (from ' + freq.startDate + ')';
+    } else if (freq.type === 'once') {
+      desc = freq.date ? ('One-time on ' + freq.date) : 'One-time (no date)';
     } else {
       desc = 'Unknown';
     }
@@ -281,6 +285,12 @@
       document.getElementById('interval-start').value = getTodayStr();
     }
 
+    if (freqType === 'once' && task && task.frequency) {
+      onceDateInput.value = task.frequency.date || getTodayStr();
+    } else {
+      onceDateInput.value = getTodayStr();
+    }
+
     clearSlots();
     if (task && task.times && task.times.length > 0) {
       timesModeRadios.forEach(r => { r.checked = r.value === 'multiple'; });
@@ -308,6 +318,7 @@
   function updateFreqPanels(type) {
     weeklyPanel.classList.toggle('hidden', type !== 'weekly');
     intervalPanel.classList.toggle('hidden', type !== 'interval');
+    oncePanel.classList.toggle('hidden', type !== 'once');
   }
 
   function getTodayStr() {
@@ -342,6 +353,10 @@
       frequency.every = parseInt(document.getElementById('interval-weeks').value) || 2;
       frequency.day = parseInt(document.getElementById('interval-day').value);
       frequency.startDate = document.getElementById('interval-start').value || getTodayStr();
+    }
+
+    if (freqType === 'once') {
+      frequency.date = onceDateInput.value || getTodayStr();
     }
 
     result.frequency = frequency;
@@ -445,6 +460,8 @@
           lines.push("    frequency: { type: 'weekly', days: [" + freq.days.join(', ') + '] }' + (hasTimes ? ',' : ''));
         } else if (freq.type === 'interval') {
           lines.push("    frequency: { type: 'interval', day: " + freq.day + ", every: " + freq.every + ", startDate: '" + freq.startDate + "' }" + (hasTimes ? ',' : ''));
+        } else if (freq.type === 'once') {
+          lines.push("    frequency: { type: 'once', date: '" + escapeJsString(freq.date || '') + "' }" + (hasTimes ? ',' : ''));
         }
       }
 
