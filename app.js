@@ -211,10 +211,9 @@
   }
 
   function createHabitCard(habit, index) {
-    var card = document.createElement('div');
+    var card = document.createElement('button');
+    card.type = 'button';
     card.className = 'habit-card';
-    card.setAttribute('role', 'button');
-    card.setAttribute('tabindex', '0');
     card.setAttribute('data-habit-id', habit.id);
     card.setAttribute('aria-pressed', 'false');
     card.innerHTML = [
@@ -300,6 +299,8 @@
     }
 
     grid.addEventListener('click', function (event) {
+      // Skip the synthesized click that follows a touchend we already handled.
+      if (Date.now() - lastTouchToggleAt < 700) { return; }
       var node = findHabitNode(event.target);
       if (node) {
         toggleHabit(grid, storagePrefix, node.getAttribute('data-habit-id'));
@@ -312,6 +313,7 @@
     var tapStartX = 0;
     var tapStartY = 0;
     var tapNode = null;
+    var lastTouchToggleAt = 0;
     var TAP_SLOP = 12;
 
     grid.addEventListener('touchstart', function (event) {
@@ -334,8 +336,11 @@
       if (!tapNode) { return; }
       var node = tapNode;
       tapNode = null;
-      // Suppress the synthesized click so we don't toggle twice on modern iOS.
+      // Try to suppress the synthesized click; iOS 9 doesn't always honor this
+      // when the listener is on a parent element, so we also use the timestamp
+      // guard above on the click handler.
       if (event.cancelable) { event.preventDefault(); }
+      lastTouchToggleAt = Date.now();
       toggleHabit(grid, storagePrefix, node.getAttribute('data-habit-id'));
     }, false);
 
