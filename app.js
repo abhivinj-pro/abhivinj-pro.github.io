@@ -210,7 +210,7 @@
     }
   }
 
-  function createHabitCard(habit, index) {
+  function createHabitCard(habit, index, onActivate) {
     var card = document.createElement('button');
     card.type = 'button';
     card.className = 'habit-card';
@@ -224,17 +224,27 @@
       '</div>',
       '</div>'
     ].join('');
+    // Attach the toggle handler DIRECTLY to the button. iOS 9 Safari (iPad 1)
+    // drops delegated click events from non-interactive children inside
+    // momentum-scrolling containers, so per-card binding on a native <button>
+    // is the only path that works on every device without touch shims.
+    if (onActivate) {
+      card.onclick = function () { onActivate(habit.id); };
+    }
     return card;
   }
 
-  function renderCardsInto(grid, habitsList) {
+  function renderCardsInto(grid, habitsList, storagePrefix) {
     var fragment = document.createDocumentFragment();
     var index;
     while (grid.firstChild) {
       grid.removeChild(grid.firstChild);
     }
+    var onActivate = storagePrefix
+      ? function (habitId) { toggleHabit(grid, storagePrefix, habitId); }
+      : null;
     for (index = 0; index < habitsList.length; index += 1) {
-      fragment.appendChild(createHabitCard(habitsList[index], index));
+      fragment.appendChild(createHabitCard(habitsList[index], index, onActivate));
     }
     grid.appendChild(fragment);
   }
@@ -284,79 +294,6 @@
     } else {
       applyState(grid, prefix, dateKey);
     }
-  }
-
-  function setupGridInteraction(grid, storagePrefix) {
-    function findHabitNode(target) {
-      var node = target;
-      while (node && node !== grid) {
-        if (node.getAttribute && node.getAttribute('data-habit-id')) {
-          return node;
-        }
-        node = node.parentNode;
-      }
-      return null;
-    }
-
-    grid.addEventListener('click', function (event) {
-      // Skip the synthesized click that follows a touchend we already handled.
-      if (Date.now() - lastTouchToggleAt < 700) { return; }
-      var node = findHabitNode(event.target);
-      if (node) {
-        toggleHabit(grid, storagePrefix, node.getAttribute('data-habit-id'));
-      }
-    });
-
-    // iOS 9 / iPad 1: click events on non-anchor/button divs are unreliable
-    // (especially inside scrollable containers with momentum scrolling).
-    // Track a touch and synthesize the toggle on touchend if it stayed put.
-    var tapStartX = 0;
-    var tapStartY = 0;
-    var tapNode = null;
-    var lastTouchToggleAt = 0;
-    var TAP_SLOP = 12;
-
-    grid.addEventListener('touchstart', function (event) {
-      if (!event.touches || !event.touches[0]) { return; }
-      tapStartX = event.touches[0].clientX;
-      tapStartY = event.touches[0].clientY;
-      tapNode = findHabitNode(event.target);
-    }, false);
-
-    grid.addEventListener('touchmove', function (event) {
-      if (!tapNode || !event.touches || !event.touches[0]) { return; }
-      var dx = Math.abs(event.touches[0].clientX - tapStartX);
-      var dy = Math.abs(event.touches[0].clientY - tapStartY);
-      if (dx > TAP_SLOP || dy > TAP_SLOP) {
-        tapNode = null; // it's a scroll, not a tap
-      }
-    }, false);
-
-    grid.addEventListener('touchend', function (event) {
-      if (!tapNode) { return; }
-      var node = tapNode;
-      tapNode = null;
-      // Try to suppress the synthesized click; iOS 9 doesn't always honor this
-      // when the listener is on a parent element, so we also use the timestamp
-      // guard above on the click handler.
-      if (event.cancelable) { event.preventDefault(); }
-      lastTouchToggleAt = Date.now();
-      toggleHabit(grid, storagePrefix, node.getAttribute('data-habit-id'));
-    }, false);
-
-    grid.addEventListener('touchcancel', function () {
-      tapNode = null;
-    }, false);
-
-    grid.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter' || event.key === ' ') {
-        var node = event.target;
-        if (node && node.getAttribute && node.getAttribute('data-habit-id')) {
-          event.preventDefault();
-          toggleHabit(grid, storagePrefix, node.getAttribute('data-habit-id'));
-        }
-      }
-    });
   }
 
   function isTaskForDate(task, date) {
@@ -501,7 +438,7 @@
       emptyMsg.textContent = 'No tasks right now';
       mydayGrid.appendChild(emptyMsg);
     } else {
-      renderCardsInto(mydayGrid, visibleTasks);
+      renderCardsInto(mydayGrid, visibleTasks, MYDAY_STORAGE_PREFIX);
       applyState(mydayGrid, MYDAY_STORAGE_PREFIX, dateKey);
 
       var cards = mydayGrid.querySelectorAll('.habit-card');
@@ -523,7 +460,7 @@
         if (doneMissedCount) {
           doneMissedCount.textContent = String(doneMissedTasks.length);
         }
-        renderCardsInto(doneMissedGrid, doneMissedTasks);
+        renderCardsInto(doneMissedGrid, doneMissedTasks, MYDAY_STORAGE_PREFIX);
         applyState(doneMissedGrid, MYDAY_STORAGE_PREFIX, dateKey);
 
         var doneCards = doneMissedGrid.querySelectorAll('.habit-card');
@@ -902,14 +839,9 @@
   applyMorningConfig();
   setupCalendarInteractions();
   setupViewportSizing();
-  renderCardsInto(routineGrid, morningHabits);
+  renderCardsInto(routineGrid, morningHabits, MORNING_STORAGE_PREFIX);
   renderMyDay();
   loadQuotesFromFile();
-  setupGridInteraction(routineGrid, MORNING_STORAGE_PREFIX);
-  setupGridInteraction(mydayGrid, MYDAY_STORAGE_PREFIX);
-  if (doneMissedGrid) {
-    setupGridInteraction(doneMissedGrid, MYDAY_STORAGE_PREFIX);
-  }
   if (doneMissedSection) {
     doneMissedSection.addEventListener('toggle', function () {
       if (doneMissedSection.open) {
