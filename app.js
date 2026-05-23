@@ -317,6 +317,14 @@
       return (diffWeeks >= 0) && (diffWeeks % freq.every === 0) && (date.getDay() === freq.day);
     }
 
+    if (freq.type === 'once') {
+      if (!freq.date) { return false; }
+      var y = date.getFullYear();
+      var m = String(date.getMonth() + 1).padStart(2, '0');
+      var d = String(date.getDate()).padStart(2, '0');
+      return freq.date === (y + '-' + m + '-' + d);
+    }
+
     return false;
   }
 
@@ -385,13 +393,23 @@
     yesterdayState = readState(MYDAY_STORAGE_PREFIX, yesterdayKey);
     carryForwardTasks = [];
 
-    for (i = 0; i < mydayTasks.length; i += 1) {
-      task = mydayTasks[i];
-      if (task.times && task.times.length > 0) { continue; }
-      if (!task.frequency || task.frequency.type === 'daily') { continue; }
-      if (todayTaskIds[task.id]) { continue; }
-      if (!isTaskForDate(task, yesterday)) { continue; }
-      if (yesterdayState[task.id]) { continue; }
+    // Recurring tasks (weekly/interval) carry forward one day if missed yesterday.
+    // One-time tasks carry forward for up to 7 days after their scheduled date
+    // so a short trip / busy week doesn't bury them — they die down after that.
+    var ONCE_CARRY_FORWARD_DAYS = 7;
+
+    function wasEverCompleted(taskId, fromDate, throughDate) {
+      var cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+      var end = new Date(throughDate.getFullYear(), throughDate.getMonth(), throughDate.getDate());
+      while (cursor.getTime() <= end.getTime()) {
+        var dayState = readState(MYDAY_STORAGE_PREFIX, getDateKey(cursor));
+        if (dayState[taskId]) { return true; }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return false;
+    }
+
+    function pushCarryForward(task) {
       carryForwardTasks.push({
         id: task.id,
         title: task.title,
@@ -399,6 +417,29 @@
         icon: task.icon,
         missed: true
       });
+    }
+
+    for (i = 0; i < mydayTasks.length; i += 1) {
+      task = mydayTasks[i];
+      if (task.times && task.times.length > 0) { continue; }
+      if (!task.frequency || task.frequency.type === 'daily') { continue; }
+      if (todayTaskIds[task.id]) { continue; }
+
+      if (task.frequency.type === 'once') {
+        if (!task.frequency.date) { continue; }
+        var scheduled = new Date(task.frequency.date + 'T00:00:00');
+        var scheduledNorm = new Date(scheduled.getFullYear(), scheduled.getMonth(), scheduled.getDate());
+        var todayNorm = new Date(logicalDate.getFullYear(), logicalDate.getMonth(), logicalDate.getDate());
+        var daysSince = Math.floor((todayNorm.getTime() - scheduledNorm.getTime()) / (24 * 60 * 60 * 1000));
+        if (daysSince < 1 || daysSince > ONCE_CARRY_FORWARD_DAYS) { continue; }
+        if (wasEverCompleted(task.id, scheduledNorm, todayNorm)) { continue; }
+        pushCarryForward(task);
+        continue;
+      }
+
+      if (!isTaskForDate(task, yesterday)) { continue; }
+      if (yesterdayState[task.id]) { continue; }
+      pushCarryForward(task);
     }
 
     expandedTasks.sort(function (a, b) {
