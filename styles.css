@@ -1402,6 +1402,19 @@ body {
    actually apply these rules.
    ========================================================================= */
 @supports not (display: grid) {
+  /* iPad 1 / iOS 9 fix: disable momentum scrolling on the scroll containers
+     that hold tappable cards. iOS 9 Safari has a documented bug where click
+     events on elements inside a `-webkit-overflow-scrolling: touch` container
+     are silently dropped — even for native <button> elements. This is why
+     page-nav and calendar buttons work on iPad 1 (not inside a momentum
+     container) but habit-card taps did not. Falling back to standard
+     overflow scrolling fully restores tap reliability; the only trade-off
+     is no inertial fling, which is fine on a 11-task list. */
+  body,
+  .myday-grid {
+    -webkit-overflow-scrolling: auto;
+  }
+
   /* Card list: stack vertically with flexbox. Cards get an explicit min
      height since grid-auto-rows is gone. */
   .routine-grid,
