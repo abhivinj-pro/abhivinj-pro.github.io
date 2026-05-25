@@ -328,12 +328,76 @@
     return false;
   }
 
+  // ---------------------------------------------------------------------------
+  // Missed-task decay
+  //
+  // A missed task is carried forward into subsequent days for a window W that
+  // depends on the task's natural recurrence gap G (days from the missed date
+  // to its next scheduled occurrence):
+  //
+  //     W = clamp( ceil(G / 4), 2, MAX_CARRY_DAYS )      (non-daily)
+  //     W = 0                                            (daily)
+  //
+  // Intuition: carry a miss forward for about a quarter of the gap to the next
+  // occurrence, with a floor of 2 days (so 2x/week still gets a real second
+  // chance) and a ceiling of two weeks (so quarterly / one-off tasks don't
+  // haunt the board forever). The /4 falls out of the rule "a monthly task
+  // missed this weekend should survive long enough to be done next weekend":
+  //     G = 28 -> W = 7.
+  //
+  // Lifetimes this produces:
+  //   daily       (G=1)  -> W = 0
+  //   2x/week     (G=3)  -> W = 2
+  //   weekly      (G=7)  -> W = 2
+  //   biweekly    (G=14) -> W = 4
+  //   monthly     (G=28) -> W = 7
+  //   quarterly+  (G>=56)-> W = 14 (cap)
+  //   once        (G=inf)-> W = 14 (cap)
+  // ---------------------------------------------------------------------------
+  var MAX_CARRY_DAYS = 14;
+
+  function nextOccurrenceDate(task, fromDate) {
+    var cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    var i;
+    for (i = 0; i < 366; i += 1) {
+      if (isTaskForDate(task, cursor)) { return cursor; }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return null;
+  }
+
+  function lastScheduledBefore(task, beforeDate, maxLookback) {
+    var cursor = new Date(beforeDate.getFullYear(), beforeDate.getMonth(), beforeDate.getDate());
+    cursor.setDate(cursor.getDate() - 1);
+    var i;
+    for (i = 0; i < maxLookback; i += 1) {
+      if (isTaskForDate(task, cursor)) { return cursor; }
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return null;
+  }
+
+  function carryWindowDays(task, scheduledDate) {
+    if (!task.frequency || task.frequency.type === 'daily') { return 0; }
+    if (task.frequency.type === 'once') { return MAX_CARRY_DAYS; }
+
+    var dayAfter = new Date(scheduledDate.getFullYear(), scheduledDate.getMonth(), scheduledDate.getDate());
+    dayAfter.setDate(dayAfter.getDate() + 1);
+    var next = nextOccurrenceDate(task, dayAfter);
+    if (!next) { return MAX_CARRY_DAYS; }
+
+    var gap = Math.round((next.getTime() - scheduledDate.getTime()) / (24 * 60 * 60 * 1000));
+    var w = Math.ceil(gap / 4);
+    if (w < 2) { w = 2; }
+    if (w > MAX_CARRY_DAYS) { w = MAX_CARRY_DAYS; }
+    return w;
+  }
+
   function renderMyDay() {
     var logicalDate = getLogicalDate();
     var todayTasks = [];
     var i, t, task, nowHour, expandedTasks, missedTasks, carryForwardTasks;
     var dateKey, state, compositeId, todayTaskIds;
-    var yesterday, yesterdayKey, yesterdayState;
     var allTasks, visibleTasks, doneMissedTasks;
 
     for (i = 0; i < mydayTasks.length; i += 1) {
@@ -387,17 +451,11 @@
       todayTaskIds[todayTasks[i].id] = true;
     }
 
-    yesterday = new Date(logicalDate.getTime());
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterdayKey = getDateKey(yesterday);
-    yesterdayState = readState(MYDAY_STORAGE_PREFIX, yesterdayKey);
     carryForwardTasks = [];
 
-    // Recurring tasks (weekly/interval) carry forward one day if missed yesterday.
-    // One-time tasks carry forward for up to 7 days after their scheduled date
-    // so a short trip / busy week doesn't bury them — they die down after that.
-    var ONCE_CARRY_FORWARD_DAYS = 7;
-
+    // A missed task is carried forward for W days where W is derived from the
+    // task's natural recurrence gap (see carryWindowDays above). Daily tasks
+    // are excluded — their next instance is already on today's board.
     function wasEverCompleted(taskId, fromDate, throughDate) {
       var cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
       var end = new Date(throughDate.getFullYear(), throughDate.getMonth(), throughDate.getDate());
@@ -419,26 +477,32 @@
       });
     }
 
+    var todayNorm = new Date(logicalDate.getFullYear(), logicalDate.getMonth(), logicalDate.getDate());
+
     for (i = 0; i < mydayTasks.length; i += 1) {
       task = mydayTasks[i];
       if (task.times && task.times.length > 0) { continue; }
       if (!task.frequency || task.frequency.type === 'daily') { continue; }
       if (todayTaskIds[task.id]) { continue; }
 
+      var scheduledNorm;
       if (task.frequency.type === 'once') {
         if (!task.frequency.date) { continue; }
         var scheduled = new Date(task.frequency.date + 'T00:00:00');
-        var scheduledNorm = new Date(scheduled.getFullYear(), scheduled.getMonth(), scheduled.getDate());
-        var todayNorm = new Date(logicalDate.getFullYear(), logicalDate.getMonth(), logicalDate.getDate());
-        var daysSince = Math.floor((todayNorm.getTime() - scheduledNorm.getTime()) / (24 * 60 * 60 * 1000));
-        if (daysSince < 1 || daysSince > ONCE_CARRY_FORWARD_DAYS) { continue; }
-        if (wasEverCompleted(task.id, scheduledNorm, todayNorm)) { continue; }
-        pushCarryForward(task);
-        continue;
+        scheduledNorm = new Date(scheduled.getFullYear(), scheduled.getMonth(), scheduled.getDate());
+        if (scheduledNorm.getTime() >= todayNorm.getTime()) { continue; }
+      } else {
+        scheduledNorm = lastScheduledBefore(task, todayNorm, MAX_CARRY_DAYS);
+        if (!scheduledNorm) { continue; }
       }
 
-      if (!isTaskForDate(task, yesterday)) { continue; }
-      if (yesterdayState[task.id]) { continue; }
+      var daysSince = Math.round((todayNorm.getTime() - scheduledNorm.getTime()) / (24 * 60 * 60 * 1000));
+      if (daysSince < 1) { continue; }
+
+      var carryWindow = carryWindowDays(task, scheduledNorm);
+      if (carryWindow <= 0 || daysSince > carryWindow) { continue; }
+
+      if (wasEverCompleted(task.id, scheduledNorm, todayNorm)) { continue; }
       pushCarryForward(task);
     }
 
