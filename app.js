@@ -1,18 +1,27 @@
 (function () {
-  var MORNING_STORAGE_PREFIX = 'habit-board-state-';
-  var MYDAY_STORAGE_PREFIX = 'myday-state-';
+  var MORNING_STORAGE_PREFIX = (window.Storage && window.Storage.PREFIXES)
+    ? window.Storage.PREFIXES.MORNING : 'habit-board-state-';
+  var MYDAY_STORAGE_PREFIX = (window.Storage && window.Storage.PREFIXES)
+    ? window.Storage.PREFIXES.MYDAY : 'myday-state-';
   var CLOCK_START_SECONDS = 1 * 60 * 60;
   var MORNING_START_SECONDS = 7 * 60 * 60;
   var MORNING_END_SECONDS = 10 * 60 * 60;
 
-  var allTasks = window.ALL_TASKS || [];
+  // Task buckets are rebuilt from Storage.tasks whenever auth/cloud state
+  // changes; they start empty and populate on the first Storage event.
   var morningHabits = [];
   var mydayTasks = [];
-  for (var _i = 0; _i < allTasks.length; _i += 1) {
-    if (allTasks[_i].category === 'Morning Routine') {
-      morningHabits.push(allTasks[_i]);
-    } else {
-      mydayTasks.push(allTasks[_i]);
+
+  function rebuildTaskBuckets() {
+    morningHabits = [];
+    mydayTasks = [];
+    var src = (window.Storage && window.Storage.tasks) || [];
+    for (var i = 0; i < src.length; i += 1) {
+      if (src[i].category === 'Morning Routine') {
+        morningHabits.push(src[i]);
+      } else {
+        mydayTasks.push(src[i]);
+      }
     }
   }
 
@@ -194,19 +203,19 @@
     }
   }
 
+  // Day state is owned by the Storage layer (cloud-backed for logged-in
+  // users, no-op for demo). We keep these thin wrappers so the rest of app.js
+  // does not need to know about the storage backend.
   function readState(prefix, dateKey) {
-    try {
-      var raw = window.localStorage.getItem(prefix + dateKey);
-      return raw ? JSON.parse(raw) : {};
-    } catch (error) {
-      return {};
+    if (window.Storage) {
+      return window.Storage.readDayState(prefix, dateKey) || {};
     }
+    return {};
   }
 
   function writeState(prefix, dateKey, state) {
-    try {
-      window.localStorage.setItem(prefix + dateKey, JSON.stringify(state));
-    } catch (error) {
+    if (window.Storage) {
+      window.Storage.writeDayState(prefix, dateKey, state);
     }
   }
 
@@ -266,6 +275,14 @@
   }
 
   function toggleHabit(grid, prefix, habitId) {
+    // Demo mode: tapping a card prompts the user to sign in rather than
+    // silently dropping the write.
+    if (window.Storage && window.Storage.mode === 'demo') {
+      if (window.AuthUI) {
+        window.AuthUI.openLogin({ message: 'Log in to track your day across devices.' });
+      }
+      return;
+    }
     var dateKey;
     if (prefix === MYDAY_STORAGE_PREFIX) {
       dateKey = getDateKey(getLogicalDate());
@@ -591,6 +608,14 @@
   }
 
   function getActiveScreen(date) {
+    // Logged-out (demo) users never see the Morning routine; their default is
+    // the clock, with My Day reachable as an opt-in demo. The 'loading' state
+    // is treated the same way so we don't briefly flash an empty Morning grid
+    // while Storage resolves on first paint.
+    var mode = window.Storage && window.Storage.mode;
+    if (mode === 'demo' || mode === 'loading') {
+      return 'clock';
+    }
     var seconds = (date.getHours() * 3600) + (date.getMinutes() * 60) + date.getSeconds();
     if (seconds >= CLOCK_START_SECONDS && seconds < MORNING_START_SECONDS) {
       return 'clock';
@@ -746,6 +771,14 @@
     }
 
     lastNaturalScreen = naturalScreen;
+
+    // Safety net: demo / loading modes never have data for Morning. If
+    // something tries to route there (manual override, query param), redirect
+    // to clock.
+    var sm = window.Storage && window.Storage.mode;
+    if ((sm === 'demo' || sm === 'loading') && activeScreen === 'morning') {
+      activeScreen = 'clock';
+    }
 
     updateClock(now);
 
@@ -951,12 +984,35 @@
     if (timeLabelEl) { timeLabelEl.textContent = '7:00 AM to 10:00 AM'; }
   }
 
+  function rerenderAll() {
+    rebuildTaskBuckets();
+    applyAuthStateToBody();
+    if (routineGrid) {
+      renderCardsInto(routineGrid, morningHabits, MORNING_STORAGE_PREFIX);
+    }
+    renderMyDay();
+    syncView();
+    fitAllTitles();
+  }
+
+  function applyAuthStateToBody() {
+    if (!document.body) { return; }
+    var mode = (window.Storage && window.Storage.mode) || 'loading';
+    document.body.setAttribute('data-auth-mode', mode);
+  }
+
   applyMorningConfig();
   setupCalendarInteractions();
   setupViewportSizing();
-  renderCardsInto(routineGrid, morningHabits, MORNING_STORAGE_PREFIX);
-  renderMyDay();
   loadQuotesFromFile();
+
+  // Initial render uses whatever Storage currently has (empty until first
+  // Storage event fires). Subsequent re-renders are driven by Storage.onChange
+  // — that's how cloud loads, sign-ins, and sign-outs propagate to the UI.
+  rerenderAll();
+  if (window.Storage) {
+    window.Storage.onChange(rerenderAll);
+  }
   if (doneMissedSection) {
     doneMissedSection.addEventListener('toggle', function () {
       if (doneMissedSection.open) {

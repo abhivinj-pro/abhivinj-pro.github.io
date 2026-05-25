@@ -10,20 +10,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
   <link rel="stylesheet" href="styles.css?v=40">
+  <link rel="stylesheet" href="auth.css?v=1">
 </head>
-<body>
+<body data-auth-mode="loading">
   <div class="top-scroll-buffer" aria-hidden="true"></div>
   <div class="app-shell">
     <section class="screen morning-screen" id="morning-screen" aria-live="polite">
       <header class="routine-header">
         <nav class="page-nav" aria-label="Page navigation">
-          <button type="button" class="page-nav-btn morning active" id="morning-nav-morning" aria-current="page">Morning</button>
+          <button type="button" class="page-nav-btn morning active nav-auth-required" id="morning-nav-morning" aria-current="page">Morning</button>
           <button type="button" class="page-nav-btn myday" id="morning-nav-myday">My Day</button>
           <button type="button" class="page-nav-btn clock" id="morning-nav-clock">Clock</button>
         </nav>
         <div class="routine-meta">
           <h1 id="morning-heading">Start with:</h1>
           <p id="morning-time-label">7:00 AM to 10:00 AM</p>
+          <span class="header-chip-slot" id="header-chip-slot-morning"></span>
         </div>
       </header>
       <main class="routine-grid" id="routine-grid"></main>
@@ -32,18 +34,24 @@
     <section class="screen myday-screen hidden" id="myday-screen" aria-live="polite">
       <header class="routine-header">
         <nav class="page-nav" aria-label="Page navigation">
-          <button type="button" class="page-nav-btn morning" id="myday-nav-morning">Morning</button>
+          <button type="button" class="page-nav-btn morning nav-auth-required" id="myday-nav-morning">Morning</button>
           <button type="button" class="page-nav-btn myday active" id="myday-nav-myday" aria-current="page">My Day</button>
           <button type="button" class="page-nav-btn clock" id="myday-nav-clock">Clock</button>
         </nav>
         <div class="routine-meta">
           <h1 id="myday-date-heading">Today</h1>
           <p id="myday-task-count">0 tasks today</p>
+          <span class="header-chip-slot" id="header-chip-slot-myday"></span>
         </div>
       </header>
+      <div class="demo-banner hidden" id="demo-banner">
+        You're viewing a sample.
+        <button type="button" class="demo-banner-link" id="demo-banner-login">Log in</button>
+        to manage your own tasks.
+      </div>
       <main class="myday-grid" id="myday-grid"></main>
       <aside class="myday-quote hidden" id="myday-quote" aria-live="polite">
-        <span class="myday-quote-mark" aria-hidden="true">“</span>
+        <span class="myday-quote-mark" aria-hidden="true">&ldquo;</span>
         <p class="myday-quote-text" id="myday-quote-text"></p>
         <span class="myday-quote-author" id="myday-quote-author"></span>
       </aside>
@@ -61,7 +69,9 @@
     <section class="screen clock-screen hidden" id="clock-screen" aria-live="polite">
       <div class="clock-frame">
         <nav class="screen-nav clock-nav" aria-label="Screen navigation">
+          <span class="header-chip-slot" id="header-chip-slot-clock"></span>
           <button type="button" class="nav-btn" id="clock-to-home">My Day</button>
+          <a class="nav-btn nav-auth-required" href="todo.html" id="clock-to-tasks">Task Manager</a>
         </nav>
         <div class="clock-main">
           <p class="clock-day" id="clock-day">Sunday</p>
@@ -93,7 +103,52 @@
     <div class="noscript-note">This page needs JavaScript enabled to show the routine and live clock.</div>
   </noscript>
 
+  <script src="polyfills.js?v=1"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="pro-allowlist.js?v=1"></script>
   <script src="tasks-config.js?v=1"></script>
-  <script src="app.js?v=28"></script>
+  <script src="auth-client.js?v=1"></script>
+  <script src="firestore-client.js?v=1"></script>
+  <script src="storage.js?v=1"></script>
+  <script src="auth-ui.js?v=1"></script>
+  <script src="app.js?v=29"></script>
+  <script>
+    // Boot sequence: mount chip in every screen header, hook the demo banner
+    // login button, then kick off Storage which drives the rest of the UI.
+    (function () {
+      function init() {
+        if (!window.AuthUI || !window.Storage) { return; }
+        window.AuthUI.mountChip(document.getElementById('header-chip-slot-morning'));
+        window.AuthUI.mountChip(document.getElementById('header-chip-slot-myday'));
+        window.AuthUI.mountChip(document.getElementById('header-chip-slot-clock'));
+
+        var demoLoginBtn = document.getElementById('demo-banner-login');
+        if (demoLoginBtn) {
+          demoLoginBtn.onclick = function () {
+            window.AuthUI.openLogin({ message: 'Log in to track your day across devices.' });
+          };
+        }
+
+        function syncDemoBanner() {
+          var banner = document.getElementById('demo-banner');
+          if (!banner) { return; }
+          if (window.Storage.mode === 'demo') {
+            banner.classList.remove('hidden');
+          } else {
+            banner.classList.add('hidden');
+          }
+        }
+        window.Storage.onChange(syncDemoBanner);
+        syncDemoBanner();
+
+        window.Storage.init();
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    }());
+  </script>
 </body>
 </html>
