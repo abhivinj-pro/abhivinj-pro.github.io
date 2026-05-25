@@ -28,13 +28,6 @@ window.ALL_TASKS = [
     icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="glassStroke" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6fe9ff"/><stop offset="100%" stop-color="#2abfe1"/></linearGradient><linearGradient id="waterFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#54bfff"/><stop offset="100%" stop-color="#216fe0"/></linearGradient></defs><path fill="rgba(93,226,255,0.08)" stroke="url(#glassStroke)" stroke-width="5" d="M30 24h58l-5 76c0 10-7 18-17 18H52c-10 0-17-8-17-18z"/><path fill="url(#waterFill)" d="M35 63h48l-4 35c0 8-5 14-12 14H51c-7 0-12-6-12-14z"/><path fill="none" stroke="#a9f5ff" stroke-width="4" stroke-linecap="round" d="M42 37h33" opacity="0.8"/><path fill="#58ddff" d="M106 52c10 13 15 22 15 31 0 11-7 19-16 19-10 0-17-8-17-19 0-9 5-18 18-31z"/><path fill="none" stroke="#baf8ff" stroke-width="4" stroke-linecap="round" d="M100 75c1-6 4-11 8-15" opacity="0.78"/></svg>'
   },
   {
-    id: 'take-tablet',
-    title: 'Take tablet',
-    category: 'Morning Routine',
-    accentClass: 'accent-amber',
-    icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="pillOuter" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffe2a4"/><stop offset="100%" stop-color="#d79a44"/></linearGradient><linearGradient id="pillInner" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff3d1"/><stop offset="100%" stop-color="#ffd48c"/></linearGradient></defs><g transform="rotate(-12 70 70)"><ellipse cx="70" cy="70" rx="41" ry="28" fill="url(#pillOuter)"/><ellipse cx="70" cy="70" rx="34" ry="22" fill="url(#pillInner)"/><path d="M52 70h36" stroke="#e5b56a" stroke-width="4" stroke-linecap="round" opacity="0.65"/><text x="70" y="77" text-anchor="middle" font-size="18" font-weight="800" fill="#53340c" font-family="Arial, sans-serif">PanD</text></g><g stroke="#ffbe32" stroke-width="6" stroke-linecap="round"><path d="M20 62H8"/><path d="M30 40l-9-8"/><path d="M108 42l9-8"/><path d="M120 66h12"/><path d="M25 89l-10 6"/></g></svg>'
-  },
-  {
     id: 'drink-whey',
     title: 'Drink whey',
     category: 'Morning Routine',
@@ -219,13 +212,5 @@ window.ALL_TASKS = [
     accentClass: 'accent-pink',
     icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="alnBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff3b0"/><stop offset="100%" stop-color="#ffb347"/></linearGradient><linearGradient id="alnTrayU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfe9ff"/></linearGradient><linearGradient id="alnTrayL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cfe9ff"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#alnBg)" stroke="#d98a1a" stroke-width="0.6"/><g stroke="#1d4d7a" stroke-width="0.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4.5 9c0-2.4 3.4-3.6 7.5-3.6S19.5 6.6 19.5 9c0 1.3-.5 2.3-1.4 3.1-.7-.9-1.6-1.4-2.8-1.4H8.7c-1.2 0-2.1.5-2.8 1.4C5 11.3 4.5 10.3 4.5 9z" fill="url(#alnTrayU)"/><path d="M7.4 9.2v2.2M9.7 9v2.5M12 8.95v2.55M14.3 9v2.5M16.6 9.2v2.2" stroke-width="0.45" opacity="0.85"/><path d="M4.5 15c0 2.4 3.4 3.6 7.5 3.6s7.5-1.2 7.5-3.6c0-1.3-.5-2.3-1.4-3.1-.7.9-1.6 1.4-2.8 1.4H8.7c-1.2 0-2.1-.5-2.8-1.4-.9.8-1.4 1.8-1.4 3.1z" fill="url(#alnTrayL)"/><path d="M7.4 14.8v-2.2M9.7 15v-2.5M12 15.05v-2.55M14.3 15v-2.5M16.6 14.8v-2.2" stroke-width="0.45" opacity="0.85"/></g><path d="M6.5 7c1.5-.8 3.5-1.2 5.5-1.2" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M17.5 17c-1.5.8-3.5 1.2-5.5 1.2" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" fill="none" opacity="0.7"/></svg>',
     frequency: { type: 'daily' }
-  },
-  {
-    id: 'cut-nails',
-    title: 'Cut Nails',
-    category: 'Self Care',
-    accentClass: 'accent-blue',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C8.5 7.5 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3.5-7.5-7-13z"/></svg>',
-    frequency: { type: 'once', date: '2026-05-23' }
   }
 ];
