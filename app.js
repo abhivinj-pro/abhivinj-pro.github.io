@@ -843,44 +843,46 @@
   }
 
   function setupNavButtons() {
-    var morningToClockBtn = document.getElementById('morning-to-clock');
-    var mydayToClockBtn = document.getElementById('myday-to-clock');
-    var mydayToMorningBtn = document.getElementById('myday-to-morning');
-    var clockToHomeBtn = document.getElementById('clock-to-home');
-
-    if (morningToClockBtn) {
-      morningToClockBtn.addEventListener('click', function () {
-        manualScreen = 'clock';
-        syncView();
-      });
-    }
-    if (mydayToClockBtn) {
-      mydayToClockBtn.addEventListener('click', function () {
-        manualScreen = 'clock';
-        syncView();
-      });
-    }
-    if (mydayToMorningBtn) {
-      mydayToMorningBtn.addEventListener('click', function () {
+    var navHandlers = {
+      morning: function () {
         manualScreen = 'morning';
         syncView();
         fitAllTitles();
-      });
-    }
-    if (clockToHomeBtn) {
-      clockToHomeBtn.addEventListener('click', function () {
-        manualScreen = null;
+      },
+      myday: function () {
+        manualScreen = 'myday';
         syncView();
         fitAllTitles();
-      });
+      },
+      clock: function () {
+        manualScreen = 'clock';
+        syncView();
+      }
+    };
+
+    var screenPrefixes = ['morning', 'myday'];
+    var targets = ['morning', 'myday', 'clock'];
+    for (var pi = 0; pi < screenPrefixes.length; pi += 1) {
+      for (var ti = 0; ti < targets.length; ti += 1) {
+        (function (target) {
+          var btn = document.getElementById(screenPrefixes[pi] + '-nav-' + target);
+          if (btn) {
+            btn.addEventListener('click', navHandlers[target]);
+          }
+        })(targets[ti]);
+      }
+    }
+
+    // Clock screen keeps a single top-right button (relabeled 'My Day').
+    var clockToMyDayBtn = document.getElementById('clock-to-home');
+    if (clockToMyDayBtn) {
+      clockToMyDayBtn.addEventListener('click', navHandlers.myday);
     }
   }
 
   function applyMorningConfig() {
-    var badgeEl = document.getElementById('morning-badge');
     var headingEl = document.getElementById('morning-heading');
     var timeLabelEl = document.getElementById('morning-time-label');
-    if (badgeEl) { badgeEl.textContent = 'Morning reset'; }
     if (headingEl) { headingEl.textContent = 'Start with:'; }
     if (timeLabelEl) { timeLabelEl.textContent = '7:00 AM to 10:00 AM'; }
   }

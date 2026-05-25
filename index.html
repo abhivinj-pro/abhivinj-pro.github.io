@@ -9,37 +9,38 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
-  <link rel="stylesheet" href="styles.css?v=38">
+  <link rel="stylesheet" href="styles.css?v=40">
 </head>
 <body>
   <div class="top-scroll-buffer" aria-hidden="true"></div>
   <div class="app-shell">
     <section class="screen morning-screen" id="morning-screen" aria-live="polite">
       <header class="routine-header">
-        <div class="routine-badge" id="morning-badge">Morning reset</div>
+        <nav class="page-nav" aria-label="Page navigation">
+          <button type="button" class="page-nav-btn morning active" id="morning-nav-morning" aria-current="page">Morning</button>
+          <button type="button" class="page-nav-btn myday" id="morning-nav-myday">My Day</button>
+          <button type="button" class="page-nav-btn clock" id="morning-nav-clock">Clock</button>
+        </nav>
         <div class="routine-meta">
           <h1 id="morning-heading">Start with:</h1>
           <p id="morning-time-label">7:00 AM to 10:00 AM</p>
         </div>
       </header>
-      <nav class="screen-nav" aria-label="Screen navigation">
-        <button type="button" class="nav-btn" id="morning-to-clock">Clock</button>
-      </nav>
       <main class="routine-grid" id="routine-grid"></main>
     </section>
 
     <section class="screen myday-screen hidden" id="myday-screen" aria-live="polite">
       <header class="routine-header">
-        <div class="routine-badge myday-badge">My Day</div>
+        <nav class="page-nav" aria-label="Page navigation">
+          <button type="button" class="page-nav-btn morning" id="myday-nav-morning">Morning</button>
+          <button type="button" class="page-nav-btn myday active" id="myday-nav-myday" aria-current="page">My Day</button>
+          <button type="button" class="page-nav-btn clock" id="myday-nav-clock">Clock</button>
+        </nav>
         <div class="routine-meta">
           <h1 id="myday-date-heading">Today</h1>
           <p id="myday-task-count">0 tasks today</p>
         </div>
       </header>
-      <nav class="screen-nav" aria-label="Screen navigation">
-        <button type="button" class="nav-btn" id="myday-to-morning">Morning</button>
-        <button type="button" class="nav-btn" id="myday-to-clock">Clock</button>
-      </nav>
       <main class="myday-grid" id="myday-grid"></main>
       <aside class="myday-quote hidden" id="myday-quote" aria-live="polite">
         <span class="myday-quote-mark" aria-hidden="true">“</span>
@@ -60,7 +61,7 @@
     <section class="screen clock-screen hidden" id="clock-screen" aria-live="polite">
       <div class="clock-frame">
         <nav class="screen-nav clock-nav" aria-label="Screen navigation">
-          <button type="button" class="nav-btn" id="clock-to-home">Home</button>
+          <button type="button" class="nav-btn" id="clock-to-home">My Day</button>
         </nav>
         <div class="clock-main">
           <p class="clock-day" id="clock-day">Sunday</p>
@@ -93,6 +94,6 @@
   </noscript>
 
   <script src="tasks-config.js?v=1"></script>
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
