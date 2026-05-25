@@ -122,17 +122,6 @@ window.ALL_TASKS = [
     frequency: { type: 'interval', day: 5, every: 2, startDate: '2026-05-15' }
   },
   {
-    id: 'antibiotic',
-    title: 'Antibiotic',
-    category: 'Self Care',
-    accentClass: 'accent-amber',
-    icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="medColorBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffd84d"/><stop offset="100%" stop-color="#ff9a1f"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#medColorBg)"/><g transform="rotate(-40 11 9)"><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="#ffffff"/><rect x="10" y="6.4" width="7" height="5.2" rx="2.6" fill="#f04444"/><path d="M11.5 7.2c1.8-.1 3.5.1 5 .6" stroke="#ffffff" stroke-width="0.35" stroke-linecap="round" fill="none" opacity="0.55"/><rect x="3" y="6.4" width="14" height="5.2" rx="2.6" fill="none" stroke="#b0b0b0" stroke-width="0.18" opacity="0.6"/></g><g><circle cx="16.7" cy="11" r="2.1" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M15.2 10.3l3 1.4" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/><circle cx="13.7" cy="16.6" r="2.6" fill="#ffffff" stroke="#bfc7cc" stroke-width="0.22"/><path d="M12 15.7l3.4 1.8" stroke="#bfc7cc" stroke-width="0.32" stroke-linecap="round"/></g></svg>',
-    frequency: { type: 'daily' },
-    times: [
-      { label: 'Morning', from: 10, to: 16 }
-    ]
-  },
-  {
     id: 'supplements',
     title: 'Supplements',
     category: 'Self Care',
