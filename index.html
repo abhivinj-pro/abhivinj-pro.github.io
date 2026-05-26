@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
-  <link rel="stylesheet" href="styles.css?v=40">
+  <link rel="stylesheet" href="styles.css?v=41">
   <link rel="stylesheet" href="auth.css?v=1">
 </head>
 <body data-auth-mode="loading">
@@ -75,12 +75,12 @@
     </section>
 
     <section class="screen clock-screen hidden" id="clock-screen" aria-live="polite">
+      <nav class="screen-nav clock-nav" aria-label="Screen navigation">
+        <span class="header-chip-slot" id="header-chip-slot-clock"></span>
+        <button type="button" class="nav-btn" id="clock-to-home">My Day</button>
+        <a class="nav-btn nav-auth-required" href="todo.html" id="clock-to-tasks">Task Manager</a>
+      </nav>
       <div class="clock-frame">
-        <nav class="screen-nav clock-nav" aria-label="Screen navigation">
-          <span class="header-chip-slot" id="header-chip-slot-clock"></span>
-          <button type="button" class="nav-btn" id="clock-to-home">My Day</button>
-          <a class="nav-btn nav-auth-required" href="todo.html" id="clock-to-tasks">Task Manager</a>
-        </nav>
         <div class="clock-main">
           <p class="clock-day" id="clock-day">Sunday</p>
           <p class="clock-date" id="clock-date">May 10, 2026</p>
@@ -101,7 +101,6 @@
             <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
           </div>
           <div class="calendar-grid" id="calendar-grid"></div>
-          <p class="calendar-hint">Swipe or scroll to change month</p>
         </aside>
       </div>
     </section>
