@@ -489,9 +489,17 @@
     // A missed task is carried forward for W days where W is derived from the
     // task's natural recurrence gap (see carryWindowDays above). Daily tasks
     // are excluded — their next instance is already on today's board.
+    //
+    // Note: the range is [fromDate, throughDate) — i.e. today is intentionally
+    // EXCLUDED. If we included today, then the moment the user catches up on a
+    // missed task, this function would return true, the task would be filtered
+    // out of carryForwardTasks via `continue`, and never reach the Caught Up
+    // split below. Today's tick is handled by the `task.missed && state[task.id]`
+    // classifier further down, which routes the card into doneMissedTasks.
     function wasEverCompleted(taskId, fromDate, throughDate) {
       var cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
       var end = new Date(throughDate.getFullYear(), throughDate.getMonth(), throughDate.getDate());
+      end.setDate(end.getDate() - 1);
       while (cursor.getTime() <= end.getTime()) {
         var dayState = readState(MYDAY_STORAGE_PREFIX, getDateKey(cursor));
         if (dayState[taskId]) { return true; }
