@@ -31,7 +31,6 @@
 
   var DAYS_TO_PRELOAD = 15;            // today + 14 prior for carry-forward
   var WRITE_DEBOUNCE_MS = 700;
-  var DEMO_SAMPLE_SIZE = 6;
   var POLL_INTERVAL_MS = 60 * 1000;    // background refetch cadence
 
   var listeners = [];
@@ -110,15 +109,62 @@
   }
 
   // ── Demo backend ──────────────────────────────────────────────────────────
+  function createDemoTask(id, title, accentClass, category, icon) {
+    return {
+      id: id,
+      title: title,
+      category: category || 'Self Care',
+      accentClass: accentClass,
+      icon: icon,
+      frequency: { type: 'daily' }
+    };
+  }
+
   function sampleDemoTasks() {
-    var pool = (window.ALL_TASKS || []).slice();
-    if (!pool.length) { return []; }
-    // Fisher–Yates shuffle, ES5-safe.
-    for (var i = pool.length - 1; i > 0; i -= 1) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
-    }
-    return pool.slice(0, Math.min(DEMO_SAMPLE_SIZE, pool.length));
+    return [
+      createDemoTask(
+        'demo-reading',
+        'Reading',
+        'accent-blue',
+        'Self Care',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5a2.5 2.5 0 0 0-2.5-2.5H4z"/><path d="M6.5 3C8 3 9 4 9 5.5V21"/><path d="M9 6h8"/><path d="M9 10h8"/></svg>'
+      ),
+      createDemoTask(
+        'demo-journaling',
+        'Journaling',
+        'accent-pink',
+        'Self Care',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2z"/><path d="M6 3a2 2 0 0 0-2 2v16"/><path d="M10 7h4"/><path d="M10 11h4"/><path d="m14.5 15.5 3-3 2 2-3 3-2.5.5z"/></svg>'
+      ),
+      createDemoTask(
+        'demo-skin-care',
+        'Skin Care',
+        'accent-green',
+        'Self Care',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3h4"/><path d="M9 6h6"/><rect x="7" y="6" width="10" height="15" rx="2"/><path d="M10 11h4"/><path d="M12 14v3"/></svg>'
+      ),
+      createDemoTask(
+        'demo-water-plants',
+        'Water Plants',
+        'accent-cyan',
+        'Chores',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V11"/><path d="M12 11C12 7 8 4 4 5.5 4 9 7 11.5 12 11"/><path d="M12 11c0-4 4-7 8-5.5 0 3.5-3 6-8 5.5"/><path d="M9 21h6"/></svg>'
+      ),
+      createDemoTask(
+        'demo-meditation',
+        'Meditation',
+        'accent-purple',
+        'Self Care',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M8.5 11a3.5 3.5 0 0 1 7 0"/><path d="M7 14c1.5 0 2.5-1 3-2"/><path d="M17 14c-1.5 0-2.5-1-3-2"/><path d="M5 19c1.5-2 3.5-3 7-3s5.5 1 7 3"/></svg>'
+      ),
+      createDemoTask(
+        'demo-exercise',
+        'Exercise',
+        'accent-amber',
+        'Self Care',
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 8.5h2v7h-2z"/><path d="M15.5 8.5h2v7h-2z"/><rect x="3" y="10" width="3.5" height="4" rx="1"/><rect x="17.5" y="10" width="3.5" height="4" rx="1"/><path d="M8.5 12h7"/></svg>'
+      )
+    ];
   }
 
   // ── Cloud loaders ─────────────────────────────────────────────────────────
