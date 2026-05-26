@@ -5,11 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Day - Task Manager</title>
   <link rel="stylesheet" href="todo.css">
+  <link rel="stylesheet" href="auth.css?v=1">
 </head>
-<body>
-  <div class="todo-app">
+<body data-auth-mode="loading">
+  <div class="auth-wall hidden" id="auth-wall">
+    <h2>Sign in required</h2>
+    <p>The Task Manager edits the tasks tied to your account. Log in or create an account to continue.</p>
+    <button type="button" class="auth-btn auth-btn-primary" id="auth-wall-login">Log in</button>
+    <p style="margin-top:14px"><a href="index.html" class="auth-link">Back to the clock</a></p>
+  </div>
+
+  <div class="todo-app hidden" id="todo-root">
     <header class="todo-header">
-      <h1>Task Manager</h1>
+      <div class="header-bar">
+        <div class="header-bar-left">
+          <h1>Task Manager</h1>
+          <span class="sync-indicator" id="sync-indicator">Synced ✓</span>
+        </div>
+        <div class="header-bar-right">
+          <a class="auth-link" href="index.html">← Habit Board</a>
+          <span id="todo-chip-slot"></span>
+        </div>
+      </div>
       <p class="todo-subtitle">Manage tasks for Morning Routine and My Day</p>
     </header>
 
@@ -153,20 +170,17 @@
         </form>
       </section>
     </div>
-
-    <section class="export-section">
-      <div class="section-bar">
-        <h2>Export Config</h2>
-        <button type="button" class="btn btn-accent" id="export-btn">Generate Config</button>
-        <button type="button" class="btn btn-secondary hidden" id="copy-btn">Copy to Clipboard</button>
-      </div>
-      <textarea class="export-output hidden" id="export-output" readonly rows="12"></textarea>
-      <p class="export-hint">Generate the config, copy it, and paste into <code>tasks-config.js</code> in your repo.</p>
-    </section>
   </div>
 
-  <script src="tasks-config.js"></script>
+  <script src="polyfills.js?v=1"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="pro-allowlist.js?v=1"></script>
+  <script src="tasks-config.js?v=1"></script>
   <script src="icon-library.js"></script>
-  <script src="todo.js"></script>
+  <script src="auth-client.js?v=1"></script>
+  <script src="firestore-client.js?v=1"></script>
+  <script src="storage.js?v=1"></script>
+  <script src="auth-ui.js?v=1"></script>
+  <script src="todo.js?v=2"></script>
 </body>
 </html>

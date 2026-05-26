@@ -1,0 +1,351 @@
+/* auth.css — styling for the login modal, user chip, and transient toast. */
+
+/* ── User icon button ────────────────────────────────────────────────────── */
+.auth-user-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--muted, #adb9cb);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+.auth-user-icon-btn svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+.auth-user-icon-btn.auth-user-icon-signed-in {
+  background: rgba(95, 191, 255, 0.12);
+  border-color: rgba(95, 191, 255, 0.35);
+  color: #5fbfff;
+}
+.auth-user-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.auth-user-icon-btn.auth-user-icon-signed-in:hover {
+  background: rgba(95, 191, 255, 0.22);
+}
+
+/* ── User popup ──────────────────────────────────────────────────────────── */
+.auth-user-popup {
+  position: fixed;
+  z-index: 9000;
+  background: linear-gradient(180deg, #131826, #0a0d16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 16px;
+  min-width: 200px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  color: var(--text, #f6f8fb);
+}
+.auth-user-popup.hidden { display: none; }
+
+.auth-popup-email {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--muted, #adb9cb);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.auth-popup-logout {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  background: rgba(255, 79, 138, 0.1);
+  border: 1px solid rgba(255, 79, 138, 0.25);
+  border-radius: 10px;
+  color: #ffb3ce;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.auth-popup-logout:hover { background: rgba(255, 79, 138, 0.24); color: #fff; }
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.auth-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(3, 5, 10, 0.78);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.auth-modal-backdrop.hidden { display: none; }
+
+.auth-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: linear-gradient(180deg, #131826, #0a0d16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 28px 24px 22px;
+  box-shadow: 0 32px 60px rgba(0, 0, 0, 0.6);
+  color: var(--text, #f6f8fb);
+  font-family: inherit;
+}
+
+.auth-modal-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.auth-modal-msg {
+  margin: 0 0 14px;
+  color: var(--muted, #adb9cb);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: transparent;
+  border: 0;
+  color: var(--muted, #adb9cb);
+  font-size: 28px;
+  line-height: 1;
+  padding: 4px 10px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.auth-modal-close:hover { color: #fff; }
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-label {
+  font-size: 12px;
+  color: var(--muted, #adb9cb);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+.auth-label-pw { margin-top: 10px; }
+
+.auth-input {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text, #f6f8fb);
+  font: inherit;
+  font-size: 15px;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.auth-input:focus {
+  outline: 2px solid rgba(95, 191, 255, 0.6);
+  outline-offset: 1px;
+}
+
+.auth-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.auth-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.auth-btn-primary {
+  background: linear-gradient(135deg, #5fbfff, #338df4);
+  color: #03070f;
+}
+.auth-btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+.auth-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text, #f6f8fb);
+}
+.auth-btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+
+.auth-divider {
+  text-align: center;
+  color: var(--muted, #adb9cb);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 6px 0;
+  position: relative;
+}
+.auth-divider:before,
+.auth-divider:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 38%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.auth-divider:before { left: 0; }
+.auth-divider:after { right: 0; }
+
+.auth-status {
+  min-height: 18px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted, #adb9cb);
+}
+.auth-status-error { color: #ff8aa3; }
+
+.auth-modal-footer {
+  margin: 14px 0 0;
+  text-align: center;
+}
+
+.auth-link {
+  background: transparent;
+  border: 0;
+  color: #5fbfff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.auth-link:hover { color: #9ad6ff; }
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+.auth-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 25, 38, 0.96);
+  color: var(--text, #f6f8fb);
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 9100;
+  pointer-events: none;
+}
+.auth-toast.hidden { display: none; }
+
+/* ── Demo banner ─────────────────────────────────────────────────────────── */
+.demo-banner {
+  background: rgba(95, 191, 255, 0.08);
+  border: 1px solid rgba(95, 191, 255, 0.25);
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+  color: var(--muted, #adb9cb);
+  font-size: 13px;
+  text-align: center;
+}
+.demo-banner.hidden { display: none; }
+.demo-banner-link {
+  margin-left: 6px;
+  color: #5fbfff;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ── Auth-required wall (used by todo.html) ──────────────────────────────── */
+.auth-wall {
+  max-width: 460px;
+  margin: 80px auto 0;
+  background: linear-gradient(180deg, #131826, #0a0d16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 32px 28px;
+  text-align: center;
+  color: var(--text, #f6f8fb);
+}
+.auth-wall h2 { margin: 0 0 8px; font-size: 22px; }
+.auth-wall p { margin: 0 0 18px; color: var(--muted, #adb9cb); }
+
+/* ── Header layout tweak: chip + tabs on the same row ────────────────────── */
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 2px 0;
+  margin-bottom: 12px;
+}
+.header-bar-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.header-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* "Synced" indicator in Task Manager */
+.sync-indicator {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(122, 215, 48, 0.16);
+  color: #b6f08a;
+  font-size: 12px;
+  margin-left: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.sync-indicator.visible { opacity: 1; }
+
+/* ── Auth-gated navigation ───────────────────────────────────────────────── */
+/* Buttons / links marked with .nav-auth-required disappear when no user is
+   signed in. They reappear automatically once Storage flips to a cloud mode. */
+body[data-auth-mode="demo"] .nav-auth-required,
+body[data-auth-mode="loading"] .nav-auth-required {
+  display: none !important;
+}
+
+.header-chip-slot {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* When chip slot lives in routine-meta (Morning / My Day), right-align the icon */
+.routine-meta .header-chip-slot {
+  display: flex;
+  justify-content: flex-end;
+  margin-left: 0;
+  margin-top: 8px;
+}
+
+/* When chip slot lives in clock-nav, keep it inline */
+.clock-nav .header-chip-slot {
+  margin-left: 0;
+  display: inline-flex;
+}

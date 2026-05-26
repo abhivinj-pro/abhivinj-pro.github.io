@@ -397,6 +397,7 @@ html, body {
 
 select.form-input {
   appearance: auto;
+  color-scheme: dark;
 }
 
 input[type="date"].form-input {

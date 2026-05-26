@@ -21,9 +21,6 @@
   const taskNameInput = document.getElementById('task-name');
   const addTaskBtn = document.getElementById('add-task-btn');
   const cancelBtn = document.getElementById('cancel-btn');
-  const exportBtn = document.getElementById('export-btn');
-  const copyBtn = document.getElementById('copy-btn');
-  const exportOutput = document.getElementById('export-output');
   const weeklyPanel = document.getElementById('weekly-panel');
   const intervalPanel = document.getElementById('interval-panel');
   const oncePanel = document.getElementById('once-panel');
@@ -42,6 +39,10 @@
   const iconSearchInput = document.getElementById('icon-search');
   const iconGrid = document.getElementById('icon-grid');
   const iconFilterChips = document.getElementById('icon-filter-chips');
+  const syncIndicator = document.getElementById('sync-indicator');
+  const authWall = document.getElementById('auth-wall');
+  const todoRoot = document.getElementById('todo-root');
+  const authWallLoginBtn = document.getElementById('auth-wall-login');
 
   // ── Icon picker ───────────────────────────────────────────────────────────
 
@@ -121,19 +122,38 @@
   // ── End icon picker ───────────────────────────────────────────────────────
 
   function loadTasks() {
-    if (window.ALL_TASKS && Array.isArray(window.ALL_TASKS)) {
-      tasks = JSON.parse(JSON.stringify(window.ALL_TASKS));
-    }
-    const draft = localStorage.getItem('todo-editor-all-tasks');
-    if (draft) {
-      try {
-        tasks = JSON.parse(draft);
-      } catch (e) { /* use config */ }
+    if (window.Storage && window.Storage.tasks) {
+      tasks = JSON.parse(JSON.stringify(window.Storage.tasks));
+    } else {
+      tasks = [];
     }
   }
 
+  let syncTimer = null;
+  function flashSync(text, isError) {
+    if (!syncIndicator) { return; }
+    syncIndicator.textContent = text || 'Synced \u2713';
+    syncIndicator.classList.toggle('auth-status-error', !!isError);
+    syncIndicator.classList.add('visible');
+    if (syncTimer) { clearTimeout(syncTimer); }
+    syncTimer = setTimeout(function () {
+      syncIndicator.classList.remove('visible');
+    }, 1800);
+  }
+
   function saveDraft() {
-    localStorage.setItem('todo-editor-all-tasks', JSON.stringify(tasks));
+    if (!window.Storage) { return; }
+    if (window.Storage.mode === 'demo') {
+      flashSync('Log in to save', true);
+      return;
+    }
+    window.Storage.saveTasks(tasks).then(function () {
+      flashSync('Synced \u2713', false);
+    })['catch'](function (err) {
+      flashSync('Save failed', true);
+      // eslint-disable-next-line no-console
+      if (window.console) { console.error('saveTasks failed', err); }
+    });
   }
 
   function slugify(text) {
@@ -437,49 +457,6 @@
     return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
   }
 
-  function generateConfig() {
-    let lines = ['window.ALL_TASKS = ['];
-
-    tasks.forEach((task, i) => {
-      const isMorning = task.category === 'Morning Routine';
-      const hasFreq = !isMorning && task.frequency;
-      const hasTimes = !isMorning && task.times && task.times.length > 0;
-
-      lines.push('  {');
-      lines.push("    id: '" + escapeJsString(task.id) + "',");
-      lines.push("    title: '" + escapeJsString(task.title) + "',");
-      lines.push("    category: '" + escapeJsString(task.category || 'General') + "',");
-      lines.push("    accentClass: '" + (task.accentClass || getAccentForIndex(i)) + "',");
-      lines.push("    icon: '" + escapeJsString(task.icon || DEFAULT_ICON) + "'" + (hasFreq || hasTimes ? ',' : ''));
-
-      if (hasFreq) {
-        const freq = task.frequency;
-        if (!freq || freq.type === 'daily') {
-          lines.push("    frequency: { type: 'daily' }" + (hasTimes ? ',' : ''));
-        } else if (freq.type === 'weekly') {
-          lines.push("    frequency: { type: 'weekly', days: [" + freq.days.join(', ') + '] }' + (hasTimes ? ',' : ''));
-        } else if (freq.type === 'interval') {
-          lines.push("    frequency: { type: 'interval', day: " + freq.day + ", every: " + freq.every + ", startDate: '" + freq.startDate + "' }" + (hasTimes ? ',' : ''));
-        } else if (freq.type === 'once') {
-          lines.push("    frequency: { type: 'once', date: '" + escapeJsString(freq.date || '') + "' }" + (hasTimes ? ',' : ''));
-        }
-      }
-
-      if (hasTimes) {
-        lines.push('    times: [');
-        task.times.forEach((slot, si) => {
-          lines.push("      { label: '" + escapeJsString(slot.label) + "', from: " + slot.from + ', to: ' + slot.to + ' }' + (si < task.times.length - 1 ? ',' : ''));
-        });
-        lines.push('    ]');
-      }
-
-      lines.push('  }' + (i < tasks.length - 1 ? ',' : ''));
-    });
-
-    lines.push('];');
-    return lines.join('\n');
-  }
-
   // Event listeners
   addTaskBtn.addEventListener('click', () => {
     editingId = null;
@@ -566,24 +543,7 @@
     }
   });
 
-  exportBtn.addEventListener('click', () => {
-    const config = generateConfig();
-    exportOutput.value = config;
-    exportOutput.classList.remove('hidden');
-    copyBtn.classList.remove('hidden');
-  });
-
-  copyBtn.addEventListener('click', () => {
-    exportOutput.select();
-    navigator.clipboard.writeText(exportOutput.value).then(() => {
-      copyBtn.textContent = 'Copied!';
-      setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
-    }).catch(() => {
-      document.execCommand('copy');
-      copyBtn.textContent = 'Copied!';
-      setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
-    });
-  });
+  // (legacy export buttons removed; cloud autosave replaces them)
 
   openIconPickerBtn.addEventListener('click', () => {
     if (iconPickerOpen) closeIconPicker();
@@ -594,7 +554,45 @@
     renderIconGrid(iconSearchInput.value.trim().toLowerCase());
   });
 
-  // Initialize
-  loadTasks();
-  renderTaskList();
+  // ── Auth gate + bootstrap ──────────────────────────────────────────────
+  function applyAuthState() {
+    const user = window.Auth && window.Auth.currentUser();
+    if (user) {
+      if (authWall) { authWall.classList.add('hidden'); }
+      if (todoRoot) { todoRoot.classList.remove('hidden'); }
+      loadTasks();
+      renderTaskList();
+    } else {
+      if (authWall) { authWall.classList.remove('hidden'); }
+      if (todoRoot) { todoRoot.classList.add('hidden'); }
+    }
+  }
+
+  if (window.AuthUI) {
+    window.AuthUI.mountChip(document.getElementById('todo-chip-slot'));
+  }
+  if (authWallLoginBtn) {
+    authWallLoginBtn.onclick = function () {
+      window.AuthUI.openLogin({ requireLogin: true });
+    };
+  }
+  if (window.Auth) {
+    window.Auth.onChange(function () {
+      document.body.setAttribute('data-auth-mode',
+        (window.Storage && window.Storage.mode) || 'loading');
+      applyAuthState();
+    });
+  }
+  if (window.Storage) {
+    window.Storage.onChange(function (s) {
+      document.body.setAttribute('data-auth-mode', s.mode || 'loading');
+      // Tasks may have just finished loading from the cloud; refresh the UI.
+      if (window.Auth && window.Auth.currentUser()) {
+        loadTasks();
+        renderTaskList();
+      }
+    });
+    window.Storage.init();
+  }
+  applyAuthState();
 })();
