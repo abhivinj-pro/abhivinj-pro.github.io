@@ -326,6 +326,37 @@
     }
   }
 
+  // Normalize a `once` frequency into {startDate, endDate} (YYYY-MM-DD strings).
+  // Supports legacy { date } (single-day) and new { startDate, endDate } (span).
+  // Returns null if the frequency is not a usable `once` shape.
+  function getOnceRange(task) {
+    if (!task || !task.frequency || task.frequency.type !== 'once') { return null; }
+    var freq = task.frequency;
+    var start = freq.startDate || freq.date;
+    if (!start) { return null; }
+    var end = freq.endDate || freq.date || start;
+    // Defensive: if end somehow precedes start, collapse to single-day.
+    if (end < start) { end = start; }
+    return { startDate: start, endDate: end };
+  }
+
+  // Inclusive day-count of a once range. Single-day ranges return 1.
+  function onceRangeLength(range) {
+    if (!range) { return 0; }
+    var s = new Date(range.startDate + 'T00:00:00');
+    var e = new Date(range.endDate + 'T00:00:00');
+    var diff = Math.round((e.getTime() - s.getTime()) / (24 * 60 * 60 * 1000));
+    return diff + 1;
+  }
+
+  // 1-based day index of `dateKey` within `range`. Returns 0 if outside.
+  function onceRangeDayIndex(range, dateKey) {
+    if (!range || dateKey < range.startDate || dateKey > range.endDate) { return 0; }
+    var s = new Date(range.startDate + 'T00:00:00');
+    var d = new Date(dateKey + 'T00:00:00');
+    return Math.round((d.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+  }
+
   function isTaskForDate(task, date) {
     var freq = task.frequency;
     var startDate, normalizedDate, normalizedStart, diffMs, diffWeeks;
@@ -348,11 +379,10 @@
     }
 
     if (freq.type === 'once') {
-      if (!freq.date) { return false; }
-      var y = date.getFullYear();
-      var m = String(date.getMonth() + 1).padStart(2, '0');
-      var d = String(date.getDate()).padStart(2, '0');
-      return freq.date === (y + '-' + m + '-' + d);
+      var range = getOnceRange(task);
+      if (!range) { return false; }
+      var key = getDateKey(date);
+      return key >= range.startDate && key <= range.endDate;
     }
 
     return false;
@@ -472,6 +502,25 @@
             });
           }
         }
+      } else if (task.frequency && task.frequency.type === 'once') {
+        // Multi-day once-tasks get a "Day X of N" badge on today's card so the
+        // user can see progress through the span. Single-day spans (legacy
+        // shape) get no badge to preserve their pre-existing look.
+        var todayRange = getOnceRange(task);
+        var todayKey = getDateKey(logicalDate);
+        var totalDays = onceRangeLength(todayRange);
+        if (totalDays > 1) {
+          var dayIdx = onceRangeDayIndex(todayRange, todayKey);
+          expandedTasks.push({
+            id: task.id,
+            title: task.title,
+            timeLabel: 'Day ' + dayIdx + ' of ' + totalDays,
+            accentClass: task.accentClass,
+            icon: task.icon
+          });
+        } else {
+          expandedTasks.push(task);
+        }
       } else {
         expandedTasks.push(task);
       }
@@ -516,24 +565,105 @@
       });
     }
 
+    // Per-day missed instance for a multi-day once-task. The composite id
+    // (`task.id#YYYY-MM-DD`) lives in *today's* state when the user catches up,
+    // so each missed day gets independent completion tracking without
+    // touching historical day-state docs. The "Day X of N — Missed" badge
+    // is rendered via timeLabel by createHabitCard.
+    function pushCarryForwardOnceDay(task, range, missedDateKey, totalDays) {
+      var dayIdx = onceRangeDayIndex(range, missedDateKey);
+      carryForwardTasks.push({
+        id: task.id + '#' + missedDateKey,
+        title: task.title,
+        accentClass: task.accentClass,
+        icon: task.icon,
+        timeLabel: 'Day ' + dayIdx + ' of ' + totalDays + ' \u2014 Missed',
+        missed: true,
+        missedDateKey: missedDateKey,
+        parentTaskId: task.id
+      });
+    }
+
+    // True if a multi-day once-task's missed day was caught up later via the
+    // composite-id channel (state[task.id#missedDateKey] === true on any day
+    // strictly after the missed day, up to and including today).
+    function wasOnceDayCaughtUp(task, missedDateKey, todayDate) {
+      var compositeId = task.id + '#' + missedDateKey;
+      var cursor = new Date(missedDateKey + 'T00:00:00');
+      cursor.setDate(cursor.getDate() + 1);
+      var end = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+      while (cursor.getTime() <= end.getTime()) {
+        var dayState = readState(MYDAY_STORAGE_PREFIX, getDateKey(cursor));
+        if (dayState[compositeId]) { return true; }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return false;
+    }
+
     var todayNorm = new Date(logicalDate.getFullYear(), logicalDate.getMonth(), logicalDate.getDate());
 
     for (i = 0; i < bucket.length; i += 1) {
       task = bucket[i];
       if (task.times && task.times.length > 0) { continue; }
       if (!task.frequency || task.frequency.type === 'daily') { continue; }
+
+      if (task.frequency.type === 'once') {
+        // Span-aware carry-forward: iterate each day D in
+        // [startDate, min(endDate, today-1)] and surface a per-day missed
+        // instance for any day that is (a) un-done on the day itself and
+        // (b) not already caught up on a later day. Single-day spans
+        // preserve the legacy behavior (one card, bare task.id, no badge).
+        var range = getOnceRange(task);
+        if (!range) { continue; }
+        var spanLen = onceRangeLength(range);
+        var isSpan = spanLen > 1;
+
+        var startD = new Date(range.startDate + 'T00:00:00');
+        var endD = new Date(range.endDate + 'T00:00:00');
+        // Carry-forward only inspects strictly past days; today's card is
+        // handled in the expansion loop above.
+        var lastInspect = new Date(todayNorm.getTime());
+        lastInspect.setDate(lastInspect.getDate() - 1);
+        if (endD.getTime() < lastInspect.getTime()) {
+          lastInspect = endD;
+        }
+
+        var d = new Date(startD.getTime());
+        while (d.getTime() <= lastInspect.getTime()) {
+          var dKey = getDateKey(d);
+          var daysSinceD = Math.round((todayNorm.getTime() - d.getTime()) / (24 * 60 * 60 * 1000));
+          if (daysSinceD < 1 || daysSinceD > MAX_CARRY_DAYS) {
+            d.setDate(d.getDate() + 1);
+            continue;
+          }
+          var stateForD = readState(MYDAY_STORAGE_PREFIX, dKey);
+          if (stateForD[task.id]) {
+            d.setDate(d.getDate() + 1);
+            continue;
+          }
+          if (isSpan && wasOnceDayCaughtUp(task, dKey, todayNorm)) {
+            d.setDate(d.getDate() + 1);
+            continue;
+          }
+          if (isSpan) {
+            pushCarryForwardOnceDay(task, range, dKey, spanLen);
+          } else {
+            // Legacy single-day path: skip if today's card already represents
+            // the task (would be a duplicate), and use bare task.id so any
+            // existing per-task today-state catch-ups still apply.
+            if (!todayTaskIds[task.id]) {
+              pushCarryForward(task);
+            }
+          }
+          d.setDate(d.getDate() + 1);
+        }
+        continue;
+      }
+
       if (todayTaskIds[task.id]) { continue; }
 
-      var scheduledNorm;
-      if (task.frequency.type === 'once') {
-        if (!task.frequency.date) { continue; }
-        var scheduled = new Date(task.frequency.date + 'T00:00:00');
-        scheduledNorm = new Date(scheduled.getFullYear(), scheduled.getMonth(), scheduled.getDate());
-        if (scheduledNorm.getTime() >= todayNorm.getTime()) { continue; }
-      } else {
-        scheduledNorm = lastScheduledBefore(task, todayNorm, MAX_CARRY_DAYS);
-        if (!scheduledNorm) { continue; }
-      }
+      var scheduledNorm = lastScheduledBefore(task, todayNorm, MAX_CARRY_DAYS);
+      if (!scheduledNorm) { continue; }
 
       var daysSince = Math.round((todayNorm.getTime() - scheduledNorm.getTime()) / (24 * 60 * 60 * 1000));
       if (daysSince < 1) { continue; }
