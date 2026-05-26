@@ -11,14 +11,27 @@
   // changes; they start empty and populate on the first Storage event.
   var morningHabits = [];
   var mydayTasks = [];
+  var workTasks = [];
+
+  function normalizeTaskCategory(category) {
+    if (!category || category === 'General') {
+      return 'Work';
+    }
+    return category;
+  }
 
   function rebuildTaskBuckets() {
     morningHabits = [];
     mydayTasks = [];
+    workTasks = [];
     var src = (window.Storage && window.Storage.tasks) || [];
     for (var i = 0; i < src.length; i += 1) {
-      if (src[i].category === 'Morning Routine') {
+      var category = normalizeTaskCategory(src[i].category);
+      src[i].category = category;
+      if (category === 'Morning Routine') {
         morningHabits.push(src[i]);
+      } else if (category === 'Work') {
+        workTasks.push(src[i]);
       } else {
         mydayTasks.push(src[i]);
       }
@@ -135,8 +148,10 @@
   var touchEndY = 0;
   var manualScreen = null;
   var lastNaturalScreen = null;
-  var currentMyDayTasks = [];
-  var lastMyDayHour = -1;
+  var currentDayTasks = [];
+  var currentDayView = 'myday';
+  var lastTaskHour = -1;
+  var lastTaskView = '';
 
   var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -147,7 +162,7 @@
 
   function getModeOverride() {
     var search = window.location.search || '';
-    var match = search.match(/(?:\?|&)mode=(morning|clock|myday)(?:&|$)/i);
+    var match = search.match(/(?:\?|&)mode=(morning|clock|myday|work)(?:&|$)/i);
     return match ? match[1].toLowerCase() : '';
   }
 
@@ -306,7 +321,7 @@
       if (wasMissed && state[habitId] && doneMissedSection) {
         doneMissedSection.open = true;
       }
-      renderMyDay();
+      renderTaskView(currentDayView);
       fitAllTitles();
     } else {
       applyState(grid, prefix, dateKey);
@@ -410,16 +425,17 @@
     return w;
   }
 
-  function renderMyDay() {
+  function renderTaskView(viewName) {
     var logicalDate = getLogicalDate();
+    var bucket = viewName === 'work' ? workTasks : mydayTasks;
     var todayTasks = [];
     var i, t, task, nowHour, expandedTasks, missedTasks, carryForwardTasks;
     var dateKey, state, compositeId, todayTaskIds;
     var allTasks, visibleTasks, doneMissedTasks;
 
-    for (i = 0; i < mydayTasks.length; i += 1) {
-      if (isTaskForDate(mydayTasks[i], logicalDate)) {
-        todayTasks.push(mydayTasks[i]);
+    for (i = 0; i < bucket.length; i += 1) {
+      if (isTaskForDate(bucket[i], logicalDate)) {
+        todayTasks.push(bucket[i]);
       }
     }
 
@@ -496,8 +512,8 @@
 
     var todayNorm = new Date(logicalDate.getFullYear(), logicalDate.getMonth(), logicalDate.getDate());
 
-    for (i = 0; i < mydayTasks.length; i += 1) {
-      task = mydayTasks[i];
+    for (i = 0; i < bucket.length; i += 1) {
+      task = bucket[i];
       if (task.times && task.times.length > 0) { continue; }
       if (!task.frequency || task.frequency.type === 'daily') { continue; }
       if (todayTaskIds[task.id]) { continue; }
@@ -542,13 +558,18 @@
       }
     }
 
-    currentMyDayTasks = visibleTasks;
+    currentDayTasks = visibleTasks;
+    currentDayView = viewName;
 
     if (mydayDateHeading) {
       mydayDateHeading.textContent = dayNames[logicalDate.getDay()] + ', ' + monthNames[logicalDate.getMonth()] + ' ' + logicalDate.getDate();
     }
     if (mydayTaskCount) {
-      mydayTaskCount.textContent = visibleTasks.length + (visibleTasks.length === 1 ? ' task now' : ' tasks now');
+      if (viewName === 'work') {
+        mydayTaskCount.textContent = visibleTasks.length + (visibleTasks.length === 1 ? ' work task now' : ' work tasks now');
+      } else {
+        mydayTaskCount.textContent = visibleTasks.length + (visibleTasks.length === 1 ? ' task now' : ' tasks now');
+      }
     }
 
     if (visibleTasks.length === 0) {
@@ -557,7 +578,7 @@
       }
       var emptyMsg = document.createElement('div');
       emptyMsg.className = 'myday-empty';
-      emptyMsg.textContent = 'No tasks right now';
+      emptyMsg.textContent = viewName === 'work' ? 'No work tasks right now' : 'No tasks right now';
       mydayGrid.appendChild(emptyMsg);
     } else {
       renderCardsInto(mydayGrid, visibleTasks, MYDAY_STORAGE_PREFIX);
@@ -604,6 +625,27 @@
       // grid to size-to-content so those elements remain on-screen instead of
       // being pushed below the fold.
       mydayGrid.classList.add('compact');
+    }
+  }
+
+  function syncPageNavState(activeScreen) {
+    var screenPrefixes = ['morning', 'myday'];
+    var targets = ['morning', 'myday', 'work', 'clock'];
+    var pi, ti, button, isActive;
+
+    for (pi = 0; pi < screenPrefixes.length; pi += 1) {
+      for (ti = 0; ti < targets.length; ti += 1) {
+        button = document.getElementById(screenPrefixes[pi] + '-nav-' + targets[ti]);
+        if (!button) { continue; }
+        isActive = targets[ti] === activeScreen;
+        if (isActive) {
+          button.classList.add('active');
+          button.setAttribute('aria-current', 'page');
+        } else {
+          button.classList.remove('active');
+          button.removeAttribute('aria-current');
+        }
+      }
     }
   }
 
@@ -780,6 +822,7 @@
       activeScreen = 'clock';
     }
 
+    syncPageNavState(activeScreen);
     updateClock(now);
 
     morningScreen.classList.add('hidden');
@@ -789,12 +832,13 @@
     if (activeScreen === 'morning') {
       morningScreen.classList.remove('hidden');
       applyState(routineGrid, MORNING_STORAGE_PREFIX, getDateKey(now));
-    } else if (activeScreen === 'myday') {
+    } else if (activeScreen === 'myday' || activeScreen === 'work') {
       mydayScreen.classList.remove('hidden');
       var currentHour = now.getHours();
-      if (currentHour !== lastMyDayHour) {
-        lastMyDayHour = currentHour;
-        renderMyDay();
+      if (currentHour !== lastTaskHour || activeScreen !== lastTaskView) {
+        lastTaskHour = currentHour;
+        lastTaskView = activeScreen;
+        renderTaskView(activeScreen);
         fitAllTitles();
       }
       applyState(mydayGrid, MYDAY_STORAGE_PREFIX, getDateKey(getLogicalDate()));
@@ -921,7 +965,7 @@
     if (routineGrid && !morningScreen.classList.contains('hidden')) {
       fitTitlesForGrid(routineGrid);
     }
-    if (mydayGrid && !mydayScreen.classList.contains('hidden') && currentMyDayTasks.length > 0) {
+    if (mydayGrid && !mydayScreen.classList.contains('hidden') && currentDayTasks.length > 0) {
       var extras = [];
       // Always include done-missed grid (even when collapsed/hidden) so
       // fit basis stays constant when tasks move between sections.
@@ -951,6 +995,11 @@
         syncView();
         fitAllTitles();
       },
+      work: function () {
+        manualScreen = 'work';
+        syncView();
+        fitAllTitles();
+      },
       clock: function () {
         manualScreen = 'clock';
         syncView();
@@ -958,7 +1007,7 @@
     };
 
     var screenPrefixes = ['morning', 'myday'];
-    var targets = ['morning', 'myday', 'clock'];
+    var targets = ['morning', 'myday', 'work', 'clock'];
     for (var pi = 0; pi < screenPrefixes.length; pi += 1) {
       for (var ti = 0; ti < targets.length; ti += 1) {
         (function (target) {
@@ -990,7 +1039,7 @@
     if (routineGrid) {
       renderCardsInto(routineGrid, morningHabits, MORNING_STORAGE_PREFIX);
     }
-    renderMyDay();
+    renderTaskView(currentDayView);
     syncView();
     fitAllTitles();
   }

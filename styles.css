@@ -823,6 +823,15 @@ body {
   box-shadow: 0 8px 22px rgba(139, 92, 246, 0.5), var(--shadow);
 }
 
+.page-nav-btn.work {
+  background: linear-gradient(135deg, #22c55e, #14b8a6);
+  color: #082417;
+}
+
+.page-nav-btn.work.active {
+  box-shadow: 0 8px 22px rgba(20, 184, 166, 0.4), var(--shadow);
+}
+
 .page-nav-btn.clock {
   background: linear-gradient(135deg, #38bdf8, #22d3ee);
   color: #0b1622;
@@ -844,6 +853,7 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
+  text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
 

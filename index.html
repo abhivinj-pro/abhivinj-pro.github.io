@@ -20,12 +20,16 @@
         <nav class="page-nav" aria-label="Page navigation">
           <button type="button" class="page-nav-btn morning active nav-auth-required" id="morning-nav-morning" aria-current="page">Morning</button>
           <button type="button" class="page-nav-btn myday" id="morning-nav-myday">My Day</button>
+          <button type="button" class="page-nav-btn work" id="morning-nav-work">Work</button>
           <button type="button" class="page-nav-btn clock" id="morning-nav-clock">Clock</button>
         </nav>
         <div class="routine-meta">
           <h1 id="morning-heading">Start with:</h1>
           <p id="morning-time-label">7:00 AM to 10:00 AM</p>
-          <span class="header-chip-slot" id="header-chip-slot-morning"></span>
+          <div class="routine-actions">
+            <a class="nav-btn nav-auth-required routine-task-link" href="todo.html" id="morning-to-tasks">Task Manager</a>
+            <span class="header-chip-slot" id="header-chip-slot-morning"></span>
+          </div>
         </div>
       </header>
       <main class="routine-grid" id="routine-grid"></main>
@@ -36,12 +40,16 @@
         <nav class="page-nav" aria-label="Page navigation">
           <button type="button" class="page-nav-btn morning nav-auth-required" id="myday-nav-morning">Morning</button>
           <button type="button" class="page-nav-btn myday active" id="myday-nav-myday" aria-current="page">My Day</button>
+          <button type="button" class="page-nav-btn work" id="myday-nav-work">Work</button>
           <button type="button" class="page-nav-btn clock" id="myday-nav-clock">Clock</button>
         </nav>
         <div class="routine-meta">
           <h1 id="myday-date-heading">Today</h1>
           <p id="myday-task-count">0 tasks today</p>
-          <span class="header-chip-slot" id="header-chip-slot-myday"></span>
+          <div class="routine-actions">
+            <a class="nav-btn nav-auth-required routine-task-link" href="todo.html" id="myday-to-tasks">Task Manager</a>
+            <span class="header-chip-slot" id="header-chip-slot-myday"></span>
+          </div>
         </div>
       </header>
       <div class="demo-banner hidden" id="demo-banner">
