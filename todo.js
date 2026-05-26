@@ -28,7 +28,8 @@
   const weeklyPanel = document.getElementById('weekly-panel');
   const intervalPanel = document.getElementById('interval-panel');
   const oncePanel = document.getElementById('once-panel');
-  const onceDateInput = document.getElementById('once-date');
+  const onceStartDateInput = document.getElementById('once-start-date');
+  const onceEndDateInput = document.getElementById('once-end-date');
   const timesPanel = document.getElementById('times-panel');
   const timeSlotsList = document.getElementById('time-slots-list');
   const addSlotBtn = document.getElementById('add-slot-btn');
@@ -188,7 +189,19 @@
     } else if (freq.type === 'interval') {
       desc = 'Every ' + freq.every + ' weeks on ' + DAY_NAMES[freq.day] + ' (from ' + freq.startDate + ')';
     } else if (freq.type === 'once') {
-      desc = freq.date ? ('One-time on ' + freq.date) : 'One-time (no date)';
+      const start = freq.startDate || freq.date;
+      const end = freq.endDate || freq.date || start;
+      if (!start) {
+        desc = 'One-time (no date)';
+      } else if (!end || start === end) {
+        desc = 'One-time on ' + start;
+      } else {
+        const days = Math.round(
+          (new Date(end + 'T00:00:00').getTime() - new Date(start + 'T00:00:00').getTime())
+            / (24 * 60 * 60 * 1000)
+        ) + 1;
+        desc = 'Multi-day from ' + start + ' to ' + end + ' (' + days + ' days)';
+      }
     } else {
       desc = 'Unknown';
     }
@@ -324,9 +337,14 @@
     }
 
     if (freqType === 'once' && task && task.frequency) {
-      onceDateInput.value = task.frequency.date || getTodayStr();
+      const onceStart = task.frequency.startDate || task.frequency.date || getTodayStr();
+      const onceEnd = task.frequency.endDate || task.frequency.date || onceStart;
+      onceStartDateInput.value = onceStart;
+      onceEndDateInput.value = onceEnd;
     } else {
-      onceDateInput.value = getTodayStr();
+      const today = getTodayStr();
+      onceStartDateInput.value = today;
+      onceEndDateInput.value = today;
     }
 
     clearSlots();
@@ -394,7 +412,14 @@
     }
 
     if (freqType === 'once') {
-      frequency.date = onceDateInput.value || getTodayStr();
+      const start = onceStartDateInput.value || getTodayStr();
+      let end = onceEndDateInput.value || start;
+      if (end < start) {
+        alert('End date cannot be before start date.');
+        return null;
+      }
+      frequency.startDate = start;
+      frequency.endDate = end;
     }
 
     result.frequency = frequency;

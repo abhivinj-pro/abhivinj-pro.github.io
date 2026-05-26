@@ -100,16 +100,21 @@
               </label>
               <label class="radio-label">
                 <input type="radio" name="freq-type" value="once">
-                <span class="radio-text">One-time on a specific date</span>
+                <span class="radio-text">Specific period</span>
               </label>
             </div>
           </div>
 
           <div class="form-group freq-panel hidden" id="once-panel">
             <div class="interval-row">
-              <label for="once-date">On date</label>
-              <input type="date" id="once-date" class="form-input form-input-sm">
+              <label for="once-start-date">Start date</label>
+              <input type="date" id="once-start-date" class="form-input form-input-sm">
             </div>
+            <div class="interval-row">
+              <label for="once-end-date">End date</label>
+              <input type="date" id="once-end-date" class="form-input form-input-sm">
+            </div>
+            <p class="form-help">For a single-day task, leave end date equal to start. For a multi-day task, each day in the range becomes its own check-in.</p>
           </div>
 
           <div class="form-group freq-panel hidden" id="weekly-panel">

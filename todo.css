@@ -388,6 +388,13 @@ html, body {
   white-space: nowrap;
 }
 
+.form-help {
+  font-size: 13px;
+  color: var(--muted, #94a3b8);
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
 .form-actions {
   display: flex;
   gap: 8px;
