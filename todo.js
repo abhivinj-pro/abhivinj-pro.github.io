@@ -2,6 +2,9 @@
   const ACCENT_CLASSES = ['accent-pink', 'accent-blue', 'accent-green', 'accent-cyan', 'accent-amber', 'accent-purple'];
   const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MORNING_CATEGORY = 'Morning Routine';
+  const WORK_CATEGORY = 'Work';
+  const LEGACY_GENERAL_CATEGORY = 'General';
 
   const DEFAULT_ICON = (window.ICON_LIBRARY && window.ICON_LIBRARY.length)
     ? window.ICON_LIBRARY[0].svg
@@ -15,6 +18,7 @@
   let iconCategoryFilter = 'All';
 
   const taskList = document.getElementById('task-list');
+  const filterBar = document.getElementById('filter-bar');
   const editorSection = document.getElementById('editor-section');
   const editorTitle = document.getElementById('editor-title');
   const taskForm = document.getElementById('task-form');
@@ -43,6 +47,17 @@
   const authWall = document.getElementById('auth-wall');
   const todoRoot = document.getElementById('todo-root');
   const authWallLoginBtn = document.getElementById('auth-wall-login');
+
+  function normalizeCategory(category) {
+    if (!category || category === LEGACY_GENERAL_CATEGORY) {
+      return WORK_CATEGORY;
+    }
+    return category;
+  }
+
+  function isWorkCategory(category) {
+    return normalizeCategory(category) === WORK_CATEGORY;
+  }
 
   // ── Icon picker ───────────────────────────────────────────────────────────
 
@@ -124,6 +139,9 @@
   function loadTasks() {
     if (window.Storage && window.Storage.tasks) {
       tasks = JSON.parse(JSON.stringify(window.Storage.tasks));
+      tasks.forEach(task => {
+        task.category = normalizeCategory(task.category);
+      });
     } else {
       tasks = [];
     }
@@ -220,7 +238,7 @@
 
     const filtered = activeFilters.size === 0
       ? tasks
-      : tasks.filter(t => activeFilters.has(t.category || 'General'));
+      : tasks.filter(task => activeFilters.has(normalizeCategory(task.category)));
 
     if (filtered.length === 0) {
       const empty = document.createElement('div');
@@ -249,7 +267,7 @@
         <div class="task-dot" style="background: ${colors[accentClass] || '#64748b'}"></div>
         <div class="task-info">
           <p class="task-title">${escapeHtml(task.title)}</p>
-          <p class="task-meta"><span class="task-category">${escapeHtml(task.category || 'General')}</span> ${describeFrequency(task.frequency, task.times)}</p>
+          <p class="task-meta"><span class="task-category">${escapeHtml(normalizeCategory(task.category))}</span> ${describeFrequency(task.frequency, task.times)}</p>
         </div>
         <button type="button" class="btn btn-edit" data-action="edit" data-index="${index}">Edit</button>
         <button type="button" class="btn btn-danger" data-action="delete" data-index="${index}">Delete</button>
@@ -266,7 +284,7 @@
   }
 
   function updateCategoryVisibility() {
-    const isMorning = taskCategory.value === 'Morning Routine';
+    const isMorning = normalizeCategory(taskCategory.value) === MORNING_CATEGORY;
     freqSection.classList.toggle('hidden', isMorning);
     timesSection.classList.toggle('hidden', isMorning);
     if (isMorning) {
@@ -281,7 +299,7 @@
     editorTitle.textContent = task ? 'Edit Task' : 'Add Task';
 
     taskNameInput.value = task ? task.title : '';
-    taskCategory.value = task && task.category ? task.category : 'General';
+    taskCategory.value = task && task.category ? normalizeCategory(task.category) : WORK_CATEGORY;
 
     const freqType = task && task.frequency ? task.frequency.type : 'daily';
     freqRadios.forEach(r => { r.checked = r.value === freqType; });
@@ -350,10 +368,10 @@
     const title = taskNameInput.value.trim();
     if (!title) return null;
 
-    const category = taskCategory.value;
+    const category = normalizeCategory(taskCategory.value);
     const result = { title, category };
 
-    if (category === 'Morning Routine') {
+    if (category === MORNING_CATEGORY) {
       return result;
     }
 
@@ -406,7 +424,7 @@
         tasks[idx].title = data.title;
         tasks[idx].category = data.category;
         tasks[idx].icon = selectedIcon;
-        if (data.category === 'Morning Routine') {
+        if (data.category === MORNING_CATEGORY) {
           delete tasks[idx].frequency;
           delete tasks[idx].times;
         } else {
@@ -432,7 +450,7 @@
         accentClass: getAccentForIndex(tasks.length),
         icon: selectedIcon
       };
-      if (data.category !== 'Morning Routine') {
+      if (data.category !== MORNING_CATEGORY) {
         newTask.frequency = data.frequency;
         if (data.times) {
           newTask.times = data.times;
@@ -463,15 +481,15 @@
     showEditor(null);
   });
 
-  document.getElementById('filter-bar').addEventListener('click', (e) => {
+  filterBar.addEventListener('click', (e) => {
     const chip = e.target.closest('.filter-chip');
     if (!chip) return;
-    const filter = chip.dataset.filter;
-    const allChip = document.querySelector('.filter-chip[data-filter="all"]');
+    const filter = normalizeCategory(chip.dataset.filter);
+    const allChip = filterBar.querySelector('.filter-chip[data-filter="all"]');
 
-    if (filter === 'all') {
+    if (chip.dataset.filter === 'all') {
       activeFilters.clear();
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      filterBar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
       allChip.classList.add('active');
     } else {
       if (activeFilters.has(filter)) {

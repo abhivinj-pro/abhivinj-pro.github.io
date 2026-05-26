@@ -9,6 +9,7 @@
   --danger: #ef4444;
   --danger-hover: #f87171;
   --success: #22c55e;
+  --shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
 }
 
 * {
@@ -35,6 +36,34 @@ html, body {
 
 .todo-header {
   margin-bottom: 32px;
+}
+
+.header-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header-bar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.todo-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .todo-header h1 {
@@ -591,4 +620,14 @@ input[type="date"].form-input {
   font-size: 14px;
   padding: 20px;
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .header-bar {
+    flex-direction: column;
+  }
+
+  .header-bar-right {
+    justify-content: flex-start;
+  }
 }

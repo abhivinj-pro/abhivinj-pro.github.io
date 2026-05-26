@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Day - Task Manager</title>
+  <title>Task Manager</title>
   <link rel="stylesheet" href="todo.css">
   <link rel="stylesheet" href="auth.css?v=1">
 </head>
@@ -19,15 +19,17 @@
     <header class="todo-header">
       <div class="header-bar">
         <div class="header-bar-left">
-          <h1>Task Manager</h1>
-          <span class="sync-indicator" id="sync-indicator">Synced ✓</span>
+          <div class="todo-heading-row">
+            <h1>Task Manager</h1>
+            <span class="sync-indicator" id="sync-indicator">Synced ✓</span>
+          </div>
         </div>
         <div class="header-bar-right">
           <a class="auth-link" href="index.html">← Habit Board</a>
           <span id="todo-chip-slot"></span>
         </div>
       </div>
-      <p class="todo-subtitle">Manage tasks for Morning Routine and My Day</p>
+      <p class="todo-subtitle">Manage tasks for Morning Routine, Work, and daily routines</p>
     </header>
 
     <div class="todo-layout">
@@ -42,7 +44,7 @@
           <button type="button" class="filter-chip" data-filter="Self Care">Self Care</button>
           <button type="button" class="filter-chip" data-filter="Chores">Chores</button>
           <button type="button" class="filter-chip" data-filter="Groceries">Groceries</button>
-          <button type="button" class="filter-chip" data-filter="General">General</button>
+          <button type="button" class="filter-chip" data-filter="Work">Work</button>
         </div>
         <div class="task-list" id="task-list"></div>
       </section>
@@ -58,7 +60,7 @@
           <div class="form-group">
             <label for="task-category">Category</label>
             <select id="task-category" class="form-input">
-              <option value="General">General</option>
+              <option value="Work">Work</option>
               <option value="Self Care">Self Care</option>
               <option value="Chores">Chores</option>
               <option value="Groceries">Groceries</option>

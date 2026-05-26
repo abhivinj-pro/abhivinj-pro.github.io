@@ -344,6 +344,23 @@ body[data-auth-mode="loading"] .nav-auth-required {
   margin-top: 8px;
 }
 
+.routine-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.routine-actions .header-chip-slot {
+  margin-top: 0;
+}
+
+.routine-task-link {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 /* When chip slot lives in clock-nav, keep it inline */
 .clock-nav .header-chip-slot {
   margin-left: 0;
