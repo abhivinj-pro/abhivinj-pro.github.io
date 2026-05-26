@@ -144,8 +144,6 @@
   }
 
   var calendarMonthCursor = null;
-  var touchStartY = 0;
-  var touchEndY = 0;
   var manualScreen = null;
   var lastNaturalScreen = null;
   var currentDayTasks = [];
@@ -766,37 +764,6 @@
 
     calendarNextButton.addEventListener('click', function () {
       moveCalendarMonth(1, new Date());
-    });
-
-    calendarPanel.addEventListener('wheel', function (event) {
-      if (Math.abs(event.deltaY) < 12) {
-        return;
-      }
-      event.preventDefault();
-      moveCalendarMonth(event.deltaY > 0 ? 1 : -1, new Date());
-    }, { passive: false });
-
-    calendarPanel.addEventListener('touchstart', function (event) {
-      if (!event.touches || !event.touches[0]) {
-        return;
-      }
-      touchStartY = event.touches[0].clientY;
-      touchEndY = touchStartY;
-    });
-
-    calendarPanel.addEventListener('touchmove', function (event) {
-      if (!event.touches || !event.touches[0]) {
-        return;
-      }
-      touchEndY = event.touches[0].clientY;
-    });
-
-    calendarPanel.addEventListener('touchend', function () {
-      var deltaY = touchStartY - touchEndY;
-      if (Math.abs(deltaY) < 30) {
-        return;
-      }
-      moveCalendarMonth(deltaY > 0 ? 1 : -1, new Date());
     });
   }
 
