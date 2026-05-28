@@ -168,6 +168,22 @@
     return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
   }
 
+  // Parse a 'YYYY-MM-DD' key into a local-midnight Date.
+  // Do NOT use `new Date('YYYY-MM-DDT00:00:00')`: iOS 12 Safari and other
+  // pre-ES2015 parsers treat date-time strings without a timezone designator
+  // as UTC, which shifts the day in any non-UTC zone and breaks once-task
+  // carry-forward (a same-day task ends up classified as "future").
+  function parseLocalDateKey(key) {
+    if (!key || typeof key !== 'string') { return new Date(NaN); }
+    var parts = key.split('-');
+    if (parts.length < 3) { return new Date(NaN); }
+    var y = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    var d = parseInt(parts[2], 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) { return new Date(NaN); }
+    return new Date(y, m - 1, d);
+  }
+
   function getLogicalDate() {
     var now = new Date();
     if (now.getHours() < 1) {
@@ -343,8 +359,8 @@
   // Inclusive day-count of a once range. Single-day ranges return 1.
   function onceRangeLength(range) {
     if (!range) { return 0; }
-    var s = new Date(range.startDate + 'T00:00:00');
-    var e = new Date(range.endDate + 'T00:00:00');
+    var s = parseLocalDateKey(range.startDate);
+    var e = parseLocalDateKey(range.endDate);
     var diff = Math.round((e.getTime() - s.getTime()) / (24 * 60 * 60 * 1000));
     return diff + 1;
   }
@@ -352,8 +368,8 @@
   // 1-based day index of `dateKey` within `range`. Returns 0 if outside.
   function onceRangeDayIndex(range, dateKey) {
     if (!range || dateKey < range.startDate || dateKey > range.endDate) { return 0; }
-    var s = new Date(range.startDate + 'T00:00:00');
-    var d = new Date(dateKey + 'T00:00:00');
+    var s = parseLocalDateKey(range.startDate);
+    var d = parseLocalDateKey(dateKey);
     return Math.round((d.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)) + 1;
   }
 
@@ -370,7 +386,7 @@
     }
 
     if (freq.type === 'interval') {
-      startDate = new Date(freq.startDate + 'T00:00:00');
+      startDate = parseLocalDateKey(freq.startDate);
       normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       normalizedStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
       diffMs = normalizedDate.getTime() - normalizedStart.getTime();
@@ -589,7 +605,7 @@
     // strictly after the missed day, up to and including today).
     function wasOnceDayCaughtUp(task, missedDateKey, todayDate) {
       var compositeId = task.id + '#' + missedDateKey;
-      var cursor = new Date(missedDateKey + 'T00:00:00');
+      var cursor = parseLocalDateKey(missedDateKey);
       cursor.setDate(cursor.getDate() + 1);
       var end = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
       while (cursor.getTime() <= end.getTime()) {
@@ -618,8 +634,8 @@
         var spanLen = onceRangeLength(range);
         var isSpan = spanLen > 1;
 
-        var startD = new Date(range.startDate + 'T00:00:00');
-        var endD = new Date(range.endDate + 'T00:00:00');
+        var startD = parseLocalDateKey(range.startDate);
+        var endD = parseLocalDateKey(range.endDate);
         // Carry-forward only inspects strictly past days; today's card is
         // handled in the expansion loop above.
         var lastInspect = new Date(todayNorm.getTime());

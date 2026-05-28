@@ -35,6 +35,14 @@ window.ALL_TASKS = [
     icon: '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><linearGradient id="shakerTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#9a6af5"/><stop offset="100%" stop-color="#6230a9"/></linearGradient><linearGradient id="shakerCup" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d39c0"/><stop offset="100%" stop-color="#452278"/></linearGradient></defs><path fill="url(#shakerTop)" d="M55 20h30l10 14-7 11H52l-7-11z"/><path fill="url(#shakerCup)" d="M49 45h42l9 49c2 12-7 24-20 24H60c-13 0-22-12-20-24z"/><path fill="#f2d29a" d="M57 66h26l6 30c1 7-4 13-11 13H62c-7 0-12-6-11-13z"/><path fill="#ffffff" opacity="0.82" d="M69 35h8v63h-8z"/><path fill="none" stroke="#b591ff" stroke-width="5" stroke-linecap="round" d="M32 66l-10 6M35 86l-12 3M108 66l10 6M105 86l12 3"/></svg>'
   },
   {
+    id: 'foam-rolling',
+    title: 'Foam Rolling',
+    category: 'Morning Routine',
+    accentClass: 'accent-green',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="14" rx="9" ry="4"/><path d="M3 14v3c0 2.2 4 4 9 4s9-1.8 9-4v-3"/><path d="M8 7c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v3H8V7z"/><path d="M12 5V3"/></svg>',
+    frequency: { type: 'daily' }
+  },
+  {
     id: 'exercise',
     title: 'Exercise',
     category: 'Self Care',
@@ -201,5 +209,215 @@ window.ALL_TASKS = [
     accentClass: 'accent-pink',
     icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="alnBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff3b0"/><stop offset="100%" stop-color="#ffb347"/></linearGradient><linearGradient id="alnTrayU" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfe9ff"/></linearGradient><linearGradient id="alnTrayL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cfe9ff"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#alnBg)" stroke="#d98a1a" stroke-width="0.6"/><g stroke="#1d4d7a" stroke-width="0.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4.5 9c0-2.4 3.4-3.6 7.5-3.6S19.5 6.6 19.5 9c0 1.3-.5 2.3-1.4 3.1-.7-.9-1.6-1.4-2.8-1.4H8.7c-1.2 0-2.1.5-2.8 1.4C5 11.3 4.5 10.3 4.5 9z" fill="url(#alnTrayU)"/><path d="M7.4 9.2v2.2M9.7 9v2.5M12 8.95v2.55M14.3 9v2.5M16.6 9.2v2.2" stroke-width="0.45" opacity="0.85"/><path d="M4.5 15c0 2.4 3.4 3.6 7.5 3.6s7.5-1.2 7.5-3.6c0-1.3-.5-2.3-1.4-3.1-.7.9-1.6 1.4-2.8 1.4H8.7c-1.2 0-2.1-.5-2.8-1.4-.9.8-1.4 1.8-1.4 3.1z" fill="url(#alnTrayL)"/><path d="M7.4 14.8v-2.2M9.7 15v-2.5M12 15.05v-2.55M14.3 15v-2.5M16.6 14.8v-2.2" stroke-width="0.45" opacity="0.85"/></g><path d="M6.5 7c1.5-.8 3.5-1.2 5.5-1.2" stroke="#ffffff" stroke-width="0.55" stroke-linecap="round" fill="none" opacity="0.85"/><path d="M17.5 17c-1.5.8-3.5 1.2-5.5 1.2" stroke="#ffffff" stroke-width="0.5" stroke-linecap="round" fill="none" opacity="0.7"/></svg>',
     frequency: { type: 'daily' }
+  },
+
+  // ── CISA Domain 4 – IS Operations & Business Resilience ──────────────────
+  {
+    id: 'cisa-d4-013',
+    title: 'CISA D4: Day 7.1 IT Asset Management',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-26', endDate: '2026-05-26' }
+  },
+  {
+    id: 'cisa-d4-014',
+    title: 'CISA D4: Day 7.2 Job Scheduling',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-26', endDate: '2026-05-26' }
+  },
+  {
+    id: 'cisa-d4-015',
+    title: 'CISA D4: Day 7.3 System Interfaces',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-016',
+    title: 'CISA D4: Day 7.4 EUC',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-017',
+    title: 'CISA D4: Day 7.5 Data Governance',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-018',
+    title: 'CISA D4: Day 8.1 IS Architecture & OS',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-019',
+    title: 'CISA D4: Day 8.2 Software Licensing',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-020',
+    title: 'CISA D4: Day 9.1 Q&A, EMI, Attenuation',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-021',
+    title: 'CISA D4: Day 9.2 Cross Talk, Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-022',
+    title: 'CISA D4: Day 10 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-023',
+    title: 'CISA D4: Day 11.1 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-024',
+    title: 'CISA D4: Day 11.2 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-025',
+    title: 'CISA D4: Day 11.3 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-27', endDate: '2026-05-27' }
+  },
+  {
+    id: 'cisa-d4-026',
+    title: 'CISA D4: Day 11.4 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-027',
+    title: 'CISA D4: Day 11.5 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-028',
+    title: 'CISA D4: Day 12.1 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-029',
+    title: 'CISA D4: Day 12.2 Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-030',
+    title: 'CISA D4: Day 13.1 Database Management',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-031',
+    title: 'CISA D4: Day 13.2 Database Management Part 2',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-032',
+    title: 'CISA D4: Day 14.1 DBMS Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-033',
+    title: 'CISA D4: Day 14.2 Destroying Drives, Data Warehouse Q&A',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-034',
+    title: 'CISA D4: Extras – Capacity Management',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-035',
+    title: 'CISA D4: Extras – Incident Management',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-036',
+    title: 'CISA D4: Extras – Problem Management',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-037',
+    title: 'CISA D4: Question on SLA',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-28', endDate: '2026-05-28' }
+  },
+  {
+    id: 'cisa-d4-extra',
+    title: 'CISA D4: DOM 4 New Changes 2024',
+    category: 'Work',
+    accentClass: 'accent-blue',
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z"/><path d="M8 21h8M12 17v4"/></svg>',
+    frequency: { type: 'once', startDate: '2026-05-29', endDate: '2026-05-29' }
   }
 ];
