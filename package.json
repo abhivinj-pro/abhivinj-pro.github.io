@@ -1,0 +1,9 @@
+{
+  "name": "habit-website-tests",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Local-only Node test harness for app.js task-engine logic. Not bundled with the deployed site.",
+  "scripts": {
+    "test": "node tests/run.js"
+  }
+}
