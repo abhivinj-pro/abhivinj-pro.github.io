@@ -35,8 +35,7 @@ Optional URL overrides for testing:
 
 GitHub Pages will serve `index.html` automatically.
 
-## Notes For iPad Use
+## Notes For Use
 
-- The site is optimized for a full-screen, no-scroll experience.
+- The site is optimized for a big device like a tablet(iPad), laptop, desktop so that everything is visible from a distance.
 - Safari home screen mode is supported through the Apple web app meta tags in `index.html`.
-- Checklist state resets naturally each day because storage is keyed by date.
