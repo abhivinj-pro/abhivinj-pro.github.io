@@ -192,22 +192,39 @@
     return now;
   }
 
+  // Hours elapsed since midnight of the logical day. When the wall clock is
+  // between 00:00 and 00:59, getLogicalDate() rolls back to yesterday, so the
+  // logical hour is 24 + getHours() (i.e. 24..24.99) rather than 0. Using the
+  // raw wall-clock hour here would make every multi-time slot from the logical
+  // day appear neither active nor expired in that one-hour window, so tasks
+  // like Eye Drops (First..Fifth) would silently vanish from both Missed and
+  // Caught Up between midnight and 1 AM.
+  function getLogicalHour() {
+    var now = new Date();
+    var h = now.getHours();
+    if (h < 1) {
+      return 24 + h;
+    }
+    return h;
+  }
+
   function slugifyTime(text) {
     return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
+  // Both window predicates operate in logical-hour space (see getLogicalHour).
+  // Wrap-around slots (e.g. 22→1) are normalized by treating slot.to as
+  // slot.to + 24 so the slot ends at hour 25 of the logical day. That keeps
+  // expiry semantics symmetric with non-wrap slots: a slot is expired iff the
+  // logical hour is at or past the slot's effective end.
   function isWithinTimeWindow(slot, currentHour) {
-    if (slot.from <= slot.to) {
-      return currentHour >= slot.from && currentHour < slot.to;
-    }
-    return currentHour >= slot.from || currentHour < slot.to;
+    var end = slot.from <= slot.to ? slot.to : slot.to + 24;
+    return currentHour >= slot.from && currentHour < end;
   }
 
   function isExpiredTimeWindow(slot, nowHour) {
-    if (slot.from <= slot.to) {
-      return nowHour >= slot.to;
-    }
-    return false;
+    var end = slot.from <= slot.to ? slot.to : slot.to + 24;
+    return nowHour >= end;
   }
 
   function setViewportHeightVar() {
@@ -485,7 +502,7 @@
 
     dateKey = getDateKey(logicalDate);
     state = readState(MYDAY_STORAGE_PREFIX, dateKey);
-    nowHour = new Date().getHours();
+    nowHour = getLogicalHour();
     expandedTasks = [];
     missedTasks = [];
 
@@ -673,7 +690,14 @@
             // Legacy single-day path: skip if today's card already represents
             // the task (would be a duplicate), and use bare task.id so any
             // existing per-task today-state catch-ups still apply.
-            if (!todayTaskIds[task.id]) {
+            //
+            // wasEverCompleted check (range [d+1, today-1]): the legacy catch-
+            // up channel stores bare task.id on the catch-up day. Without this
+            // check, a task ticked on day D+1 would re-appear in Missed on
+            // D+2 onwards because the visible/Caught-Up split only inspects
+            // *today's* state[task.id]. Matches the semantics used for
+            // weekly/interval tasks further below.
+            if (!todayTaskIds[task.id] && !wasEverCompleted(task.id, d, todayNorm)) {
               pushCarryForward(task);
             }
           }
