@@ -1,41 +1,94 @@
 # Habit Board
 
-Simple static habit-building website designed for GitHub Pages and older iPad Safari, including iPad Air 1 on iOS 12.
+A personal habit-tracking and task-management web app hosted on GitHub Pages. Designed to work on older iPad Safari (iPad Air 1, iOS 12) as well as modern browsers — no framework, no build step.
 
-## Features
+## Screens
 
-- Morning board from 7:00 AM to 9:30 AM with six large tap-friendly routine cards.
-- Clock-only mode outside the morning window, showing hours, minutes, seconds, and AM/PM.
-- Daily checklist state stored in browser local storage.
-- No framework, no build step, no scrolling layout.
+### Morning Board (`index.html`)
+- Large tap-friendly routine cards from 7:00 AM to 10:00 AM showing your **Morning Routine** tasks.
+- Each card has a custom SVG icon, an accent colour, and a checkmark that persists across the day.
+- Navigation bar switches between **Morning**, **My Day**, **Work**, and **Clock** tabs.
+
+### My Day
+- Shows all non-Morning, non-Work tasks scheduled for today, pulled from your cloud task list.
+- Tasks with time slots appear in order; tasks without a time slot are grouped below.
+- Completed and missed tasks collapse into a **Caught Up** disclosure section.
+- A rotating motivational quote appears at the bottom when all tasks are done.
+- Demo mode is shown to unauthenticated visitors using a built-in sample task list.
+
+### Work
+- Dedicated view for tasks in the **Work** category, with the same card layout as My Day.
+
+### Clock
+- Full-screen clock showing hours, minutes, seconds, AM/PM, day of the week, and date.
+- Built-in calendar panel for the current month.
+- Active outside the morning window as the default view; also reachable from the nav bar.
+
+### Task Manager (`todo.html`)
+- Requires sign-in — shows an auth wall for unauthenticated visitors.
+- Add, edit, delete, and reorder tasks.
+- Per-task settings: name, category, accent colour, custom icon, recurrence schedule, and time slots.
+- **Categories**: Morning Routine, Self Care, Chores, Groceries, Work.
+- **Recurrence types**: daily, specific days of the week, interval (every N days), or a one-time date range.
+- **Time slots**: assign one or more times to a task, or mark it as a full-day task.
+- Filter chips let you view tasks by category.
+- Sync status indicator shows whether changes have been saved to the cloud.
+
+## Authentication & Cloud Sync
+
+- Firebase Authentication via REST (no SDK) — supports email/password sign-up, sign-in, and **magic-link (passwordless)** sign-in.
+- Firestore via REST — per-account task list and per-day check state are stored in the cloud and sync across devices.
+- Tokens are stored in `localStorage` and refreshed automatically when less than 5 minutes remain.
+- **Pro accounts** (email allowlist in `pro-allowlist.js`) fall back to the bundled `tasks-config.js` when the cloud is unreachable.
+- **Demo mode** for unauthenticated visitors shows a read-only sample from `tasks-config.js`.
+
+## Icon Library
+
+`icon-library.js` contains a curated SVG icon library (Health, Fitness, Food, Mind, Home, and more). The Task Manager lets you search and filter icons by name, tag, or category with a visual picker.
 
 ## Files
 
-- `index.html` - page structure
-- `styles.css` - layout and dark theme styling
-- `app.js` - schedule logic, clock updates, and checklist persistence
+| File | Purpose |
+|---|---|
+| `index.html` | Main app shell (Morning, My Day, Work, Clock) |
+| `todo.html` | Task Manager page |
+| `app.js` | Screen routing, card rendering, clock, calendar, quote, carry-forward logic |
+| `todo.js` | Task list CRUD, form, icon picker, recurrence editor |
+| `storage.js` | Unified storage layer (demo / cloud / pro-fallback modes) |
+| `auth-client.js` | Firebase Identity Toolkit + Secure Token REST wrapper |
+| `auth-ui.js` | Sign-in / sign-up modal and magic-link UI |
+| `firestore-client.js` | Firestore REST client |
+| `firebase-config.js` | Firebase project credentials (edit before deploying) |
+| `pro-allowlist.js` | Email list for pro-tier fallback behaviour |
+| `tasks-config.js` | Default/demo task definitions |
+| `icon-library.js` | SVG icon library used by the task editor |
+| `polyfills.js` | Promise + fetch polyfills for iOS 9/12 |
+| `styles.css` | Layout and dark theme for the main app |
+| `todo.css` | Task Manager styles |
+| `auth.css` | Auth modal and auth-wall styles |
 
 ## Preview Locally
 
-Open `index.html` directly in a browser.
+Open `index.html` directly in a browser (no server needed).
 
-Optional URL overrides for testing:
+URL parameters for testing:
 
-- `index.html?mode=morning`
-- `index.html?mode=clock`
+- `index.html?mode=morning` — force the Morning screen
+- `index.html?mode=clock` — force the Clock screen
 
-## Publish To GitHub Pages
+## Deploy to GitHub Pages
 
 1. Push this folder to a GitHub repository.
-2. In the repository, open `Settings`.
-3. Open `Pages`.
-4. Set `Source` to `Deploy from a branch`.
-5. Choose the `main` branch and the `/ (root)` folder.
-6. Save.
+2. Open **Settings → Pages**.
+3. Set **Source** to **Deploy from a branch**.
+4. Choose the `main` branch and the `/ (root)` folder.
+5. Save.
 
-GitHub Pages will serve `index.html` automatically.
+Before deploying, fill in your Firebase project values in `firebase-config.js`. See [SETUP.md](SETUP.md) for the full Firebase setup guide including Firestore rules and API key restrictions.
 
-## Notes For Use
+## Notes
 
-- The site is optimized for a big device like a tablet(iPad), laptop, desktop so that everything is visible from a distance.
-- Safari home screen mode is supported through the Apple web app meta tags in `index.html`.
+- Optimised for tablets (iPad), laptops, and desktops — cards are large enough to read from a distance.
+- Safari home-screen mode is supported via Apple web app meta tags in `index.html`.
+- All network calls use XHR (not `fetch`) for compatibility with iOS 9/12; `polyfills.js` patches `Promise` for the same reason.
+- Day state uses a logical midnight of 1:00 AM — tapping cards just after midnight still counts toward the previous day.

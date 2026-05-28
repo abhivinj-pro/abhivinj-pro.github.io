@@ -600,14 +600,20 @@
       });
     }
 
-    // True if a multi-day once-task's missed day was caught up later via the
-    // composite-id channel (state[task.id#missedDateKey] === true on any day
-    // strictly after the missed day, up to and including today).
+    // True if a multi-day once-task's missed day was caught up on a day strictly
+    // before today (i.e. [missedDate+1, yesterday]). Today is intentionally
+    // excluded — same pattern as wasEverCompleted — so that when a user catches
+    // up on a missed once-day task today, the task still flows into
+    // carryForwardTasks and is correctly routed to the Caught Up section by the
+    // state[task.id] classifier below. If we included today here, the task
+    // would be filtered out of carryForwardTasks the moment it is checked off
+    // and would disappear from the board entirely.
     function wasOnceDayCaughtUp(task, missedDateKey, todayDate) {
       var compositeId = task.id + '#' + missedDateKey;
       var cursor = parseLocalDateKey(missedDateKey);
       cursor.setDate(cursor.getDate() + 1);
       var end = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+      end.setDate(end.getDate() - 1); // exclude today
       while (cursor.getTime() <= end.getTime()) {
         var dayState = readState(MYDAY_STORAGE_PREFIX, getDateKey(cursor));
         if (dayState[compositeId]) { return true; }
