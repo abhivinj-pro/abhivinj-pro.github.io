@@ -40,6 +40,20 @@
 
   var accentClasses = ['accent-pink', 'accent-blue', 'accent-green', 'accent-cyan', 'accent-amber', 'accent-purple'];
 
+  // Audio feedback for task check / uncheck.
+  var taskCompletedSound = new Audio('resources/task-completed.wav');
+  var taskUncheckedSound = new Audio('resources/terminate-selection.wav');
+  taskCompletedSound.preload = 'auto';
+  taskUncheckedSound.preload = 'auto';
+  function playTaskSound(completed) {
+    var snd = completed ? taskCompletedSound : taskUncheckedSound;
+    try {
+      snd.currentTime = 0;
+      var p = snd.play();
+      if (p && typeof p.catch === 'function') { p.catch(function () { /* ignore autoplay errors */ }); }
+    } catch (e) { /* no-op */ }
+  }
+
   var routineGrid = document.getElementById('routine-grid');
   var mydayGrid = document.getElementById('myday-grid');
   var morningScreen = document.getElementById('morning-screen');
@@ -344,6 +358,7 @@
       }
     }
     state[habitId] = !state[habitId];
+    playTaskSound(!!state[habitId]);
     writeState(prefix, dateKey, state);
     if (prefix === MYDAY_STORAGE_PREFIX) {
       // When a Missed task is caught up, auto-open the Caught Up section so
