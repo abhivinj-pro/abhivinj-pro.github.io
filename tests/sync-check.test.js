@@ -123,4 +123,8 @@ t.describe('source-sync :: storage prefixes are preserved', function () {
   t.it('MORNING_STORAGE_PREFIX is wired up', function () {
     has(/var MORNING_STORAGE_PREFIX\s*=/);
   });
+  t.it('rebuildTaskBuckets skips archived tasks', function () {
+    has(/src\[i\]\.archived\s*=\s*Boolean\(src\[i\]\.archived\);/);
+    has(/if \(src\[i\]\.archived\) \{ continue; \}/);
+  });
 });
