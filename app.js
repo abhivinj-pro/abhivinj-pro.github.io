@@ -28,6 +28,8 @@
     for (var i = 0; i < src.length; i += 1) {
       var category = normalizeTaskCategory(src[i].category);
       src[i].category = category;
+      src[i].archived = Boolean(src[i].archived);
+      if (src[i].archived) { continue; }
       if (category === 'Morning Routine') {
         morningHabits.push(src[i]);
       } else if (category === 'Work') {

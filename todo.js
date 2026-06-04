@@ -140,9 +140,23 @@
   function loadTasks() {
     if (window.Storage && window.Storage.tasks) {
       tasks = JSON.parse(JSON.stringify(window.Storage.tasks));
+      let needsPersist = false;
+      const todayKey = getTodayStr();
       tasks.forEach(task => {
         task.category = normalizeCategory(task.category);
+        const wasArchived = !!task.archived;
+        if (task.frequency && task.frequency.type === 'once') {
+          task.archived = isArchivedOnceTask(task, todayKey);
+        } else {
+          task.archived = wasArchived;
+        }
+        if (task.archived !== wasArchived) {
+          needsPersist = true;
+        }
       });
+      if (needsPersist) {
+        saveDraft();
+      }
     } else {
       tasks = [];
     }
@@ -246,6 +260,56 @@
     timeSlotsList.innerHTML = '';
   }
 
+  function getOnceEndDate(task) {
+    if (!task || !task.frequency || task.frequency.type !== 'once') {
+      return '';
+    }
+    return task.frequency.endDate || task.frequency.date || task.frequency.startDate || '';
+  }
+
+  function isArchivedOnceTask(task, todayKey) {
+    const endDate = getOnceEndDate(task);
+    return Boolean(endDate) && endDate < todayKey;
+  }
+
+  function isTaskArchived(task, todayKey) {
+    return !!task.archived || isArchivedOnceTask(task, todayKey);
+  }
+
+  function renderTaskItem(task) {
+    const archivedView = !!task.archived;
+    const index = tasks.indexOf(task);
+    const item = document.createElement('div');
+    item.className = 'task-item' + (archivedView ? ' task-item-archived' : '');
+
+    const accentClass = task.accentClass || getAccentForIndex(index);
+    const colors = {
+      'accent-pink': '#ff4f8a',
+      'accent-blue': '#338df4',
+      'accent-green': '#7ad730',
+      'accent-cyan': '#1cbfcb',
+      'accent-amber': '#ffbf21',
+      'accent-purple': '#7d4fd7'
+    };
+
+    item.innerHTML = `
+      <div class="task-dot" style="background: ${colors[accentClass] || '#64748b'}"></div>
+      <div class="task-info">
+        <p class="task-title">${escapeHtml(task.title)}</p>
+        <p class="task-meta"><span class="task-category">${escapeHtml(normalizeCategory(task.category))}</span> ${describeFrequency(task.frequency, task.times)}</p>
+      </div>
+      ${archivedView
+        ? (task.frequency && task.frequency.type !== 'once'
+          ? '<button type="button" class="btn btn-accent" data-action="unarchive" data-index="' + index + '">Unarchive</button>'
+          : '')
+        : '<button type="button" class="btn btn-accent" data-action="archive" data-index="' + index + '">Archive</button>'}
+      <button type="button" class="btn btn-edit" data-action="edit" data-index="${index}">Edit</button>
+      <button type="button" class="btn btn-danger" data-action="delete" data-index="${index}">Delete</button>
+    `;
+
+    return item;
+  }
+
   function renderTaskList() {
     taskList.innerHTML = '';
 
@@ -261,32 +325,69 @@
       return;
     }
 
-    filtered.forEach((task, filteredIndex) => {
-      const index = tasks.indexOf(task);
-      const item = document.createElement('div');
-      item.className = 'task-item';
+    const todayKey = getTodayStr();
+    const categories = [];
+    const grouped = {};
 
-      const accentClass = task.accentClass || getAccentForIndex(index);
-      const colors = {
-        'accent-pink': '#ff4f8a',
-        'accent-blue': '#338df4',
-        'accent-green': '#7ad730',
-        'accent-cyan': '#1cbfcb',
-        'accent-amber': '#ffbf21',
-        'accent-purple': '#7d4fd7'
-      };
+    filtered.forEach(task => {
+      const category = normalizeCategory(task.category);
+      if (!grouped[category]) {
+        grouped[category] = { active: [], archive: [] };
+        categories.push(category);
+      }
+      if (isTaskArchived(task, todayKey)) {
+        grouped[category].archive.push(task);
+      } else {
+        grouped[category].active.push(task);
+      }
+    });
 
-      item.innerHTML = `
-        <div class="task-dot" style="background: ${colors[accentClass] || '#64748b'}"></div>
-        <div class="task-info">
-          <p class="task-title">${escapeHtml(task.title)}</p>
-          <p class="task-meta"><span class="task-category">${escapeHtml(normalizeCategory(task.category))}</span> ${describeFrequency(task.frequency, task.times)}</p>
-        </div>
-        <button type="button" class="btn btn-edit" data-action="edit" data-index="${index}">Edit</button>
-        <button type="button" class="btn btn-danger" data-action="delete" data-index="${index}">Delete</button>
-      `;
+    categories.forEach(category => {
+      const section = document.createElement('section');
+      section.className = 'task-category-section';
 
-      taskList.appendChild(item);
+      const header = document.createElement('div');
+      header.className = 'task-category-header';
+      const totals = grouped[category].active.length + grouped[category].archive.length;
+      header.innerHTML = '<h3>' + escapeHtml(category) + '</h3>' +
+        '<span class="task-category-count">' + totals + ' task' + (totals === 1 ? '' : 's') + '</span>';
+      section.appendChild(header);
+
+      const activeWrap = document.createElement('div');
+      activeWrap.className = 'task-category-list';
+      if (grouped[category].active.length === 0) {
+        const activeEmpty = document.createElement('div');
+        activeEmpty.className = 'task-empty task-empty-inline';
+        activeEmpty.textContent = 'No active tasks in this category.';
+        activeWrap.appendChild(activeEmpty);
+      } else {
+        grouped[category].active.forEach(task => {
+          activeWrap.appendChild(renderTaskItem(task));
+        });
+      }
+      section.appendChild(activeWrap);
+
+      if (grouped[category].archive.length > 0) {
+        const archiveDetails = document.createElement('details');
+        archiveDetails.className = 'task-archive-section';
+
+        const summary = document.createElement('summary');
+        summary.className = 'task-archive-summary';
+        summary.innerHTML = '<span>Archive</span><span class="task-archive-count">' + grouped[category].archive.length + '</span>';
+        archiveDetails.appendChild(summary);
+
+        const archiveList = document.createElement('div');
+        archiveList.className = 'task-category-list';
+        grouped[category].archive.forEach(task => {
+          const archiveItem = renderTaskItem(task);
+          archiveItem.classList.add('task-item-archived');
+          archiveList.appendChild(archiveItem);
+        });
+        archiveDetails.appendChild(archiveList);
+        section.appendChild(archiveDetails);
+      }
+
+      taskList.appendChild(section);
     });
   }
 
@@ -443,6 +544,7 @@
   }
 
   function saveTask(data) {
+    const todayKey = getTodayStr();
     if (editingId !== null) {
       const idx = tasks.findIndex(t => t.id === editingId);
       if (idx !== -1) {
@@ -452,12 +554,16 @@
         if (data.category === MORNING_CATEGORY) {
           delete tasks[idx].frequency;
           delete tasks[idx].times;
+          tasks[idx].archived = false;
         } else {
           tasks[idx].frequency = data.frequency;
           if (data.times) {
             tasks[idx].times = data.times;
           } else {
             delete tasks[idx].times;
+          }
+          if (data.frequency && data.frequency.type === 'once') {
+            tasks[idx].archived = isArchivedOnceTask(tasks[idx], todayKey);
           }
         }
       }
@@ -473,12 +579,16 @@
         title: data.title,
         category: data.category,
         accentClass: getAccentForIndex(tasks.length),
-        icon: selectedIcon
+        icon: selectedIcon,
+        archived: false
       };
       if (data.category !== MORNING_CATEGORY) {
         newTask.frequency = data.frequency;
         if (data.times) {
           newTask.times = data.times;
+        }
+        if (data.frequency && data.frequency.type === 'once') {
+          newTask.archived = isArchivedOnceTask(newTask, todayKey);
         }
       }
       tasks.push(newTask);
@@ -492,6 +602,18 @@
   function deleteTask(index) {
     if (!confirm('Delete "' + tasks[index].title + '"?')) return;
     tasks.splice(index, 1);
+    saveDraft();
+    renderTaskList();
+  }
+
+  function archiveTask(index) {
+    tasks[index].archived = true;
+    saveDraft();
+    renderTaskList();
+  }
+
+  function unarchiveTask(index) {
+    tasks[index].archived = false;
     saveDraft();
     renderTaskList();
   }
@@ -581,6 +703,10 @@
     if (action === 'edit') {
       editingId = tasks[index].id;
       showEditor(tasks[index]);
+    } else if (action === 'archive') {
+      archiveTask(index);
+    } else if (action === 'unarchive') {
+      unarchiveTask(index);
     } else if (action === 'delete') {
       deleteTask(index);
     }
