@@ -148,8 +148,14 @@
         if (task.frequency && task.frequency.type === 'once') {
           // Auto-archive once-tasks only after the 14-day Missed window has
           // elapsed. Inside that window, preserve any manual archive state so
-          // the user can still surface or hide tasks deliberately.
-          task.archived = isArchivedOnceTask(task, todayKey) ? true : wasArchived;
+          // the user can still surface or hide tasks deliberately. A user who
+          // explicitly unarchived a historic once-task (manuallyUnarchived)
+          // is never re-archived automatically.
+          if (task.manuallyUnarchived) {
+            task.archived = wasArchived;
+          } else {
+            task.archived = isArchivedOnceTask(task, todayKey) ? true : wasArchived;
+          }
         } else {
           task.archived = wasArchived;
         }
@@ -303,19 +309,21 @@
       'accent-purple': '#7d4fd7'
     };
 
+    const toggleBtn = archivedView
+      ? '<button type="button" class="btn btn-accent" data-action="unarchive" data-index="' + index + '">Unarchive</button>'
+      : '<button type="button" class="btn btn-accent" data-action="archive" data-index="' + index + '">Archive</button>';
+
     item.innerHTML = `
       <div class="task-dot" style="background: ${colors[accentClass] || '#64748b'}"></div>
       <div class="task-info">
         <p class="task-title">${escapeHtml(task.title)}</p>
         <p class="task-meta"><span class="task-category">${escapeHtml(normalizeCategory(task.category))}</span> ${describeFrequency(task.frequency, task.times)}</p>
       </div>
-      ${archivedView
-        ? (task.frequency && task.frequency.type !== 'once'
-          ? '<button type="button" class="btn btn-accent" data-action="unarchive" data-index="' + index + '">Unarchive</button>'
-          : '')
-        : '<button type="button" class="btn btn-accent" data-action="archive" data-index="' + index + '">Archive</button>'}
-      <button type="button" class="btn btn-edit" data-action="edit" data-index="${index}">Edit</button>
-      <button type="button" class="btn btn-danger" data-action="delete" data-index="${index}">Delete</button>
+      <div class="task-actions">
+        ${toggleBtn}
+        <button type="button" class="btn btn-edit" data-action="edit" data-index="${index}">Edit</button>
+        <button type="button" class="btn btn-danger" data-action="delete" data-index="${index}">Delete</button>
+      </div>
     `;
 
     return item;
@@ -619,12 +627,19 @@
 
   function archiveTask(index) {
     tasks[index].archived = true;
+    // Clear any prior manual-unarchive intent so auto-archive can resume.
+    delete tasks[index].manuallyUnarchived;
     saveDraft();
     renderTaskList();
   }
 
   function unarchiveTask(index) {
     tasks[index].archived = false;
+    // For once-tasks, remember the user explicitly unarchived so the
+    // 14-day auto-archive in loadTasks does not re-archive on next load.
+    if (tasks[index].frequency && tasks[index].frequency.type === 'once') {
+      tasks[index].manuallyUnarchived = true;
+    }
     saveDraft();
     renderTaskList();
   }
