@@ -146,7 +146,10 @@
         task.category = normalizeCategory(task.category);
         const wasArchived = !!task.archived;
         if (task.frequency && task.frequency.type === 'once') {
-          task.archived = isArchivedOnceTask(task, todayKey);
+          // Auto-archive once-tasks only after the 14-day Missed window has
+          // elapsed. Inside that window, preserve any manual archive state so
+          // the user can still surface or hide tasks deliberately.
+          task.archived = isArchivedOnceTask(task, todayKey) ? true : wasArchived;
         } else {
           task.archived = wasArchived;
         }
@@ -267,9 +270,17 @@
     return task.frequency.endDate || task.frequency.date || task.frequency.startDate || '';
   }
 
+  // Match MAX_CARRY_DAYS in app.js: once-tasks remain visible as Missed for up
+  // to 14 days past their end date. Only after that window do they auto-archive.
+  const ONCE_ARCHIVE_AFTER_DAYS = 14;
+
   function isArchivedOnceTask(task, todayKey) {
     const endDate = getOnceEndDate(task);
-    return Boolean(endDate) && endDate < todayKey;
+    if (!endDate || endDate >= todayKey) { return false; }
+    const end = new Date(endDate + 'T00:00:00');
+    const today = new Date(todayKey + 'T00:00:00');
+    const daysSince = Math.round((today.getTime() - end.getTime()) / (24 * 60 * 60 * 1000));
+    return daysSince > ONCE_ARCHIVE_AFTER_DAYS;
   }
 
   function isTaskArchived(task, todayKey) {
