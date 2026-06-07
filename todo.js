@@ -147,14 +147,18 @@
         const wasArchived = !!task.archived;
         if (task.frequency && task.frequency.type === 'once') {
           // Auto-archive once-tasks only after the 14-day Missed window has
-          // elapsed. Inside that window, preserve any manual archive state so
-          // the user can still surface or hide tasks deliberately. A user who
-          // explicitly unarchived a historic once-task (manuallyUnarchived)
-          // is never re-archived automatically.
-          if (task.manuallyUnarchived) {
-            task.archived = wasArchived;
+          // elapsed. Manual intent wins both ways:
+          //   - manuallyArchived: user hit Archive  -> stays archived
+          //   - manuallyUnarchived: user hit Unarchive on a historic once
+          //     task -> never auto-archived again
+          // Otherwise the archive flag is recomputed each load so stale
+          // pre-14-day-rule data heals automatically.
+          if (task.manuallyArchived) {
+            task.archived = true;
+          } else if (task.manuallyUnarchived) {
+            task.archived = false;
           } else {
-            task.archived = isArchivedOnceTask(task, todayKey) ? true : wasArchived;
+            task.archived = isArchivedOnceTask(task, todayKey);
           }
         } else {
           task.archived = wasArchived;
@@ -574,6 +578,8 @@
           delete tasks[idx].frequency;
           delete tasks[idx].times;
           tasks[idx].archived = false;
+          delete tasks[idx].manuallyArchived;
+          delete tasks[idx].manuallyUnarchived;
         } else {
           tasks[idx].frequency = data.frequency;
           if (data.times) {
@@ -582,7 +588,13 @@
             delete tasks[idx].times;
           }
           if (data.frequency && data.frequency.type === 'once') {
+            // Editing dates clears stale manual intent so the new dates
+            // drive the 14-day auto-archive again.
+            delete tasks[idx].manuallyArchived;
+            delete tasks[idx].manuallyUnarchived;
             tasks[idx].archived = isArchivedOnceTask(tasks[idx], todayKey);
+          } else {
+            delete tasks[idx].manuallyUnarchived;
           }
         }
       }
@@ -627,7 +639,8 @@
 
   function archiveTask(index) {
     tasks[index].archived = true;
-    // Clear any prior manual-unarchive intent so auto-archive can resume.
+    tasks[index].manuallyArchived = true;
+    // Clear opposite intent so flags stay coherent.
     delete tasks[index].manuallyUnarchived;
     saveDraft();
     renderTaskList();
@@ -635,6 +648,7 @@
 
   function unarchiveTask(index) {
     tasks[index].archived = false;
+    delete tasks[index].manuallyArchived;
     // For once-tasks, remember the user explicitly unarchived so the
     // 14-day auto-archive in loadTasks does not re-archive on next load.
     if (tasks[index].frequency && tasks[index].frequency.type === 'once') {
