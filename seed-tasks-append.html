@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Append Work Tasks -> Firebase</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f111a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #1a1d2e;
+      border: 1px solid #2d3452;
+      border-radius: 16px;
+      padding: 36px 40px;
+      max-width: 560px;
+      width: 100%;
+    }
+    h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+    .sub { color: #94a3b8; font-size: 0.875rem; margin-bottom: 28px; }
+    label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
+    input {
+      width: 100%;
+      background: #0f111a;
+      border: 1px solid #2d3452;
+      border-radius: 8px;
+      color: #e2e8f0;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #6366f1; }
+    button {
+      width: 100%;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: #4f46e5; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #log {
+      margin-top: 24px;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      max-height: 380px;
+      overflow-y: auto;
+      background: #0a0c14;
+      border-radius: 8px;
+      padding: 14px;
+      display: none;
+    }
+    .ok { color: #4ade80; }
+    .err { color: #f87171; }
+    .info { color: #60a5fa; }
+    .warn { color: #fbbf24; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Append Work Tasks -> Firebase</h1>
+  <p class="sub">Signs in, reads existing tasks from Firebase, and appends only this page's inline Work tasks by id. Existing tasks are preserved as-is.</p>
+
+  <div id="login-section">
+    <label for="email">Email</label>
+    <input id="email" type="email" value="abhivinj@gmail.com" />
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="Your Firebase password" />
+    <button id="btn-seed" onclick="runSeed()">Sign in &amp; Append Tasks</button>
+  </div>
+
+  <div id="log"></div>
+</div>
+
+<script src="polyfills.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-client.js"></script>
+<script src="firestore-client.js"></script>
+<script src="icon-library-color.js"></script>
+
+<script>
+(function () {
+  var ACCENT_CLASSES = ['accent-pink', 'accent-blue', 'accent-green', 'accent-cyan', 'accent-amber', 'accent-purple'];
+
+  var DEFAULT_ICON = (function () {
+    var lib = window.ICON_LIBRARY || [];
+    var i;
+    for (i = 0; i < lib.length; i += 1) {
+      if (lib[i] && lib[i].id === 'icon-checkmark' && lib[i].svg) {
+        return lib[i].svg;
+      }
+    }
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  }());
+
+  var SOURCE_TASKS = [
+    { id: 'cisa-work-2026-06-04-day-6-pki-ssl-tls', title: 'Day 6 PKI, SSL/TLS', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-04-day-7-1-osi-tcp-ip-udp', title: 'Day 7.1 OSI, TCP/IP, UDP', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-04-day-7-2-ssh-telnet-dhcp', title: 'Day 7.2 SSH, TELNET, DHCP', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-04-day-8-1-data-classification-user-training', title: 'Day 8.1 Data Classification & User Training', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-04-two-questions-on-data-classification-with-summarised-concept', title: 'Two Questions on Data Classification with Summarised Concept', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-04-day-8-2-attack-techniques', title: 'Day 8.2 Attack Techniques', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-04-day-9-1-syn-flood-attack', title: 'Day 9.1 SYN Flood Attack', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-04-day-9-2-worms-trojan-horse-virus', title: 'Day 9.2 Worms, Trojan Horse, Virus', date: '2026-06-04' },
+    { id: 'cisa-work-2026-06-05-day-9-3-trap-doors-back-door', title: 'Day 9.3 Trap Doors / Back Door', date: '2026-06-05' },
+    { id: 'cisa-work-2026-06-05-day-9-4-salami-slicing', title: 'Day 9.4 Salami Slicing', date: '2026-06-05' },
+    { id: 'cisa-work-2026-06-05-day-10-1-bombs', title: 'Day 10.1 Bombs', date: '2026-06-05' },
+    { id: 'cisa-work-2026-06-05-day-10-2-pharming', title: 'Day 10.2 Pharming (DNS Server Poisoning & Malware based Pharming)', date: '2026-06-05' },
+    { id: 'cisa-work-2026-06-05-day-10-3-juice-jacking-pdos-banana-attack', title: 'Day 10.3 Juice Jacking, PDoS, Banana Attack', date: '2026-06-05' }
+  ];
+
+  var logEl = document.getElementById('log');
+  var btnSeed = document.getElementById('btn-seed');
+  var accentPool = [];
+
+  function refillAccentPool() {
+    var i;
+    accentPool = ACCENT_CLASSES.slice();
+    for (i = accentPool.length - 1; i > 0; i -= 1) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = accentPool[i];
+      accentPool[i] = accentPool[j];
+      accentPool[j] = tmp;
+    }
+  }
+
+  function pickRandomAccent() {
+    if (!accentPool.length) {
+      refillAccentPool();
+    }
+    return accentPool.pop();
+  }
+
+  function log(msg, cls) {
+    logEl.style.display = 'block';
+    var line = document.createElement('div');
+    if (cls) { line.className = cls; }
+    line.textContent = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function sanitizeTask(t) {
+    var oneTimeDate = String(t.date || '');
+    var out = {
+      id: String(t.id || ''),
+      title: String(t.title || ''),
+      category: 'Work',
+      accentClass: pickRandomAccent(),
+      icon: String(t.icon || DEFAULT_ICON),
+      frequency: {
+        type: 'once',
+        startDate: oneTimeDate,
+        endDate: oneTimeDate
+      }
+    };
+
+    if (Array.isArray(t.times) && t.times.length) {
+      out.times = t.times;
+    }
+
+    return out;
+  }
+
+  window.runSeed = function () {
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      log('[WARN] Please fill in both email and password.', 'warn');
+      return;
+    }
+
+    btnSeed.disabled = true;
+    log('Signing in as ' + email + ' ...', 'info');
+
+    Auth.signIn(email, password)
+      .then(function (user) {
+        log('[OK] Signed in. UID: ' + user.uid, 'ok');
+
+        var source = SOURCE_TASKS;
+        log('Source has ' + source.length + ' inline task(s) from this page.', 'info');
+
+        var docPath = 'users/' + user.uid + '/config/tasks';
+        log('Reading existing tasks from Firestore ...', 'info');
+
+        return Firestore.getDoc(docPath).then(function (doc) {
+          var existing = (doc && Array.isArray(doc.tasks)) ? doc.tasks : [];
+          log('Found ' + existing.length + ' existing task(s).', 'info');
+
+          var existingIds = {};
+          var i;
+          for (i = 0; i < existing.length; i += 1) {
+            if (existing[i] && typeof existing[i].id !== 'undefined' && existing[i].id !== null) {
+              existingIds[String(existing[i].id)] = true;
+            }
+          }
+
+          var additions = [];
+          var skipped = 0;
+          for (i = 0; i < source.length; i += 1) {
+            var candidate = sanitizeTask(source[i]);
+            if (!candidate.id) {
+              skipped += 1;
+              continue;
+            }
+            if (existingIds[candidate.id]) {
+              skipped += 1;
+              continue;
+            }
+            existingIds[candidate.id] = true;
+            additions.push(candidate);
+          }
+
+          var merged = existing.concat(additions);
+          log('Appending ' + additions.length + ' new task(s); skipping ' + skipped + ' task(s).', 'info');
+          log('Writing ' + merged.length + ' total task(s) back to Firestore ...', 'info');
+
+          return Firestore.setDoc(docPath, { tasks: merged }).then(function () {
+            log('[OK] Done. Existing tasks were preserved; only new ids were appended.', 'ok');
+            if (!additions.length) {
+              log('No new tasks to append.', 'warn');
+            } else {
+              for (var j = 0; j < additions.length; j += 1) {
+                log('  + ' + additions[j].id + ' :: ' + additions[j].title, 'ok');
+              }
+            }
+            log('You can now close this page and reload the habit app.', 'info');
+          });
+        });
+      })
+      ['catch'](function (err) {
+        log('[ERR] ' + (err && err.message ? err.message : String(err)), 'err');
+      })
+      .then(function () {
+        btnSeed.disabled = false;
+      });
+  };
+}());
+</script>
+</body>
+</html>
