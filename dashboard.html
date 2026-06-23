@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Insights</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
+  <link rel="stylesheet" href="styles.css?v=41">
+  <link rel="stylesheet" href="auth.css?v=1">
+  <link rel="stylesheet" href="dashboard.css?v=1">
+</head>
+<body data-auth-mode="loading">
+  <div class="dash-shell">
+    <header class="dash-header">
+      <div class="dash-header-row">
+        <div class="dash-title-block">
+          <p class="dash-eyebrow">Habit Board</p>
+          <h1 class="dash-title">Insights</h1>
+        </div>
+        <div class="dash-header-actions">
+          <a class="auth-link dash-back-link" href="index.html">&larr; Habit Board</a>
+          <a class="auth-link dash-back-link" href="todo.html">Task Manager</a>
+          <span class="header-chip-slot" id="dash-chip-slot"></span>
+        </div>
+      </div>
+
+      <div class="dash-controls">
+        <nav class="dash-tabs" id="dash-tabs" aria-label="Dashboard sections">
+          <button type="button" class="dash-tab active" data-tab="overview" aria-current="page">Overview</button>
+          <button type="button" class="dash-tab" data-tab="tasks">Tasks</button>
+          <button type="button" class="dash-tab" data-tab="week">Week</button>
+          <button type="button" class="dash-tab" data-tab="month">Month</button>
+          <button type="button" class="dash-tab" data-tab="categories">Categories</button>
+        </nav>
+        <div class="dash-range" id="dash-range" role="group" aria-label="Date range">
+          <button type="button" class="dash-range-btn" data-range="7">7d</button>
+          <button type="button" class="dash-range-btn active" data-range="30" aria-pressed="true">30d</button>
+          <button type="button" class="dash-range-btn" data-range="90">90d</button>
+          <button type="button" class="dash-range-btn" data-range="365">365d</button>
+        </div>
+      </div>
+
+      <div class="dash-progress hidden" id="dash-progress">
+        <div class="dash-progress-bar"><div class="dash-progress-fill" id="dash-progress-fill"></div></div>
+        <span class="dash-progress-label" id="dash-progress-label">Loading history&hellip;</span>
+      </div>
+    </header>
+
+    <div class="demo-banner hidden" id="dash-demo-banner">
+      You're viewing sample analytics.
+      <button type="button" class="demo-banner-link" id="dash-demo-login">Log in</button>
+      to see your real progress.
+    </div>
+
+    <main class="dash-main">
+      <!-- Overview -->
+      <section class="dash-tab-panel" data-panel="overview">
+        <div class="dash-kpi-row" id="ov-kpis"></div>
+
+        <div class="dash-card dash-card-wide">
+          <div class="dash-card-head">
+            <h2>Activity heatmap</h2>
+            <p class="dash-card-sub" id="ov-heatmap-sub">Completion intensity day-by-day</p>
+          </div>
+          <div class="dash-heatmap-wrap" id="ov-heatmap"></div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Top performers</h2>
+              <p class="dash-card-sub">Highest completion rate in range</p>
+            </div>
+            <div class="dash-list" id="ov-top"></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>At risk</h2>
+              <p class="dash-card-sub">Slipping vs prior period</p>
+            </div>
+            <div class="dash-list" id="ov-risk"></div>
+          </div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Category mix</h2>
+              <p class="dash-card-sub">Share of completions</p>
+            </div>
+            <div class="dash-chart" id="ov-donut"></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Recent misses</h2>
+              <p class="dash-card-sub">Past the carry window</p>
+            </div>
+            <div class="dash-list" id="ov-misses"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tasks (per-task pivot) -->
+      <section class="dash-tab-panel hidden" data-panel="tasks">
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h2>Pick a task</h2>
+            <p class="dash-card-sub">Drill into a single habit's history</p>
+          </div>
+          <div class="dash-picker-row">
+            <select class="dash-picker" id="tasks-picker" aria-label="Task"></select>
+          </div>
+        </div>
+
+        <div class="dash-card" id="tasks-header-card"></div>
+
+        <div class="dash-kpi-row" id="tasks-kpis"></div>
+
+        <div class="dash-card dash-card-wide">
+          <div class="dash-card-head">
+            <h2>12-week heatmap</h2>
+            <p class="dash-card-sub">Scheduled vs completed</p>
+          </div>
+          <div class="dash-heatmap-wrap" id="tasks-heatmap"></div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Weekly trend</h2>
+              <p class="dash-card-sub">Completion rate per ISO week</p>
+            </div>
+            <div class="dash-chart" id="tasks-trend"></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Weekday strength</h2>
+              <p class="dash-card-sub">Rate by day of week</p>
+            </div>
+            <div class="dash-chart" id="tasks-weekday"></div>
+          </div>
+        </div>
+
+        <div class="dash-card" id="tasks-slots-card">
+          <div class="dash-card-head">
+            <h2>Slot breakdown</h2>
+            <p class="dash-card-sub">Per time-of-day slot</p>
+          </div>
+          <div class="dash-chart" id="tasks-slots"></div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h2>Miss log</h2>
+            <p class="dash-card-sub">Scheduled but not done</p>
+          </div>
+          <div class="dash-list dash-list-scroll" id="tasks-misses"></div>
+        </div>
+      </section>
+
+      <!-- Week -->
+      <section class="dash-tab-panel hidden" data-panel="week">
+        <div class="dash-card">
+          <div class="dash-nav-row">
+            <button type="button" class="dash-icon-btn" id="week-prev" aria-label="Previous week">&lsaquo;</button>
+            <h2 class="dash-nav-label" id="week-label">Week of&hellip;</h2>
+            <button type="button" class="dash-icon-btn" id="week-next" aria-label="Next week">&rsaquo;</button>
+          </div>
+          <div class="dash-week-strip" id="week-strip"></div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Weekday strength</h2>
+              <p class="dash-card-sub">Across full range</p>
+            </div>
+            <div class="dash-chart" id="week-weekday"></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Category breakdown</h2>
+              <p class="dash-card-sub">Done vs missed this week</p>
+            </div>
+            <div class="dash-chart" id="week-categories"></div>
+          </div>
+        </div>
+
+        <div class="dash-card dash-card-wide">
+          <div class="dash-card-head">
+            <h2>Week over week</h2>
+            <p class="dash-card-sub">Last 8 weeks completion %</p>
+          </div>
+          <div class="dash-chart" id="week-trend"></div>
+        </div>
+      </section>
+
+      <!-- Month -->
+      <section class="dash-tab-panel hidden" data-panel="month">
+        <div class="dash-card">
+          <div class="dash-nav-row">
+            <button type="button" class="dash-icon-btn" id="month-prev" aria-label="Previous month">&lsaquo;</button>
+            <h2 class="dash-nav-label" id="month-label">&hellip;</h2>
+            <button type="button" class="dash-icon-btn" id="month-next" aria-label="Next month">&rsaquo;</button>
+          </div>
+          <div class="dash-month-cal" id="month-cal"></div>
+        </div>
+
+        <div class="dash-kpi-row" id="month-kpis"></div>
+
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Month over month</h2>
+              <p class="dash-card-sub">Last 12 months</p>
+            </div>
+            <div class="dash-chart" id="month-trend"></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Category mix</h2>
+              <p class="dash-card-sub">This month's completions</p>
+            </div>
+            <div class="dash-chart" id="month-donut"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Categories -->
+      <section class="dash-tab-panel hidden" data-panel="categories">
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h2>Leaderboard</h2>
+            <p class="dash-card-sub">Per-category completion rate in range</p>
+          </div>
+          <div class="dash-list" id="cat-leaderboard"></div>
+        </div>
+
+        <div class="dash-card dash-card-wide">
+          <div class="dash-card-head">
+            <h2>Category trend</h2>
+            <p class="dash-card-sub">Stacked completions over last 12 weeks</p>
+          </div>
+          <div class="dash-chart" id="cat-stacked"></div>
+        </div>
+      </section>
+
+      <div class="dash-empty hidden" id="dash-empty">
+        <p>No data in this range yet. Complete some tasks to see your insights here.</p>
+      </div>
+    </main>
+  </div>
+
+  <noscript>
+    <div class="noscript-note">This page needs JavaScript enabled to render insights.</div>
+  </noscript>
+
+  <script src="polyfills.js?v=1"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="pro-allowlist.js?v=1"></script>
+  <script src="tasks-config.js?v=1"></script>
+  <script src="auth-client.js?v=1"></script>
+  <script src="firestore-client.js?v=1"></script>
+  <script src="storage.js?v=1"></script>
+  <script src="auth-ui.js?v=1"></script>
+  <script src="dashboard-charts.js?v=1"></script>
+  <script src="dashboard-data.js?v=1"></script>
+  <script src="dashboard.js?v=1"></script>
+  <script>
+    (function () {
+      function init() {
+        if (!window.AuthUI || !window.Storage || !window.DashboardApp) { return; }
+        window.AuthUI.mountChip(document.getElementById('dash-chip-slot'));
+
+        var demoBtn = document.getElementById('dash-demo-login');
+        if (demoBtn) {
+          demoBtn.onclick = function () {
+            window.AuthUI.openLogin({ message: 'Log in to see your real analytics.' });
+          };
+        }
+
+        function syncDemoBanner() {
+          var banner = document.getElementById('dash-demo-banner');
+          if (!banner) { return; }
+          var mode = window.Storage && window.Storage.mode;
+          if (mode === 'demo') {
+            banner.classList.remove('hidden');
+          } else {
+            banner.classList.add('hidden');
+          }
+        }
+
+        window.Storage.onChange(function () { syncDemoBanner(); window.DashboardApp.onStorageChange(); });
+        window.Storage.init().then(function () { syncDemoBanner(); window.DashboardApp.start(); });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    }());
+  </script>
+</body>
+</html>
