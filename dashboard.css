@@ -771,3 +771,321 @@
   .dash-month-cell { min-height: 38px; padding: 3px 4px; }
   .dash-month-cell .num { font-size: 11px; }
 }
+
+/* ── Theme toggle button ────────────────────────────────────────────────── */
+.dash-theme-toggle {
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.dash-theme-icon { font-size: 14px; line-height: 1; }
+
+/* ── Weekly task × day grid ─────────────────────────────────────────────── */
+.dash-matrix-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.dash-matrix {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.5fr) repeat(7, minmax(34px, 1fr));
+  gap: 4px;
+  min-width: 460px;
+}
+
+.dash-matrix-corner { }
+
+.dash-matrix-colhead {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.dash-matrix-colhead small { font-size: 10px; font-weight: 600; opacity: 0.7; }
+.dash-matrix-colhead.today { color: var(--text); }
+
+.dash-matrix-rowhead {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-right: 6px;
+}
+
+.dash-matrix-icon {
+  width: 22px;
+  height: 22px;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+.dash-matrix-icon svg { width: 100%; height: 100%; display: block; }
+
+.dash-matrix-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-matrix-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-height: 30px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.dash-matrix-cell.off { background: rgba(255, 255, 255, 0.03); }
+.dash-matrix-cell.future { background: transparent; border: 1px dashed rgba(255, 255, 255, 0.08); }
+.dash-matrix-frac { font-size: 9px; font-weight: 700; color: #0c1018; }
+
+.dash-matrix-legend {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 6px 14px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dash-matrix-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.dash-matrix-swatch.off { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); }
+.dash-matrix-legend-label { margin-right: 6px; }
+
+/* ── Per-habit month calendars ──────────────────────────────────────────── */
+.dash-task-cals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-gap: 14px;
+}
+
+.dash-task-cal {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px;
+}
+
+.dash-task-cal-head {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dash-task-cal-icon {
+  width: 24px;
+  height: 24px;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+.dash-task-cal-icon svg { width: 100%; height: 100%; display: block; }
+
+.dash-task-cal-name {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-task-cal-pct { font-size: 14px; font-weight: 800; -ms-flex-negative: 0; flex-shrink: 0; }
+
+.dash-task-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 3px;
+}
+
+.dash-task-cal-wd {
+  font-size: 9px;
+  text-align: center;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding-bottom: 2px;
+}
+
+.dash-task-cal-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 5px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.dash-task-cal-cell.empty { background: transparent; border: 0; }
+.dash-task-cal-cell.future { opacity: 0.35; }
+.dash-task-cal-cell.done,
+.dash-task-cal-cell.partial,
+.dash-task-cal-cell.miss { color: #0c1018; }
+.dash-task-cal-cell.today { -webkit-box-shadow: 0 0 0 2px rgba(95, 191, 255, 0.7); box-shadow: 0 0 0 2px rgba(95, 191, 255, 0.7); }
+
+/* ── Light theme ────────────────────────────────────────────────────────── */
+html[data-theme="light"] {
+  --bg: #eef1f7;
+  --panel: #ffffff;
+  --panel-soft: rgba(20, 28, 48, 0.05);
+  --text: #1a2333;
+  --muted: #5b6578;
+  --shadow: 0 14px 30px rgba(20, 32, 64, 0.12);
+}
+
+html[data-theme="light"] body {
+  background-image:
+    radial-gradient(circle at top left, rgba(255, 150, 180, 0.16), transparent 26%),
+    radial-gradient(circle at top right, rgba(120, 190, 255, 0.16), transparent 24%),
+    radial-gradient(circle at bottom center, rgba(255, 205, 130, 0.14), transparent 30%),
+    linear-gradient(180deg, #f7f9fc 0%, #e9edf5 100%);
+}
+
+html[data-theme="light"] .dash-card {
+  border-color: rgba(20, 32, 64, 0.1);
+  background: linear-gradient(180deg, #ffffff, #f6f8fc);
+}
+
+html[data-theme="light"] .dash-kpi {
+  border-color: rgba(20, 32, 64, 0.1);
+  background: linear-gradient(180deg, #ffffff, #f4f7fc);
+}
+
+html[data-theme="light"] .dash-back-link,
+html[data-theme="light"] .dash-tabs,
+html[data-theme="light"] .dash-list-item,
+html[data-theme="light"] .dash-picker,
+html[data-theme="light"] .dash-task-cal {
+  background: #ffffff;
+  border-color: rgba(20, 32, 64, 0.1);
+}
+
+html[data-theme="light"] .dash-range,
+html[data-theme="light"] .dash-day-card {
+  background: rgba(20, 32, 64, 0.05);
+  border-color: rgba(20, 32, 64, 0.08);
+}
+
+html[data-theme="light"] .dash-list-bar {
+  background: rgba(20, 32, 64, 0.08);
+}
+
+html[data-theme="light"] .dash-heatmap-cell,
+html[data-theme="light"] .dash-matrix-cell,
+html[data-theme="light"] .dash-matrix-cell.off,
+html[data-theme="light"] .dash-task-cal-cell {
+  background: rgba(20, 32, 64, 0.06);
+  border-color: rgba(20, 32, 64, 0.06);
+}
+
+html[data-theme="light"] .dash-heatmap-cell.future,
+html[data-theme="light"] .dash-matrix-cell.future {
+  background: transparent;
+  border: 1px dashed rgba(20, 32, 64, 0.14);
+}
+
+html[data-theme="light"] .dash-month-cell {
+  background: rgba(20, 32, 64, 0.05);
+  border-color: rgba(20, 32, 64, 0.06);
+}
+
+html[data-theme="light"] .dash-day-detail {
+  background: #ffffff;
+  border-color: rgba(20, 32, 64, 0.12);
+}
+
+html[data-theme="light"] .dash-matrix-swatch.off {
+  background: rgba(20, 32, 64, 0.06);
+  border-color: rgba(20, 32, 64, 0.12);
+}
+
+/* SVG chart text/gridlines for legibility on light surfaces. CSS `fill` and
+   `stroke` win over the presentation attributes set in dashboard-charts.js. */
+html[data-theme="light"] .dash-chart text,
+html[data-theme="light"] .dash-heatmap-wrap text { fill: #5b6578; }
+html[data-theme="light"] .dash-chart line { stroke: rgba(20, 32, 64, 0.1); }
+

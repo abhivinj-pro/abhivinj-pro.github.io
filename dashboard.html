@@ -11,7 +11,17 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
   <link rel="stylesheet" href="styles.css?v=41">
   <link rel="stylesheet" href="auth.css?v=1">
-  <link rel="stylesheet" href="dashboard.css?v=1">
+  <link rel="stylesheet" href="dashboard.css?v=2">
+  <script>
+    // Apply saved theme before first paint to avoid a flash.
+    (function () {
+      try {
+        if (localStorage.getItem('habitDashboardTheme') === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    }());
+  </script>
 </head>
 <body data-auth-mode="loading">
   <div class="dash-shell">
@@ -24,6 +34,10 @@
         <div class="dash-header-actions">
           <a class="auth-link dash-back-link" href="index.html">&larr; Habit Board</a>
           <a class="auth-link dash-back-link" href="todo.html">Task Manager</a>
+          <button type="button" class="dash-back-link dash-theme-toggle" id="dash-theme-toggle" aria-label="Toggle light or dark mode">
+            <span class="dash-theme-icon" id="dash-theme-icon" aria-hidden="true">&#9790;</span>
+            <span id="dash-theme-label">Dark</span>
+          </button>
           <span class="header-chip-slot" id="dash-chip-slot"></span>
         </div>
       </div>
@@ -173,6 +187,14 @@
           <div class="dash-week-strip" id="week-strip"></div>
         </div>
 
+        <div class="dash-card dash-card-wide">
+          <div class="dash-card-head">
+            <h2>Task &times; day grid</h2>
+            <p class="dash-card-sub">Every habit scheduled this week &mdash; done, missed, or not scheduled</p>
+          </div>
+          <div class="dash-matrix-wrap" id="week-matrix"></div>
+        </div>
+
         <div class="dash-grid-2">
           <div class="dash-card">
             <div class="dash-card-head">
@@ -208,6 +230,14 @@
             <button type="button" class="dash-icon-btn" id="month-next" aria-label="Next month">&rsaquo;</button>
           </div>
           <div class="dash-month-cal" id="month-cal"></div>
+        </div>
+
+        <div class="dash-card dash-card-wide">
+          <div class="dash-card-head">
+            <h2>Per-habit calendars</h2>
+            <p class="dash-card-sub">Each habit's month at a glance &mdash; tap a day for details</p>
+          </div>
+          <div class="dash-task-cals" id="month-task-cals"></div>
         </div>
 
         <div class="dash-kpi-row" id="month-kpis"></div>
@@ -267,9 +297,9 @@
   <script src="firestore-client.js?v=1"></script>
   <script src="storage.js?v=1"></script>
   <script src="auth-ui.js?v=1"></script>
-  <script src="dashboard-charts.js?v=1"></script>
-  <script src="dashboard-data.js?v=1"></script>
-  <script src="dashboard.js?v=1"></script>
+  <script src="dashboard-charts.js?v=2"></script>
+  <script src="dashboard-data.js?v=2"></script>
+  <script src="dashboard.js?v=2"></script>
   <script>
     (function () {
       function init() {

@@ -32,17 +32,31 @@
     muted:  '#5b6577'
   };
 
-  // Heatmap ramp tuned for the dark background. `none` (scheduled but 0%) is
-  // distinct from `empty` (not scheduled) so misses are visible.
+  // Intuitive traffic-light ramp: warm = low completion, green = done, so the
+  // grid reads bad→good at a glance. `miss` (scheduled, nothing done) is a
+  // saturated red; `empty` (not scheduled) is left to CSS so it adapts to the
+  // active light/dark theme.
   var HEATMAP_RAMP = [
-    'rgba(255,255,255,0.04)', // 0% scheduled-done bucket
-    'rgba(95,191,255,0.18)',  // 1-25%
-    'rgba(95,191,255,0.38)',  // 26-50%
-    'rgba(95,191,255,0.62)',  // 51-75%
-    'rgba(95,191,255,0.92)'   // 76-100%
+    '#ef4444', // 0%
+    '#fb923c', // 1–25%
+    '#fbbf24', // 26–50%
+    '#a3e635', // 51–75%
+    '#22c55e'  // 76–100%
   ];
-  var HEATMAP_MISSED = 'rgba(255,140,90,0.30)';   // scheduled, 0% done
-  var HEATMAP_EMPTY  = 'rgba(255,255,255,0.025)'; // not scheduled
+  var HEATMAP_MISSED = '#ef4444';   // scheduled, 0% done
+  var HEATMAP_EMPTY  = '';          // not scheduled — CSS-controlled
+
+  // Map a completion fraction (0..1) to its ramp colour. Shared with the
+  // month calendar so both "heatmaps" use the same legend.
+  function fracColor(frac) {
+    var f = frac == null ? 0 : frac;
+    var bucket = 0;
+    if (f > 0)    { bucket = 1; }
+    if (f > 0.25) { bucket = 2; }
+    if (f > 0.5)  { bucket = 3; }
+    if (f > 0.75) { bucket = 4; }
+    return HEATMAP_RAMP[bucket];
+  }
 
   function el(name, attrs, parent) {
     var node = document.createElementNS(SVG_NS, name);
@@ -428,7 +442,6 @@
         var node = document.createElement('button');
         node.type = 'button';
         node.className = 'dash-heatmap-cell';
-        var bg = HEATMAP_EMPTY;
         if (cell.status === 'future') {
           node.className += ' future';
           node.disabled = true;
@@ -436,17 +449,11 @@
           node.className += ' empty';
           node.disabled = true;
         } else if (cell.status === 'miss') {
-          bg = HEATMAP_MISSED;
+          node.className += ' miss';
+          node.style.background = HEATMAP_MISSED;
         } else {
-          var f = cell.frac == null ? 0 : cell.frac;
-          var bucket = 0;
-          if (f > 0)    { bucket = 1; }
-          if (f > 0.25) { bucket = 2; }
-          if (f > 0.5)  { bucket = 3; }
-          if (f > 0.75) { bucket = 4; }
-          bg = HEATMAP_RAMP[bucket];
+          node.style.background = fracColor(cell.frac);
         }
-        node.style.background = bg;
         if (cell.label) { node.title = cell.label; node.setAttribute('aria-label', cell.label); }
         if (cell.onTap) {
           (function (h) { node.onclick = function () { h(); }; }(cell.onTap));
@@ -495,6 +502,8 @@
     donutChart: donutChart,
     sparkline: sparkline,
     heatmap: heatmap,
+    fracColor: fracColor,
+    HEATMAP_MISSED: HEATMAP_MISSED,
     ACCENT_HEX: ACCENT_HEX
   };
 }());

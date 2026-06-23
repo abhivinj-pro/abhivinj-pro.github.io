@@ -114,7 +114,35 @@
       renderTasksTab();
     };
 
+    // Theme toggle (dark / light)
+    var themeBtn = $('dash-theme-toggle');
+    if (themeBtn) { themeBtn.onclick = toggleTheme; }
+    applyThemeLabel();
+
     loadAndRender();
+  }
+
+  // ── Theme (dark / light) ────────────────────────────────────────────────
+  function isLightTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+  }
+
+  function applyThemeLabel() {
+    var light = isLightTheme();
+    var icon = $('dash-theme-icon');
+    var label = $('dash-theme-label');
+    if (icon) { icon.innerHTML = light ? '\u2600' : '\u263E'; } // sun / moon
+    if (label) { label.textContent = light ? 'Light' : 'Dark'; }
+  }
+
+  function toggleTheme() {
+    var light = isLightTheme();
+    if (light) { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', 'light'); }
+    try { localStorage.setItem('habitDashboardTheme', light ? 'dark' : 'light'); } catch (e) {}
+    applyThemeLabel();
+    // Re-render the active tab so colours that are computed in JS refresh.
+    renderActive();
   }
 
   function onStorageChange() {
@@ -749,6 +777,117 @@
     var pts = [];
     for (var w = 0; w < trend.length; w += 1) { pts.push({ label: trend[w].label, y: trend[w].rate }); }
     C.lineChart($('week-trend'), [{ name: 'Completion', color: C.ACCENT_HEX.purple, points: pts }], { format: 'pct', maxValue: 1 });
+
+    renderWeekMatrix(stats, today);
+  }
+
+  // Task × day grid for the selected week: rows = habits scheduled that week,
+  // columns = Mon→Sun, colour-coded done / partial / missed / not-scheduled.
+  function renderWeekMatrix(stats, today) {
+    var D = window.DashboardData;
+    var C = window.DashboardCharts;
+    var host = $('week-matrix');
+    clearNode(host);
+
+    // Lookup byTask[id][dayIdx] = { done, slots }; track which tasks appear.
+    var byTask = {};
+    var present = {};
+    for (var di = 0; di < stats.days.length; di += 1) {
+      var dayRecs = stats.days[di].tasks;
+      for (var ri = 0; ri < dayRecs.length; ri += 1) {
+        var rec = dayRecs[ri];
+        if (!byTask[rec.task.id]) { byTask[rec.task.id] = {}; }
+        byTask[rec.task.id][di] = { done: rec.done, slots: rec.slots };
+        present[rec.task.id] = true;
+      }
+    }
+
+    // Preserve global task order.
+    var tasks = [];
+    var all = D.tasks;
+    for (var t = 0; t < all.length; t += 1) { if (present[all[t].id]) { tasks.push(all[t]); } }
+
+    if (!tasks.length) {
+      var emptyMsg = document.createElement('p'); emptyMsg.className = 'dash-list-empty';
+      emptyMsg.textContent = 'Nothing scheduled this week.';
+      host.appendChild(emptyMsg);
+      return;
+    }
+
+    var todayKey = D.fmt(today);
+    var grid = document.createElement('div');
+    grid.className = 'dash-matrix';
+
+    var corner = document.createElement('div'); corner.className = 'dash-matrix-corner';
+    grid.appendChild(corner);
+    for (var h = 0; h < 7; h += 1) {
+      var hd = document.createElement('div'); hd.className = 'dash-matrix-colhead';
+      if (stats.days[h].dateKey === todayKey) { hd.className += ' today'; }
+      var hn = document.createElement('span'); hn.textContent = WEEKDAY_HEAD[h].charAt(0); hd.appendChild(hn);
+      var hday = document.createElement('small'); hday.textContent = String(stats.days[h].date.getDate()); hd.appendChild(hday);
+      grid.appendChild(hd);
+    }
+
+    for (var ti = 0; ti < tasks.length; ti += 1) {
+      var task = tasks[ti];
+      var rowHead = document.createElement('div'); rowHead.className = 'dash-matrix-rowhead';
+      var ic = document.createElement('span'); ic.className = 'dash-matrix-icon'; ic.innerHTML = task.icon || '';
+      rowHead.appendChild(ic);
+      var nm = document.createElement('span'); nm.className = 'dash-matrix-name'; nm.textContent = task.title;
+      rowHead.appendChild(nm);
+      grid.appendChild(rowHead);
+
+      for (var dj = 0; dj < 7; dj += 1) {
+        var cell = document.createElement('div'); cell.className = 'dash-matrix-cell';
+        var dayObj = stats.days[dj];
+        var slot = byTask[task.id] ? byTask[task.id][dj] : null;
+        if (dayObj.date.getTime() > today.getTime()) {
+          cell.className += ' future';
+        } else if (!slot) {
+          cell.className += ' off';
+          cell.title = task.title + ' \u2014 ' + dayObj.dateKey + ' \u2014 not scheduled';
+        } else if (slot.done >= slot.slots) {
+          cell.className += ' done';
+          cell.style.background = C.fracColor(1);
+          cell.title = task.title + ' \u2014 ' + dayObj.dateKey + ' \u2014 done';
+        } else if (slot.done === 0) {
+          cell.className += ' miss';
+          cell.style.background = C.HEATMAP_MISSED;
+          cell.title = task.title + ' \u2014 ' + dayObj.dateKey + ' \u2014 missed';
+        } else {
+          cell.className += ' partial';
+          cell.style.background = C.fracColor(slot.done / slot.slots);
+          cell.title = task.title + ' \u2014 ' + dayObj.dateKey + ' \u2014 ' + slot.done + '/' + slot.slots;
+          var pf = document.createElement('span'); pf.className = 'dash-matrix-frac';
+          pf.textContent = slot.done + '/' + slot.slots;
+          cell.appendChild(pf);
+        }
+        grid.appendChild(cell);
+      }
+    }
+    host.appendChild(grid);
+    host.appendChild(matrixLegend());
+  }
+
+  function matrixLegend() {
+    var C = window.DashboardCharts;
+    var items = [
+      { c: C.fracColor(1), t: 'Done' },
+      { c: C.fracColor(0.5), t: 'Partial' },
+      { c: C.HEATMAP_MISSED, t: 'Missed' },
+      { c: null, t: 'Not scheduled' }
+    ];
+    var leg = document.createElement('div'); leg.className = 'dash-matrix-legend';
+    for (var i = 0; i < items.length; i += 1) {
+      var sw = document.createElement('span');
+      sw.className = 'dash-matrix-swatch' + (items[i].c ? '' : ' off');
+      if (items[i].c) { sw.style.background = items[i].c; }
+      leg.appendChild(sw);
+      var lb = document.createElement('span'); lb.className = 'dash-matrix-legend-label';
+      lb.textContent = items[i].t;
+      leg.appendChild(lb);
+    }
+    return leg;
   }
 
   function toggleDayDetail(stripContainer, idx, days) {
@@ -821,11 +960,12 @@
       cell.appendChild(num);
       var info = stats.dayStats[key];
       if (info && info.scheduled > 0) {
-        // tint background
-        var alpha = 0.10 + info.frac * 0.55;
-        cell.style.background = 'rgba(95,191,255,' + alpha.toFixed(2) + ')';
+        // Same red→green ramp as the heatmaps; missed days read red.
+        cell.style.background = info.done === 0 ? C.HEATMAP_MISSED : C.fracColor(info.frac);
+        num.style.color = '#0c1018';
         var frac = document.createElement('span'); frac.className = 'frac';
         frac.textContent = info.done + '/' + info.scheduled;
+        frac.style.color = '#0c1018';
         cell.appendChild(frac);
       } else if (info && info.scheduled === 0 && cur.getTime() <= today.getTime()) {
         // unscheduled day — leave neutral, show dash
@@ -885,6 +1025,94 @@
       slices.push({ label: c, value: byCat[c], color: C.accentColor(D.CATEGORY_ACCENT[c]) });
     }
     C.donutChart($('month-donut'), slices, { centerLabel: String(totDone), centerSub: 'done' });
+
+    renderTaskCalendars();
+  }
+
+  // Per-habit month calendars: one mini grid per task scheduled in the month,
+  // colour-coded with the same ramp as the heatmaps plus a completion %.
+  function renderTaskCalendars() {
+    var D = window.DashboardData;
+    var C = window.DashboardCharts;
+    var host = $('month-task-cals');
+    clearNode(host);
+
+    var cursor = state.monthCursor;
+    var today = D.todayLogical();
+    var todayKey = D.fmt(today);
+    var year = cursor.getFullYear(), month = cursor.getMonth();
+    var first = new Date(year, month, 1);
+    var leadEmpty = (first.getDay() + 6) % 7; // Monday-first
+    var tasks = D.tasks;
+
+    var anyShown = false;
+    for (var t = 0; t < tasks.length; t += 1) {
+      var task = tasks[t];
+      var done = 0, scheduled = 0;
+      var cells = [];
+      var cur = new Date(first.getTime());
+      while (cur.getMonth() === month) {
+        var key = D.fmt(cur);
+        var row = D.dailyStatus[key];
+        var s = row ? row[task.id] : null;
+        var status = 'off', frac = 0;
+        if (cur.getTime() > today.getTime()) {
+          status = 'future';
+        } else if (s && s.scheduled) {
+          scheduled += s.slotCount; done += s.doneCount;
+          if (s.doneCount >= s.slotCount) { status = 'done'; frac = 1; }
+          else if (s.doneCount === 0) { status = 'miss'; }
+          else { status = 'partial'; frac = s.doneCount / s.slotCount; }
+        }
+        cells.push({ day: cur.getDate(), key: key, status: status, frac: frac, slot: s, today: key === todayKey });
+        cur.setDate(cur.getDate() + 1);
+      }
+      if (scheduled === 0) { continue; } // habit not scheduled this month
+      anyShown = true;
+
+      var card = document.createElement('div'); card.className = 'dash-task-cal';
+
+      var head = document.createElement('div'); head.className = 'dash-task-cal-head';
+      var hicon = document.createElement('span'); hicon.className = 'dash-task-cal-icon'; hicon.innerHTML = task.icon || '';
+      head.appendChild(hicon);
+      var hname = document.createElement('span'); hname.className = 'dash-task-cal-name'; hname.textContent = task.title;
+      head.appendChild(hname);
+      var hpct = document.createElement('span'); hpct.className = 'dash-task-cal-pct';
+      hpct.textContent = Math.round((done / scheduled) * 100) + '%';
+      hpct.style.color = C.fracColor(done / scheduled);
+      head.appendChild(hpct);
+      card.appendChild(head);
+
+      var grid = document.createElement('div'); grid.className = 'dash-task-cal-grid';
+      for (var wd = 0; wd < 7; wd += 1) {
+        var wh = document.createElement('span'); wh.className = 'dash-task-cal-wd';
+        wh.textContent = WEEKDAY_HEAD[wd].charAt(0);
+        grid.appendChild(wh);
+      }
+      for (var le = 0; le < leadEmpty; le += 1) {
+        var ge = document.createElement('span'); ge.className = 'dash-task-cal-cell empty'; grid.appendChild(ge);
+      }
+      for (var ci = 0; ci < cells.length; ci += 1) {
+        var cd = cells[ci];
+        var cellEl = document.createElement('span'); cellEl.className = 'dash-task-cal-cell ' + cd.status;
+        if (cd.today) { cellEl.className += ' today'; }
+        if (cd.status === 'done') { cellEl.style.background = C.fracColor(1); }
+        else if (cd.status === 'partial') { cellEl.style.background = C.fracColor(cd.frac); }
+        else if (cd.status === 'miss') { cellEl.style.background = C.HEATMAP_MISSED; }
+        cellEl.title = cd.key + (cd.slot && cd.slot.scheduled ? (' \u2014 ' + cd.slot.doneCount + '/' + cd.slot.slotCount) :
+          (cd.status === 'off' ? ' \u2014 not scheduled' : ''));
+        cellEl.textContent = String(cd.day);
+        grid.appendChild(cellEl);
+      }
+      card.appendChild(grid);
+      host.appendChild(card);
+    }
+
+    if (!anyShown) {
+      var empty = document.createElement('p'); empty.className = 'dash-list-empty';
+      empty.textContent = 'No habits scheduled this month.';
+      host.appendChild(empty);
+    }
   }
 
   // ── Categories tab ─────────────────────────────────────────────────────

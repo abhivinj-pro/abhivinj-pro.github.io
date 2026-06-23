@@ -103,6 +103,33 @@
     return false;
   }
 
+  // ── Carry-forward window (mirrors app.js) ────────────────────────────────
+  // A miss is "catchable" for W days after its scheduled date, where W derives
+  // from the task's recurrence gap G:  W = clamp(ceil(G/4), 2, MAX_CARRY_DAYS).
+  // Daily = 0 (never carries); once = cap (filtered from analytics anyway).
+  var MAX_CARRY_DAYS = 14;
+
+  function nextOccurrenceDate(task, fromDate) {
+    var cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    for (var i = 0; i < 366; i += 1) {
+      if (isTaskForDate(task, cursor)) { return cursor; }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return null;
+  }
+
+  function carryWindowDays(task, scheduledDate) {
+    if (!task.frequency || task.frequency.type === 'daily') { return 0; }
+    if (task.frequency.type === 'once') { return MAX_CARRY_DAYS; }
+    var next = nextOccurrenceDate(task, addDays(scheduledDate, 1));
+    if (!next) { return MAX_CARRY_DAYS; }
+    var gap = Math.round((next.getTime() - scheduledDate.getTime()) / 86400000);
+    var w = Math.ceil(gap / 4);
+    if (w < 2) { w = 2; }
+    if (w > MAX_CARRY_DAYS) { w = MAX_CARRY_DAYS; }
+    return w;
+  }
+
   // ── State (per dashboard session) ────────────────────────────────────────
   var state = {
     tasks: [],
@@ -159,6 +186,57 @@
       status[dateKey] = row;
     }
     state.dailyStatus = status;
+    reconcileCarryForward();
+  }
+
+  // ── Catch-up reconciliation ──────────────────────────────────────────────
+  // When a weekly/interval task is missed on its scheduled day and ticked on a
+  // *later* (non-scheduled) day, app.js stores that catch-up under the bare
+  // task.id on the catch-up day's doc — NOT on the missed day. Left as-is the
+  // dashboard would read the scheduled day as a miss and ignore the catch-up
+  // (it lands on a non-scheduled day, which every aggregation skips). This pass
+  // walks each carry-eligible task chronologically and moves each orphan catch-
+  // up back onto the most recent unresolved miss whose carry window covers it,
+  // so the scheduled day reads "done" exactly as the habit board's Caught Up.
+  function reconcileCarryForward() {
+    var days = state.range.days; // chronological
+    for (var t = 0; t < state.tasks.length; t += 1) {
+      var task = state.tasks[t];
+      // Only single-slot, non-daily recurring tasks ever carry forward in
+      // app.js. Multi-slot tasks store composite ids (no bare-id orphans),
+      // daily tasks have no non-scheduled days, once is filtered from analytics.
+      if (task.times && task.times.length) { continue; }
+      if (!task.frequency) { continue; }
+      if (task.frequency.type !== 'weekly' && task.frequency.type !== 'interval') { continue; }
+
+      var pendingMisses = []; // { date, key, window }
+      for (var i = 0; i < days.length; i += 1) {
+        var d = days[i];
+        var row = state.dailyStatus[d.key];
+        if (!row) { continue; }
+        var s = row[task.id];
+        if (!s) { continue; }
+        if (s.scheduled) {
+          if (s.doneCount === 0) {
+            pendingMisses.push({ date: d.date, key: d.key, window: carryWindowDays(task, d.date) });
+          }
+        } else if (s.doneCount > 0) {
+          // Orphan catch-up tick. Attribute to the most recent unresolved miss
+          // whose carry window still reaches this day (mirrors lastScheduledBefore).
+          var bestIdx = -1;
+          for (var m = pendingMisses.length - 1; m >= 0; m -= 1) {
+            var delta = Math.round((d.date.getTime() - pendingMisses[m].date.getTime()) / 86400000);
+            if (delta >= 1 && delta <= pendingMisses[m].window) { bestIdx = m; break; }
+          }
+          if (bestIdx !== -1) {
+            var hit = state.dailyStatus[pendingMisses[bestIdx].key][task.id];
+            hit.doneCount = hit.slotCount;   // credit the missed scheduled day
+            s.doneCount = 0;                 // consume the orphan (avoid bonus/double-show)
+            pendingMisses.splice(bestIdx, 1);
+          }
+        }
+      }
+    }
   }
 
   // ── Day-doc bulk loader (lazy beyond Storage's 15-day preload) ──────────
