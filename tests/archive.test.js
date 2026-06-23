@@ -288,8 +288,8 @@ t.describe('archive :: archiveTask / unarchiveTask', function () {
 
 // ── Source-sync guards: ensure todo.js still matches the mirrors above ─────
 
-var TODO_JS = fs.readFileSync(path.join(__dirname, '..', 'todo.js'), 'utf8');
-var APP_JS  = fs.readFileSync(path.join(__dirname, '..', 'app.js'),  'utf8');
+var TODO_JS = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'pages', 'todo.js'), 'utf8');
+var APP_JS  = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'pages', 'app.js'),  'utf8');
 
 t.describe('source-sync :: archive logic in todo.js', function () {
   t.it('ONCE_ARCHIVE_AFTER_DAYS constant is 14', function () {
