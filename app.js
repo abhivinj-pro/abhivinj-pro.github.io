@@ -14,7 +14,7 @@
   var workTasks = [];
 
   function normalizeTaskCategory(category) {
-    if (!category || category === 'General') {
+    if (!category) {
       return 'Work';
     }
     return category;

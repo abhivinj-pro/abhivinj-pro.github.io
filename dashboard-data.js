@@ -42,11 +42,12 @@
     'Morning Routine': 'pink',
     'Self Care':       'purple',
     'Chores':          'green',
-    'Groceries':       'amber'
+    'Groceries':       'amber',
+    'General':         'blue'
   };
 
   // Order used in donuts / leaderboards.
-  var CATEGORY_ORDER = ['Morning Routine', 'Self Care', 'Chores', 'Groceries'];
+  var CATEGORY_ORDER = ['Morning Routine', 'Self Care', 'Chores', 'Groceries', 'General'];
 
   var WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -80,7 +81,7 @@
   }
 
   function normalizeCategory(c) {
-    if (!c || c === 'General') { return 'Work'; }
+    if (!c) { return 'Work'; }
     return c;
   }
 

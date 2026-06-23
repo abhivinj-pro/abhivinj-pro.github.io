@@ -4,7 +4,6 @@
   const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const MORNING_CATEGORY = 'Morning Routine';
   const WORK_CATEGORY = 'Work';
-  const LEGACY_GENERAL_CATEGORY = 'General';
 
   const DEFAULT_ICON = (window.ICON_LIBRARY && window.ICON_LIBRARY.length)
     ? window.ICON_LIBRARY[0].svg
@@ -50,7 +49,7 @@
   const authWallLoginBtn = document.getElementById('auth-wall-login');
 
   function normalizeCategory(category) {
-    if (!category || category === LEGACY_GENERAL_CATEGORY) {
+    if (!category) {
       return WORK_CATEGORY;
     }
     return category;
