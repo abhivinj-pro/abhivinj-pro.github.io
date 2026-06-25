@@ -12,7 +12,7 @@ var t = require('./harness');
 var fs = require('fs');
 var path = require('path');
 
-var APP_JS = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+var APP_JS = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'pages', 'app.js'), 'utf8');
 
 function has(pattern, msg) {
   t.assert.match(APP_JS, pattern, msg);

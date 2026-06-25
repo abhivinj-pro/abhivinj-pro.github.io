@@ -39,33 +39,57 @@ A personal habit-tracking and task-management web app hosted on GitHub Pages. De
 - Firebase Authentication via REST (no SDK) — supports email/password sign-up, sign-in, and **magic-link (passwordless)** sign-in.
 - Firestore via REST — per-account task list and per-day check state are stored in the cloud and sync across devices.
 - Tokens are stored in `localStorage` and refreshed automatically when less than 5 minutes remain.
-- **Pro accounts** (email allowlist in `pro-allowlist.js`) fall back to the bundled `tasks-config.js` when the cloud is unreachable.
-- **Demo mode** for unauthenticated visitors shows a read-only sample from `tasks-config.js`.
+- **Pro accounts** (email allowlist in `assets/js/config/pro-allowlist.js`) fall back to the bundled `assets/js/config/tasks-config.js` when the cloud is unreachable.
+- **Demo mode** for unauthenticated visitors shows a read-only sample from `assets/js/config/tasks-config.js`.
 
 ## Icon Library
 
-`icon-library.js` contains a curated SVG icon library (Health, Fitness, Food, Mind, Home, and more). The Task Manager lets you search and filter icons by name, tag, or category with a visual picker.
+`assets/js/icons/icon-library-color.js` contains a curated SVG icon library (Health, Fitness, Food, Mind, Home, and more). The Task Manager lets you search and filter icons by name, tag, or category with a visual picker. (A monochrome outline variant, `icon-library.js`, is kept alongside it for reference.)
 
-## Files
+## Project structure
 
-| File | Purpose |
-|---|---|
-| `index.html` | Main app shell (Morning, My Day, Work, Clock) |
-| `todo.html` | Task Manager page |
-| `app.js` | Screen routing, card rendering, clock, calendar, quote, carry-forward logic |
-| `todo.js` | Task list CRUD, form, icon picker, recurrence editor |
-| `storage.js` | Unified storage layer (demo / cloud / pro-fallback modes) |
-| `auth-client.js` | Firebase Identity Toolkit + Secure Token REST wrapper |
-| `auth-ui.js` | Sign-in / sign-up modal and magic-link UI |
-| `firestore-client.js` | Firestore REST client |
-| `firebase-config.js` | Firebase project credentials (edit before deploying) |
-| `pro-allowlist.js` | Email list for pro-tier fallback behaviour |
-| `tasks-config.js` | Default/demo task definitions |
-| `icon-library.js` | SVG icon library used by the task editor |
-| `polyfills.js` | Promise + fetch polyfills for iOS 9/12 |
-| `styles.css` | Layout and dark theme for the main app |
-| `todo.css` | Task Manager styles |
-| `auth.css` | Auth modal and auth-wall styles |
+The repo is organised so that the HTML **entry pages stay at the root** (where
+GitHub Pages and the cross-page links expect them) while all supporting code is
+grouped by responsibility under `assets/`. Every folder has its own `README.md`
+documenting the files and functions it contains.
+
+```
+index.html            Morning / My Day / Work / Clock shell
+todo.html             Task Manager
+dashboard.html        Insights dashboard
+README.md  SETUP.md   Docs
+package.json          npm test script (Node test harness)
+
+assets/
+  css/                Stylesheets — see assets/css/README.md
+    styles.css          Global theme + app layout
+    auth.css            Login modal, user chip, auth wall
+    todo.css            Task Manager styles
+    dashboard.css       Dashboard styles
+  js/                 Browser JS (globals, load order) — see assets/js/README.md
+    polyfills.js        Legacy-Safari Promise shim (loaded first)
+    config/             Static config — firebase-config, pro-allowlist, tasks-config
+    auth/               window.Auth (REST client) + window.AuthUI (login UI)
+    data/               window.Firestore (REST) + window.Storage (facade)
+    icons/              window.ICON_LIBRARY (icon picker catalogues)
+    pages/              Per-page controllers — app.js, todo.js, dashboard*.js
+
+resources/            Runtime media + data (quotes, sounds, svg) — see resources/README.md
+tools/                Dev-only utility pages (preview + Firestore seeders) — see tools/README.md
+tests/                Node test harness for the pure scheduling logic — see tests/README.md
+```
+
+Detailed per-file responsibilities live in each folder's README:
+[`assets/css`](assets/css/README.md) ·
+[`assets/js`](assets/js/README.md) ·
+[`assets/js/config`](assets/js/config/README.md) ·
+[`assets/js/auth`](assets/js/auth/README.md) ·
+[`assets/js/data`](assets/js/data/README.md) ·
+[`assets/js/icons`](assets/js/icons/README.md) ·
+[`assets/js/pages`](assets/js/pages/README.md) ·
+[`resources`](resources/README.md) ·
+[`tools`](tools/README.md) ·
+[`tests`](tests/README.md)
 
 ## Preview Locally
 
@@ -84,11 +108,11 @@ URL parameters for testing:
 4. Choose the `main` branch and the `/ (root)` folder.
 5. Save.
 
-Before deploying, fill in your Firebase project values in `firebase-config.js`. See [SETUP.md](SETUP.md) for the full Firebase setup guide including Firestore rules and API key restrictions.
+Before deploying, fill in your Firebase project values in `assets/js/config/firebase-config.js`. See [SETUP.md](SETUP.md) for the full Firebase setup guide including Firestore rules and API key restrictions.
 
 ## Notes
 
 - Optimised for tablets (iPad), laptops, and desktops — cards are large enough to read from a distance.
 - Safari home-screen mode is supported via Apple web app meta tags in `index.html`.
-- All network calls use XHR (not `fetch`) for compatibility with iOS 9/12; `polyfills.js` patches `Promise` for the same reason.
+- All network calls use XHR (not `fetch`) for compatibility with iOS 9/12; `assets/js/polyfills.js` patches `Promise` for the same reason.
 - Day state uses a logical midnight of 1:00 AM — tapping cards just after midnight still counts toward the previous day.

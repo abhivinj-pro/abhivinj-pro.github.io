@@ -3,7 +3,7 @@
 Habit Board uses Firebase (Auth + Firestore) for cross-device sync. The site
 talks to Firebase via REST so no SDK / build step is required, but you must
 create a Firebase project and paste three values into
-[firebase-config.js](firebase-config.js).
+[firebase-config.js](assets/js/config/firebase-config.js).
 
 ## 1. Create the project
 
@@ -49,7 +49,7 @@ create a Firebase project and paste three values into
 
 ## 4. Paste into the repo
 
-Open [firebase-config.js](firebase-config.js) and replace the placeholders:
+Open [firebase-config.js](assets/js/config/firebase-config.js) and replace the placeholders:
 
 ```js
 window.FIREBASE_CONFIG = {
@@ -64,7 +64,7 @@ links, and per-account task sync.
 
 ## 5. (Optional) Restrict the API key
 
-The API key in `firebase-config.js` is **not** a secret, but you should still
+The API key in `assets/js/config/firebase-config.js` is **not** a secret, but you should still
 restrict its allowed referrers so random sites can't reuse your quota.
 
 1. Open <https://console.cloud.google.com/apis/credentials> and pick your
