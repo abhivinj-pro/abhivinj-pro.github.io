@@ -154,9 +154,30 @@ body {
 .date-nav-arrow {
   width: 34px;
   height: 34px;
-  font-size: 22px;
-  line-height: 1;
+  padding: 0;
   margin-left: 8px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+/* SVG chevron renders identically on every device, unlike the previous
+   text glyph whose centering depended on the resolved font's metrics. */
+.date-nav-chevron {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .date-nav-today {
