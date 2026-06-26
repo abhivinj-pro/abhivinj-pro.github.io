@@ -429,6 +429,13 @@ window.ICON_LIBRARY = [
     svg: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3c-1.5 0-4 2-4 6s2.5 6 4 6h8c1.5 0 4-2 4-6s-2.5-6-4-6H8z" fill="#a1887f" stroke="#795548" stroke-width="0.6"/><line x1="12" y1="15" x2="12" y2="21" stroke="#6d4c41" stroke-width="1.8" stroke-linecap="round"/><line x1="9" y1="18" x2="15" y2="18" stroke="#8d6e63" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="7" r="0.9" fill="#212121" opacity="0.75"/><circle cx="12" cy="7" r="0.9" fill="#212121" opacity="0.75"/><circle cx="16" cy="7" r="0.9" fill="#212121" opacity="0.75"/><circle cx="8" cy="10" r="0.9" fill="#212121" opacity="0.75"/><circle cx="12" cy="10" r="0.9" fill="#212121" opacity="0.75"/><circle cx="16" cy="10" r="0.9" fill="#212121" opacity="0.75"/><path d="M7 6c1-.4 2-.4 3 0" stroke="#bcaaa4" stroke-width="0.8" stroke-linecap="round" fill="none" opacity="0.6"/></svg>'
   },
   {
+    id: 'icon-hair-mask',
+    name: 'Hair Mask',
+    category: 'Personal Care',
+    tags: ['hair', 'mask', 'treatment', 'spa', 'towel', 'turban', 'beauty', 'self-care', 'color'],
+    svg: '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="c_hm_towel" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7e57c2"/><stop offset="100%" stop-color="#ec407a"/></linearGradient><linearGradient id="c_hm_jar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e1bee7"/></linearGradient></defs><path d="M7 16.3h2.6v3.4a1.3 1.3 0 0 1-2.6 0z" fill="#f0b48a"/><path d="M4.6 10.2c0 4.6 1.5 7.6 3.7 7.6s3.7-3 3.7-7.6c0-2.6-1.6-4.2-3.7-4.2s-3.7 1.6-3.7 4.2z" fill="#ffd2a8" stroke="#e8a877" stroke-width="0.4"/><path d="M2.8 9.4Q2.3 2.6 8.3 2.2Q14.1 2.6 13.6 9.4Q13.6 11 12 11L4.4 11Q2.8 11 2.8 9.4Z" fill="url(#c_hm_towel)" stroke="#6a3fa0" stroke-width="0.4"/><path d="M4 6.6Q7.5 3.2 11.5 6Q9.5 8.8 6 7.8Q4.5 7.4 4 6.6Z" fill="#f48fb1" opacity="0.9"/><path d="M4.6 5.9Q7.5 3.9 11 6.1" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round" fill="none" opacity="0.7"/><path d="M16.9 15.2c-.5-1.3.4-2.4 1.6-2.1.2-1.2 1.6-1.6 2.4-.6 1 .1 1.5 1.3.8 2.1.5.4.3 1.2-.4 1.2H17z" fill="#fff0f6" stroke="#f8bbd0" stroke-width="0.4"/><rect x="15" y="15.2" width="8" height="1.9" rx="0.7" fill="#ce93d8"/><rect x="15.6" y="17" width="6.8" height="5" rx="1" fill="url(#c_hm_jar)" stroke="#ba68c8" stroke-width="0.5"/><path d="M15.6 19.4h6.8" stroke="#ce93d8" stroke-width="0.5" opacity="0.6"/></svg>'
+  },
+  {
     id: 'icon-floss',
     name: 'Floss',
     category: 'Personal Care',
