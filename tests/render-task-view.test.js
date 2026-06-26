@@ -58,19 +58,17 @@ t.describe('renderTaskView :: multi-time-slot (Eye Drops)', function () {
     var r = E.renderTaskView([eyeDrops], new Date(2026, 4, 30, 23, 30), {});
     t.assert.ok(hasActive(r.visible, 'eye-drops__sixth'));
   });
-  t.it('BUG #1 REGRESSION: 00:10 logical=yesterday hour=24 → Sixth active, First..Fifth Missed', function () {
-    // Pre-fix, nowHour=getHours()=0 made every expired slot of yesterday
-    // appear neither active nor expired, so they vanished from both Missed
-    // and Caught Up entirely.
+  t.it('00:10 → day already rolled at midnight, all of today\'s slots are future (empty board)', function () {
+    // With the midnight rollover, 00:10 belongs to the NEW logical day. None of
+    // the Eye Drops slots (earliest is 07:00) are active or expired yet, so the
+    // board is empty. Yesterday's missed slots are reached via back-navigation.
     var r = E.renderTaskView([eyeDrops], new Date(2026, 4, 30, 0, 10), {});
-    t.assert.equal(r.dateKey, '2026-05-29', 'logical date is yesterday');
-    t.assert.equal(r.logicalHour, 24);
-    t.assert.ok(hasActive(r.visible, 'eye-drops__sixth'));
-    ['first', 'second', 'third', 'fourth', 'fifth'].forEach(function (lbl) {
-      t.assert.ok(hasMissed(r.visible, 'eye-drops__' + lbl), lbl + ' should be Missed');
-    });
+    t.assert.equal(r.dateKey, '2026-05-30', 'logical date is today (rolled at midnight)');
+    t.assert.equal(r.logicalHour, 0);
+    t.assert.equal(r.visible.length, 0, 'nothing active/missed yet on the fresh day');
+    t.assert.equal(r.caughtUp.length, 0);
   });
-  t.it('BUG #1 REGRESSION: 00:10 with all earlier slots ticked → all 5 in Caught Up', function () {
+  t.it('00:10 → yesterday\'s completions do not leak into the new day\'s board', function () {
     var st = {
       '2026-05-29': {
         'eye-drops__first': true, 'eye-drops__second': true, 'eye-drops__third': true,
@@ -78,10 +76,11 @@ t.describe('renderTaskView :: multi-time-slot (Eye Drops)', function () {
       }
     };
     var r = E.renderTaskView([eyeDrops], new Date(2026, 4, 30, 0, 10), st);
-    t.assert.equal(r.visible.length, 1, 'only Sixth visible');
-    t.assert.equal(r.caughtUp.length, 5, 'First..Fifth caught up');
+    t.assert.equal(r.dateKey, '2026-05-30', 'viewing the new logical day');
+    t.assert.equal(r.visible.length, 0, 'fresh day board is empty');
+    t.assert.equal(r.caughtUp.length, 0, 'yesterday\'s ticks are not shown on today');
   });
-  t.it('01:30 → logical day flipped, all of today\'s slots are future (empty board)', function () {
+  t.it('01:30 → logical day is today, all of today\'s slots are future (empty board)', function () {
     var r = E.renderTaskView([eyeDrops], new Date(2026, 4, 30, 1, 30), {});
     t.assert.equal(r.dateKey, '2026-05-30');
     t.assert.equal(r.logicalHour, 1);
@@ -313,12 +312,13 @@ t.describe('renderTaskView :: boundary cases', function () {
     t.assert.equal(r.visible.length, 0);
     t.assert.equal(r.caughtUp.length, 0);
   });
-  t.it('00:50 AM still on yesterday\'s logical day', function () {
+  t.it('00:50 AM is already on the new logical day (midnight rollover)', function () {
     var r = E.renderTaskView([eyeDrops], new Date(2026, 4, 30, 0, 50), {});
-    t.assert.equal(r.dateKey, '2026-05-29');
-    t.assert.ok(hasActive(r.visible, 'eye-drops__sixth'));
+    t.assert.equal(r.dateKey, '2026-05-30');
+    t.assert.equal(r.logicalHour, 0);
+    t.assert.equal(r.visible.length, 0, 'fresh day: nothing active until 07:00');
   });
-  t.it('exactly 01:00 AM is the rollover instant → new logical day', function () {
+  t.it('01:00 AM → logical day is today, hour 1 (rollover already happened at midnight)', function () {
     var r = E.renderTaskView([eyeDrops], new Date(2026, 4, 30, 1, 0, 0), {});
     t.assert.equal(r.dateKey, '2026-05-30');
     t.assert.equal(r.logicalHour, 1);
@@ -357,5 +357,68 @@ t.describe('renderTaskView :: Work category symmetry', function () {
     var r = E.renderTaskView([projectX], new Date(2026, 4, 28, 12), {});
     t.assert.ok(hasMissed(r.visible, 'project-x#2026-05-26'));
     t.assert.ok(hasMissed(r.visible, 'project-x#2026-05-27'));
+  });
+});
+
+// ── Historical backfill: buildHistoricalCards (daily-only past-day view) ─────
+
+t.describe('buildHistoricalCards :: daily-only filtering', function () {
+  t.it('keeps plain daily tasks', function () {
+    var cards = E.buildHistoricalCards([aligners]);
+    t.assert.equal(cards.length, 1);
+    t.assert.equal(cards[0].id, 'aligners');
+  });
+  t.it('expands a multi-slot daily into one card per slot (ALL slots present)', function () {
+    var cards = E.buildHistoricalCards([eyeDrops]);
+    t.assert.equal(cards.length, 6);
+    t.assert.ok(cards.some(function (c) { return c.id === 'eye-drops__first'; }));
+    t.assert.ok(cards.some(function (c) { return c.id === 'eye-drops__sixth'; }));
+    cards.forEach(function (c) { t.assert.equal(c.title, 'Eye Drops'); });
+  });
+  t.it('excludes weekly tasks', function () {
+    var cards = E.buildHistoricalCards([gym]);
+    t.assert.equal(cards.length, 0);
+  });
+  t.it('excludes interval tasks', function () {
+    var cards = E.buildHistoricalCards([biweeklyReview]);
+    t.assert.equal(cards.length, 0);
+  });
+  t.it('excludes once tasks (single-day and span)', function () {
+    var cards = E.buildHistoricalCards([doctorVisit, readingSprint]);
+    t.assert.equal(cards.length, 0);
+  });
+  t.it('treats a task with no frequency as daily', function () {
+    var cards = E.buildHistoricalCards([{ id: 'legacy', title: 'Legacy' }]);
+    t.assert.equal(cards.length, 1);
+    t.assert.equal(cards[0].id, 'legacy');
+  });
+  t.it('mixed bucket → only daily survive, in order, slots expanded', function () {
+    var cards = E.buildHistoricalCards([gym, eyeDrops, doctorVisit, aligners, biweeklyReview]);
+    var ids = cards.map(function (c) { return c.id; });
+    t.assert.deepEqual(ids, [
+      'eye-drops__first', 'eye-drops__second', 'eye-drops__third',
+      'eye-drops__fourth', 'eye-drops__fifth', 'eye-drops__sixth',
+      'aligners'
+    ]);
+  });
+  t.it('does not mutate the input bucket', function () {
+    var bucket = [eyeDrops, gym, aligners];
+    var snapshot = JSON.parse(JSON.stringify(bucket));
+    E.buildHistoricalCards(bucket);
+    t.assert.deepEqual(bucket, snapshot);
+  });
+});
+
+t.describe('isDailyTask', function () {
+  t.it('true for explicit daily', function () {
+    t.assert.ok(E.isDailyTask(aligners));
+  });
+  t.it('true for missing frequency', function () {
+    t.assert.ok(E.isDailyTask({ id: 'x' }));
+  });
+  t.it('false for weekly / interval / once', function () {
+    t.assert.ok(!E.isDailyTask(gym));
+    t.assert.ok(!E.isDailyTask(biweeklyReview));
+    t.assert.ok(!E.isDailyTask(doctorVisit));
   });
 });

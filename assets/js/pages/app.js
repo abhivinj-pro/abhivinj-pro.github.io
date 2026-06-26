@@ -3,7 +3,7 @@
     ? window.Storage.PREFIXES.MORNING : 'habit-board-state-';
   var MYDAY_STORAGE_PREFIX = (window.Storage && window.Storage.PREFIXES)
     ? window.Storage.PREFIXES.MYDAY : 'myday-state-';
-  var CLOCK_START_SECONDS = 1 * 60 * 60;
+  var CLOCK_START_SECONDS = 0;
   var MORNING_START_SECONDS = 7 * 60 * 60;
   var MORNING_END_SECONDS = 10 * 60 * 60;
 
@@ -73,7 +73,7 @@
   var calendarPrevButton = document.getElementById('calendar-prev');
   var calendarNextButton = document.getElementById('calendar-next');
   var mydayDateHeading = document.getElementById('myday-date-heading');
-  var mydayTaskCount = document.getElementById('myday-task-count');
+  var morningDateHeading = document.getElementById('morning-date-heading');
   var doneMissedSection = document.getElementById('done-missed-section');
   var doneMissedCount = document.getElementById('done-missed-count');
   var doneMissedGrid = document.getElementById('done-missed-grid');
@@ -200,32 +200,89 @@
     return new Date(y, m - 1, d);
   }
 
+  // The logical day rolls over at midnight (00:00) — it is simply the current
+  // calendar day. A new day's board appears the instant the clock passes
+  // midnight; anything missed from the previous day is reached with the date
+  // arrows (back-navigation), not by holding the old day open past midnight.
   function getLogicalDate() {
-    var now = new Date();
-    if (now.getHours() < 1) {
-      now.setDate(now.getDate() - 1);
-    }
-    return now;
+    return new Date();
   }
 
-  // Hours elapsed since midnight of the logical day. When the wall clock is
-  // between 00:00 and 00:59, getLogicalDate() rolls back to yesterday, so the
-  // logical hour is 24 + getHours() (i.e. 24..24.99) rather than 0. Using the
-  // raw wall-clock hour here would make every multi-time slot from the logical
-  // day appear neither active nor expired in that one-hour window, so tasks
-  // like Eye Drops (First..Fifth) would silently vanish from both Missed and
-  // Caught Up between midnight and 1 AM.
+  // Hours elapsed since midnight of the logical day (0..23). Since the logical
+  // day == the calendar day, this is just the wall-clock hour.
   function getLogicalHour() {
-    var now = new Date();
-    var h = now.getHours();
-    if (h < 1) {
-      return 24 + h;
-    }
-    return h;
+    return new Date().getHours();
   }
 
   function slugifyTime(text) {
     return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  // ─── Backfill / date navigation ────────────────────────────────────────────
+  // The board normally shows "today" (the logical date). The date arrows let a
+  // user step back up to BACKFILL_MAX_DAYS to tick off DAILY tasks they did but
+  // could not check before the midnight rollover. `viewDateKey === null` means the
+  // live "today" view; a 'YYYY-MM-DD' string means a historical day. Only the
+  // Morning and My Day screens honor it (Work resets to today — its arrows are
+  // hidden). See /memories plan: historical view shows ONLY daily tasks.
+  var BACKFILL_MAX_DAYS = 7;
+  var viewDateKey = null;
+
+  function isDailyTask(task) {
+    return !task.frequency || task.frequency.type === 'daily';
+  }
+
+  function todayLogicalKey() {
+    return getDateKey(getLogicalDate());
+  }
+
+  function minBackfillKey() {
+    var d = getLogicalDate();
+    return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - BACKFILL_MAX_DAYS));
+  }
+
+  function isHistoricalView() {
+    return viewDateKey !== null && viewDateKey !== todayLogicalKey();
+  }
+
+  // Effective storage dateKey for a given screen prefix. With the midnight
+  // rollover the logical day == the calendar day, so Morning and My Day always
+  // resolve to the same day; in historical mode both screens read/write the
+  // viewed day so a backfilled tick lands on the correct day-document. (The
+  // prefix is retained for call-site symmetry and future per-screen needs.)
+  function boardDateKey(prefix) {
+    if (viewDateKey) { return viewDateKey; }
+    return getDateKey(getLogicalDate());
+  }
+
+  // Build the card list for a historical day: DAILY tasks only, multi-slot
+  // dailies expanded into one card per slot (composite ids so the dashboard
+  // scores them per slot). No missed/expiry/carry-forward — every card is a
+  // plain toggle whose checked state comes from that day's saved record.
+  function buildHistoricalCards(bucket) {
+    var out = [];
+    for (var i = 0; i < bucket.length; i += 1) {
+      var task = bucket[i];
+      if (!isDailyTask(task)) { continue; }
+      if (task.times && task.times.length > 0) {
+        for (var s = 0; s < task.times.length; s += 1) {
+          out.push({
+            id: task.id + '__' + slugifyTime(task.times[s].label),
+            title: task.title,
+            timeLabel: task.times[s].label,
+            accentClass: task.accentClass,
+            icon: task.icon
+          });
+        }
+      } else {
+        out.push(task);
+      }
+    }
+    return out;
+  }
+
+  function formatNavHeading(date) {
+    return dayNames[date.getDay()] + ', ' + monthNames[date.getMonth()].slice(0, 3) + ' ' + date.getDate();
   }
 
   // Both window predicates operate in logical-hour space (see getLogicalHour).
@@ -347,9 +404,9 @@
     }
     var dateKey;
     if (prefix === MYDAY_STORAGE_PREFIX) {
-      dateKey = getDateKey(getLogicalDate());
+      dateKey = boardDateKey(MYDAY_STORAGE_PREFIX);
     } else {
-      dateKey = getDateKey(new Date());
+      dateKey = boardDateKey(MORNING_STORAGE_PREFIX);
     }
     var state = readState(prefix, dateKey);
     var wasMissed = false;
@@ -510,6 +567,15 @@
     var i, t, task, nowHour, expandedTasks, missedTasks, carryForwardTasks;
     var dateKey, state, compositeId, todayTaskIds;
     var allTasks, visibleTasks, doneMissedTasks;
+
+    // Historical backfill: a past day shows ONLY daily tasks (the ones that
+    // cannot be carried forward), as plain tickable cards with that day's saved
+    // state. Work is never historical (its arrows are hidden), so this path is
+    // My Day only.
+    if (viewName !== 'work' && isHistoricalView()) {
+      renderHistoricalTaskView(bucket, viewName);
+      return;
+    }
 
     for (i = 0; i < bucket.length; i += 1) {
       if (isTaskForDate(bucket[i], logicalDate)) {
@@ -760,17 +826,6 @@
     currentDayTasks = visibleTasks;
     currentDayView = viewName;
 
-    if (mydayDateHeading) {
-      mydayDateHeading.textContent = dayNames[logicalDate.getDay()] + ', ' + monthNames[logicalDate.getMonth()] + ' ' + logicalDate.getDate();
-    }
-    if (mydayTaskCount) {
-      if (viewName === 'work') {
-        mydayTaskCount.textContent = visibleTasks.length + (visibleTasks.length === 1 ? ' work task now' : ' work tasks now');
-      } else {
-        mydayTaskCount.textContent = visibleTasks.length + (visibleTasks.length === 1 ? ' task now' : ' tasks now');
-      }
-    }
-
     if (visibleTasks.length === 0) {
       while (mydayGrid.firstChild) {
         mydayGrid.removeChild(mydayGrid.firstChild);
@@ -825,6 +880,52 @@
       // being pushed below the fold.
       mydayGrid.classList.add('compact');
     }
+
+    updateDateNavUI();
+  }
+
+  // Render a past day for the Morning/My Day screens: daily tasks only, plain
+  // tickable cards reflecting that day's saved record. No missed markers,
+  // expiry dimming, carry-forward duplicates, or "Caught Up" section.
+  function renderHistoricalTaskView(bucket, viewName) {
+    var dateKey = viewDateKey;
+    var cards = buildHistoricalCards(bucket);
+    var i;
+
+    currentDayTasks = cards;
+    currentDayView = viewName;
+
+    while (mydayGrid.firstChild) {
+      mydayGrid.removeChild(mydayGrid.firstChild);
+    }
+
+    if (cards.length === 0) {
+      var emptyMsg = document.createElement('div');
+      emptyMsg.className = 'myday-empty';
+      emptyMsg.textContent = 'No daily tasks for this day';
+      mydayGrid.appendChild(emptyMsg);
+    } else {
+      renderCardsInto(mydayGrid, cards, MYDAY_STORAGE_PREFIX);
+      applyState(mydayGrid, MYDAY_STORAGE_PREFIX, dateKey);
+    }
+
+    // No Caught Up section in historical view.
+    if (doneMissedSection && doneMissedGrid) {
+      doneMissedSection.classList.add('hidden');
+      while (doneMissedGrid.firstChild) {
+        doneMissedGrid.removeChild(doneMissedGrid.firstChild);
+      }
+    }
+
+    if (mydayGrid && mydayQuote && mydayQuoteText) {
+      var q = pickQuoteForKey(dateKey);
+      mydayQuoteText.textContent = q.text;
+      if (mydayQuoteAuthor) { mydayQuoteAuthor.textContent = q.author || ''; }
+      mydayQuote.classList.remove('hidden');
+      mydayGrid.classList.add('compact');
+    }
+
+    updateDateNavUI();
   }
 
   function syncPageNavState(activeScreen) {
@@ -999,7 +1100,7 @@
 
     if (activeScreen === 'morning') {
       morningScreen.classList.remove('hidden');
-      applyState(routineGrid, MORNING_STORAGE_PREFIX, getDateKey(now));
+      applyState(routineGrid, MORNING_STORAGE_PREFIX, boardDateKey(MORNING_STORAGE_PREFIX));
     } else if (activeScreen === 'myday' || activeScreen === 'work') {
       mydayScreen.classList.remove('hidden');
       var currentHour = now.getHours();
@@ -1009,7 +1110,7 @@
         renderTaskView(activeScreen);
         fitAllTitles();
       }
-      applyState(mydayGrid, MYDAY_STORAGE_PREFIX, getDateKey(getLogicalDate()));
+      applyState(mydayGrid, MYDAY_STORAGE_PREFIX, boardDateKey(MYDAY_STORAGE_PREFIX));
     } else {
       clockScreen.classList.remove('hidden');
       if (!calendarMonthCursor) {
@@ -1151,6 +1252,88 @@
     fitTimer = setTimeout(fitAllTitles, 120);
   }
 
+  // ─── Date navigation (backfill) UI ───────────────────────────────────────
+  function displayedViewDate() {
+    return viewDateKey ? parseLocalDateKey(viewDateKey) : getLogicalDate();
+  }
+
+  // Update one screen's date-nav controls (heading + prev/next/today).
+  function updateNavGroup(prefix, headingEl, hideArrows) {
+    var navEl = document.getElementById(prefix + '-date-nav');
+    var prevBtn = document.getElementById(prefix + '-date-prev');
+    var nextBtn = document.getElementById(prefix + '-date-next');
+    var todayBtn = document.getElementById(prefix + '-date-today');
+    var displayed = displayedViewDate();
+    var historical = isHistoricalView();
+
+    if (headingEl) { headingEl.textContent = formatNavHeading(displayed); }
+
+    // Work shares the My Day screen but is always "today" — hide its arrows.
+    if (navEl) {
+      if (hideArrows) { navEl.classList.add('hidden'); }
+      else { navEl.classList.remove('hidden'); }
+    }
+
+    if (prevBtn) { prevBtn.disabled = (getDateKey(displayed) <= minBackfillKey()); }
+    if (nextBtn) { nextBtn.disabled = !historical; }
+    if (todayBtn) {
+      if (historical) { todayBtn.classList.remove('hidden'); }
+      else { todayBtn.classList.add('hidden'); }
+    }
+  }
+
+  function updateDateNavUI() {
+    updateNavGroup('morning', morningDateHeading, false);
+    updateNavGroup('myday', mydayDateHeading, currentDayView === 'work');
+  }
+
+  // Re-render both boards for the current viewDateKey (used after stepping the
+  // date or returning to today). Morning tasks are all daily, but route them
+  // through the same render path so historical/live stay consistent.
+  function rerenderBoards() {
+    if (routineGrid) {
+      var morningCards = isHistoricalView() ? buildHistoricalCards(morningHabits) : morningHabits;
+      renderCardsInto(routineGrid, morningCards, MORNING_STORAGE_PREFIX);
+      applyState(routineGrid, MORNING_STORAGE_PREFIX, boardDateKey(MORNING_STORAGE_PREFIX));
+    }
+    renderTaskView(currentDayView);
+    updateDateNavUI();
+    fitAllTitles();
+  }
+
+  function setViewDate(key) {
+    viewDateKey = key;
+    if (key) {
+      window.Storage.ensureDayLoaded(key).then(function () {
+        // Guard against a rapid second navigation having changed the target.
+        if (viewDateKey === key) { rerenderBoards(); }
+      });
+    }
+    rerenderBoards();
+  }
+
+  function stepViewDate(deltaDays) {
+    var base = displayedViewDate();
+    var next = new Date(base.getFullYear(), base.getMonth(), base.getDate() + deltaDays);
+    var nextKey = getDateKey(next);
+    if (nextKey > todayLogicalKey()) { return; }
+    if (nextKey < minBackfillKey()) { return; }
+    if (nextKey === todayLogicalKey()) {
+      goToToday();
+    } else {
+      setViewDate(nextKey);
+    }
+  }
+
+  function goToToday() {
+    if (viewDateKey === null) {
+      updateDateNavUI();
+      return;
+    }
+    viewDateKey = null;
+    rerenderBoards();
+  }
+
   function setupNavButtons() {
     var navHandlers = {
       morning: function () {
@@ -1164,11 +1347,13 @@
         fitAllTitles();
       },
       work: function () {
+        viewDateKey = null;
         manualScreen = 'work';
         syncView();
         fitAllTitles();
       },
       clock: function () {
+        viewDateKey = null;
         manualScreen = 'clock';
         syncView();
       }
@@ -1192,13 +1377,34 @@
     if (clockToMyDayBtn) {
       clockToMyDayBtn.addEventListener('click', navHandlers.myday);
     }
+
+    // Date-nav (backfill) arrows + "Today" button on the Morning and My Day
+    // screens. The shared viewDateKey means stepping on one screen carries to
+    // the other.
+    var datePrefixes = ['morning', 'myday'];
+    for (var di = 0; di < datePrefixes.length; di += 1) {
+      (function (prefix) {
+        var prevBtn = document.getElementById(prefix + '-date-prev');
+        var nextBtn = document.getElementById(prefix + '-date-next');
+        var todayBtn = document.getElementById(prefix + '-date-today');
+        if (prevBtn) { prevBtn.addEventListener('click', function () { stepViewDate(-1); }); }
+        if (nextBtn) { nextBtn.addEventListener('click', function () { stepViewDate(1); }); }
+        if (todayBtn) { todayBtn.addEventListener('click', function () { goToToday(); }); }
+      })(datePrefixes[di]);
+    }
+
+    // Returning to the app (tab refocus / device wake) should snap back to
+    // today so a stale historical view doesn't linger across the midnight reset.
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) { goToToday(); }
+    });
+    window.addEventListener('focus', function () { goToToday(); });
   }
 
   function applyMorningConfig() {
-    var headingEl = document.getElementById('morning-heading');
-    var timeLabelEl = document.getElementById('morning-time-label');
-    if (headingEl) { headingEl.textContent = 'Start with:'; }
-    if (timeLabelEl) { timeLabelEl.textContent = '7:00 AM to 10:00 AM'; }
+    // The Morning header now shows the navigable date heading (set by
+    // updateDateNavUI) instead of a static "Start with:" label.
+    updateDateNavUI();
   }
 
   function rerenderAll() {

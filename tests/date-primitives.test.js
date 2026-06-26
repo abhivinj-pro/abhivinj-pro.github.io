@@ -52,7 +52,7 @@ t.describe('date primitives :: parseLocalDateKey (iPad UTC fix)', function () {
   });
 });
 
-t.describe('date primitives :: getLogicalDate (1AM cutoff)', function () {
+t.describe('date primitives :: getLogicalDate (midnight cutoff)', function () {
   t.it('returns today when wall-clock hour >= 1', function () {
     var clk = new Date(2026, 4, 30, 1, 0, 0);
     var ld = E.getLogicalDate(clk);
@@ -62,47 +62,44 @@ t.describe('date primitives :: getLogicalDate (1AM cutoff)', function () {
     var clk = new Date(2026, 4, 30, 1, 30, 0);
     t.assert.equal(E.getDateKey(E.getLogicalDate(clk)), '2026-05-30');
   });
-  t.it('returns YESTERDAY at 12:10 AM (logical day not yet rolled)', function () {
+  t.it('returns TODAY at 12:10 AM (day already rolled at midnight)', function () {
     var clk = new Date(2026, 4, 30, 0, 10, 0);
-    t.assert.equal(E.getDateKey(E.getLogicalDate(clk)), '2026-05-29');
+    t.assert.equal(E.getDateKey(E.getLogicalDate(clk)), '2026-05-30');
   });
-  t.it('returns YESTERDAY at 12:59 AM', function () {
+  t.it('returns TODAY at 12:59 AM', function () {
     var clk = new Date(2026, 4, 30, 0, 59, 59);
-    t.assert.equal(E.getDateKey(E.getLogicalDate(clk)), '2026-05-29');
+    t.assert.equal(E.getDateKey(E.getLogicalDate(clk)), '2026-05-30');
   });
-  t.it('handles month boundary at midnight', function () {
-    var clk = new Date(2026, 5, 1, 0, 30, 0); // June 1, 00:30 → May 31
-    t.assert.equal(E.getDateKey(E.getLogicalDate(clk)), '2026-05-31');
+  t.it('handles month boundary just after midnight', function () {
+    var clk = new Date(2026, 5, 1, 0, 30, 0); // June 1, 00:30 → still June 1
+    t.assert.equal(E.getDateKey(E.getLogicalDate(clk)), '2026-06-01');
   });
 });
 
-t.describe('date primitives :: getLogicalHour (bug #1 fix)', function () {
-  // Pre-fix, the renderer used `new Date().getHours()` directly, which after
-  // midnight returned 0 while the logical day was still yesterday. That
-  // broke isExpiredTimeWindow for every expired slot of the prior day, so
-  // multi-time tasks (Eye Drops First..Fifth) vanished from BOTH Missed
-  // and Caught Up sections between 00:00 and 00:59.
-  t.it('matches wall-clock hour from 01:00 through 23:59', function () {
-    for (var h = 1; h <= 23; h += 1) {
+t.describe('date primitives :: getLogicalHour (wall-clock hour)', function () {
+  // With the midnight rollover the logical day == the calendar day, so the
+  // logical hour is always the raw wall-clock hour 0..23.
+  t.it('matches wall-clock hour from 00:00 through 23:59', function () {
+    for (var h = 0; h <= 23; h += 1) {
       t.assert.equal(E.getLogicalHour(new Date(2026, 4, 30, h, 0, 0)), h, 'hour ' + h);
     }
   });
-  t.it('returns 24 at 00:00 (the boundary)', function () {
-    t.assert.equal(E.getLogicalHour(new Date(2026, 4, 30, 0, 0, 0)), 24);
+  t.it('returns 0 at 00:00 (the boundary)', function () {
+    t.assert.equal(E.getLogicalHour(new Date(2026, 4, 30, 0, 0, 0)), 0);
   });
-  t.it('returns 24 at 00:30', function () {
-    t.assert.equal(E.getLogicalHour(new Date(2026, 4, 30, 0, 30, 0)), 24);
+  t.it('returns 0 at 00:30', function () {
+    t.assert.equal(E.getLogicalHour(new Date(2026, 4, 30, 0, 30, 0)), 0);
   });
-  t.it('returns 24 at 00:59', function () {
-    t.assert.equal(E.getLogicalHour(new Date(2026, 4, 30, 0, 59, 59)), 24);
+  t.it('returns 0 at 00:59', function () {
+    t.assert.equal(E.getLogicalHour(new Date(2026, 4, 30, 0, 59, 59)), 0);
   });
   t.it('is consistent with getLogicalDate boundary', function () {
     var clk = new Date(2026, 4, 30, 0, 30, 0);
     var ld = E.getLogicalDate(clk);
     var lh = E.getLogicalHour(clk);
-    // At 00:30 we are 24.5 hours into the logical day (which is yesterday).
-    t.assert.equal(E.getDateKey(ld), '2026-05-29');
-    t.assert.equal(lh, 24);
+    // At 00:30 we are 0.5 hours into the (new) logical day.
+    t.assert.equal(E.getDateKey(ld), '2026-05-30');
+    t.assert.equal(lh, 0);
   });
 });
 
@@ -116,24 +113,26 @@ t.describe('date primitives :: time-window predicates', function () {
     t.assert.equal(E.isWithinTimeWindow(morning, 12), false, '12 is exclusive end');
     t.assert.equal(E.isWithinTimeWindow(morning, 6), false);
   });
-  t.it('within: wrap-around slot covers from 22 across midnight to 1 AM', function () {
+  t.it('within: wrap-around slot is active in the evening hours 22 and 23', function () {
     t.assert.equal(E.isWithinTimeWindow(wrap, 22), true);
     t.assert.equal(E.isWithinTimeWindow(wrap, 23), true);
-    t.assert.equal(E.isWithinTimeWindow(wrap, 24), true, '00:30 logical=24');
-    t.assert.equal(E.isWithinTimeWindow(wrap, 25), false, '01:00 logical=1 → maps to 25 in next day, but at hour 1 next day it is excluded');
+    // The 00:00–00:59 tail of a wrap slot belongs to the PREVIOUS calendar day.
+    // On the live (new) day, hour 0 is not yet within this slot.
+    t.assert.equal(E.isWithinTimeWindow(wrap, 0), false, 'hour 0 of the new day is before the 22:00 start');
+    t.assert.equal(E.isWithinTimeWindow(wrap, 1), false, 'hour 1 is past the slot end');
   });
   t.it('expired: standard slot expires AT slot.to', function () {
     t.assert.equal(E.isExpiredTimeWindow(morning, 12), true);
     t.assert.equal(E.isExpiredTimeWindow(morning, 13), true);
     t.assert.equal(E.isExpiredTimeWindow(morning, 11), false);
   });
-  t.it('expired: wrap-around slot expires at slot.to + 24 logical hour', function () {
-    t.assert.equal(E.isExpiredTimeWindow(wrap, 24), false, 'still active during 00:00 hour');
-    t.assert.equal(E.isExpiredTimeWindow(wrap, 25), true, 'expired at 01:00');
+  t.it('expired: wrap-around slot is not expired during its active evening hours', function () {
+    t.assert.equal(E.isExpiredTimeWindow(wrap, 22), false, 'active at 22:00');
+    t.assert.equal(E.isExpiredTimeWindow(wrap, 23), false, 'active at 23:00');
   });
-  t.it('within and expired are mutually exclusive', function () {
+  t.it('within and expired are mutually exclusive across all wall-clock hours', function () {
     var slots = [morning, wrap, { from: 14, to: 17 }, { from: 20, to: 22 }];
-    for (var h = 1; h <= 24; h += 1) {
+    for (var h = 0; h <= 23; h += 1) {
       for (var i = 0; i < slots.length; i += 1) {
         var w = E.isWithinTimeWindow(slots[i], h);
         var e = E.isExpiredTimeWindow(slots[i], h);
