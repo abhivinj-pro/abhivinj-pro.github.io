@@ -69,7 +69,6 @@
 
   function todayLogicalDateKey() {
     var now = new Date();
-    if (now.getHours() < 1) { now.setDate(now.getDate() - 1); }
     return formatDateKey(now);
   }
 
@@ -84,7 +83,6 @@
   function preloadDateKeys() {
     var keys = [];
     var base = new Date();
-    if (base.getHours() < 1) { base.setDate(base.getDate() - 1); }
     for (var i = 0; i < DAYS_TO_PRELOAD; i += 1) {
       var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() - i);
       keys.push(formatDateKey(d));

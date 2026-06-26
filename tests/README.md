@@ -18,7 +18,7 @@ No `npm install` step — the harness is hand-rolled and uses only Node stdlib.
 `app.js` is a single 1100-line IIFE that mixes pure scheduling logic with
 DOM rendering and the Storage layer. The scheduling logic has historically
 been the source of subtle, hard-to-reproduce bugs (logical-day rollover at
-1 AM, iPad/iOS 12 UTC date shifts, once-task resurrection, multi-day span
+midnight, iPad/iOS 12 UTC date shifts, once-task resurrection, multi-day span
 catch-ups). This suite locks down the **observable behavior** of that logic
 so future changes do not silently regress any of those fixes.
 
@@ -65,8 +65,8 @@ Functions covered by sync checks:
 | `app.js` function       | What the mirror assumes                                              |
 |-------------------------|----------------------------------------------------------------------|
 | `parseLocalDateKey`     | Local-midnight constructor (NOT `new Date(s + 'T00:00:00')`)         |
-| `getLogicalDate`        | Yesterday between 00:00–00:59                                        |
-| `getLogicalHour`        | Returns `24 + h` when `h < 1`                                        |
+| `getLogicalDate`        | Always the calendar day (midnight rollover, no rollback)            |
+| `getLogicalHour`        | Raw wall-clock hour 0–23                                             |
 | `isWithinTimeWindow`    | Wrap-around normalized via `slot.to + 24`                            |
 | `isExpiredTimeWindow`   | Wrap-around normalized via `slot.to + 24`                            |
 | `getOnceRange`          | Normalizes legacy `{date}` and new `{startDate, endDate}`            |
@@ -103,9 +103,9 @@ Functions covered by sync checks:
 | 09:00      | today        | 9            | First active |
 | 14:00      | today        | 14           | Third active; First+Second Missed |
 | 23:30      | today        | 23           | Sixth active (wrap-around) |
-| 00:10      | **yesterday**| **24**       | Sixth still active; First..Fifth Missed |
-| 00:50      | **yesterday**| **24**       | Same as above |
-| 01:00      | **today**    | **1**        | Logical day rolls; all of today's slots future |
+| 00:10      | **today**    | **0**        | New day already rolled; board empty (all slots future) |
+| 00:50      | **today**    | **0**        | Same as above |
+| 01:00      | today        | 1            | All of today's slots future |
 | 01:30      | today        | 1            | Empty board (all slots future) |
 
 ### Carry-forward window math
@@ -127,11 +127,12 @@ Functions covered by sync checks:
 - **Multi-day catch-up flow** (commit be30e0a) — `wasOnceDayCaughtUp`
   excludes today so a same-day catch-up routes to Caught Up instead of
   vanishing.
-- **Bug #1: midnight logical-hour** — between 00:00 and 00:59, multi-time
-  slots from the prior logical day no longer vanish from Missed/Caught Up.
+- **Bug #1: midnight logical-hour** — historical guard. With the midnight
+  rollover, the 00:00–00:59 window belongs to the new day (where prior-day
+  slots are correctly "future"), so multi-time slots no longer vanish.
 - **Bug #2: once-task resurrection** — single-day once tasks ticked late
   (D+1) stay gone on D+2..D+14 instead of re-appearing as Missed each day
-  after the 1 AM rollover.
+  after the midnight rollover.
 
 ### Cross-cutting invariants (always-true, regardless of input)
 - No task ID appears in both `visible` and `caughtUp`.

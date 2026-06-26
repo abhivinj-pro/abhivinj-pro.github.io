@@ -118,6 +118,63 @@ body {
   font-size: 18px;
 }
 
+/* Date-navigation (backfill) controls sit under the date heading, right-
+   aligned to match the header. Arrows step the viewed day; the Today button
+   only appears when viewing a past day. */
+.date-nav {
+  margin-top: 4px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: flex-end;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.date-nav.hidden {
+  display: none;
+}
+
+.date-nav-arrow,
+.date-nav-today {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  border-radius: 999px;
+}
+
+.date-nav-arrow {
+  width: 34px;
+  height: 34px;
+  font-size: 22px;
+  line-height: 1;
+  margin-left: 8px;
+}
+
+.date-nav-today {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 15px;
+  margin-left: 8px;
+}
+
+.date-nav-today.hidden {
+  display: none;
+}
+
+.date-nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 .routine-grid {
   -webkit-box-flex: 1;
       -ms-flex: 1 1 auto;

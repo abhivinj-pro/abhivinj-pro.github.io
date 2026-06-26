@@ -51,13 +51,12 @@
 
   var WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  // ── Date helpers (logical day rolls at 1 AM) ────────────────────────────
+  // ── Date helpers (logical day == calendar day; rollover at midnight) ───
   function pad(v) { return v < 10 ? '0' + v : '' + v; }
   function fmt(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 
   function todayLogical() {
     var now = new Date();
-    if (now.getHours() < 1) { now.setDate(now.getDate() - 1); }
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   }
 

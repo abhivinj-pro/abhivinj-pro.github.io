@@ -55,23 +55,50 @@ function parseLocalDateKey(key) {
   return new Date(y, m - 1, d);
 }
 
-// Logical day rolls back to yesterday between 00:00 and 00:59 so a habit board
-// still belongs to "today" until the cutoff at 1 AM.
+// Logical day == the calendar day. The rollover happens at midnight (00:00),
+// so a habit board belongs to "today" the instant the clock passes midnight.
 function getLogicalDate(clock) {
-  var n = new Date(clock.getTime());
-  if (n.getHours() < 1) n.setDate(n.getDate() - 1);
-  return n;
+  return new Date(clock.getTime());
 }
 
-// Logical hour ∈ [1, 24]. Between 00:00–00:59 returns 24..24.99 so time-slot
-// predicates work after midnight when the logical date is still yesterday.
+// Logical hour ∈ [0, 23]. Since the logical day == the calendar day, this is
+// just the wall-clock hour.
 function getLogicalHour(clock) {
-  var h = clock.getHours();
-  return h < 1 ? 24 + h : h;
+  return clock.getHours();
 }
 
 function slugifyTime(text) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// ── Historical backfill (date-navigation) helpers ───────────────────────────
+// Mirror of app.js isDailyTask / buildHistoricalCards. When the user steps the
+// board back to a past day, ONLY daily tasks are shown (the ones that cannot be
+// carried forward), with multi-slot dailies expanded into one card per slot.
+function isDailyTask(task) {
+  return !task.frequency || task.frequency.type === 'daily';
+}
+
+function buildHistoricalCards(bucket) {
+  var out = [];
+  for (var i = 0; i < bucket.length; i += 1) {
+    var task = bucket[i];
+    if (!isDailyTask(task)) { continue; }
+    if (task.times && task.times.length > 0) {
+      for (var s = 0; s < task.times.length; s += 1) {
+        out.push({
+          id: task.id + '__' + slugifyTime(task.times[s].label),
+          title: task.title,
+          timeLabel: task.times[s].label,
+          accentClass: task.accentClass,
+          icon: task.icon
+        });
+      }
+    } else {
+      out.push(task);
+    }
+  }
+  return out;
 }
 
 // Wrap-around slots (e.g. 22→1) are normalized to slot.to + 24 so a single
@@ -327,8 +354,77 @@ function renderTaskView(bucket, clock, stateByDay) {
   return { visible: visible, caughtUp: caughtUp, dateKey: dateKey, logicalHour: logicalHour };
 }
 
+// ── Backfill date-navigation (pure mirror of app.js) ────────────────────────
+//
+// app.js keeps a module var `viewDateKey` (null = live today) and steps it with
+// the date arrows. These mirrors take the relevant state explicitly so the
+// clamping / resolution rules can be unit-tested without the DOM.
+//
+//   • BACKFILL_MAX_DAYS  — how far back the arrows allow (app.js ~L227)
+//   • minBackfillKey     — floor date key (logical today − MAX days)
+//   • isHistoricalView   — viewDateKey set AND not equal to logical today
+//   • boardDateKey       — which day a tick reads/writes for a given screen
+//   • stepViewDate       — clamped step; returns the new viewDateKey (null=today)
+//   • renderHistoricalView — daily-only cards + that day's checked state
+var BACKFILL_MAX_DAYS = 7;
+
+function logicalKey(clock) {
+  return getDateKey(getLogicalDate(clock));
+}
+
+function minBackfillKey(clock) {
+  var d = getLogicalDate(clock);
+  return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - BACKFILL_MAX_DAYS));
+}
+
+function isHistoricalView(viewDateKey, clock) {
+  return viewDateKey !== null && viewDateKey !== logicalKey(clock);
+}
+
+// Morning and My Day now resolve to the same logical (calendar) day; in
+// historical mode both screens use the viewed day. The prefix is retained for
+// call-site symmetry with app.js.
+function boardDateKey(prefix, viewDateKey, clock) {
+  if (viewDateKey) return viewDateKey;
+  return getDateKey(getLogicalDate(clock));
+}
+
+// Returns the resulting viewDateKey: null = back to live today, a 'YYYY-MM-DD'
+// string = a past day, or the unchanged input when the step is out of bounds
+// (no forward past today; no further back than the 7-day floor).
+function stepViewDate(currentViewKey, deltaDays, clock) {
+  var base = currentViewKey ? parseLocalDateKey(currentViewKey) : getLogicalDate(clock);
+  var next = new Date(base.getFullYear(), base.getMonth(), base.getDate() + deltaDays);
+  var nextKey = getDateKey(next);
+  if (nextKey > logicalKey(clock)) return currentViewKey;
+  if (nextKey < minBackfillKey(clock)) return currentViewKey;
+  if (nextKey === logicalKey(clock)) return null;
+  return nextKey;
+}
+
+// Mirror of renderHistoricalTaskView's data decisions: daily-only cards (multi-
+// slot dailies expanded), each card's `checked` reflects that day's saved
+// record, and `missed` is always false (no carry-forward / expiry in history).
+function renderHistoricalView(bucket, viewDateKey, stateByDay) {
+  var cards = buildHistoricalCards(bucket);
+  var state = (stateByDay && stateByDay[viewDateKey]) || {};
+  var out = [];
+  for (var i = 0; i < cards.length; i += 1) {
+    var c = cards[i];
+    out.push({
+      id: c.id,
+      title: c.title,
+      timeLabel: c.timeLabel || null,
+      checked: !!state[c.id],
+      missed: false
+    });
+  }
+  return { dateKey: viewDateKey, cards: out };
+}
+
 module.exports = {
   MAX_CARRY_DAYS: MAX_CARRY_DAYS,
+  BACKFILL_MAX_DAYS: BACKFILL_MAX_DAYS,
   getDateKey: getDateKey,
   parseLocalDateKey: parseLocalDateKey,
   getLogicalDate: getLogicalDate,
@@ -343,5 +439,12 @@ module.exports = {
   nextOccurrenceDate: nextOccurrenceDate,
   lastScheduledBefore: lastScheduledBefore,
   carryWindowDays: carryWindowDays,
-  renderTaskView: renderTaskView
+  renderTaskView: renderTaskView,
+  isDailyTask: isDailyTask,
+  buildHistoricalCards: buildHistoricalCards,
+  minBackfillKey: minBackfillKey,
+  isHistoricalView: isHistoricalView,
+  boardDateKey: boardDateKey,
+  stepViewDate: stepViewDate,
+  renderHistoricalView: renderHistoricalView
 };

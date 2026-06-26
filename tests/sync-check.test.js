@@ -36,10 +36,20 @@ t.describe('source-sync :: app.js still defines the mirrored helpers', function 
   t.it('getLogicalHour exists (bug #1 fix)', function () {
     has(/function getLogicalHour\s*\(\s*\)\s*\{/);
   });
-  t.it('getLogicalHour returns 24 + h when h < 1', function () {
+  t.it('getLogicalHour is the raw wall-clock hour (midnight rollover, no 24+ offset)', function () {
     var fnMatch = APP_JS.match(/function getLogicalHour[\s\S]*?\n  \}/);
     t.assert.ok(fnMatch, 'getLogicalHour body not found');
-    t.assert.match(fnMatch[0], /24\s*\+\s*h/, 'must compute 24 + h for midnight hour');
+    t.assert.match(fnMatch[0], /return new Date\(\)\.getHours\(\)/, 'must return the wall-clock hour');
+    t.assert.ok(!/24\s*\+\s*h/.test(fnMatch[0]), 'must NOT add 24 (no 1 AM logical-hour offset)');
+  });
+  t.it('getLogicalDate does not roll back (rollover is at midnight)', function () {
+    var fnMatch = APP_JS.match(/function getLogicalDate[\s\S]*?\n  \}/);
+    t.assert.ok(fnMatch, 'getLogicalDate body not found');
+    t.assert.ok(!/getHours\(\)\s*<\s*1/.test(fnMatch[0]), 'must NOT roll back before 1 AM');
+    t.assert.ok(!/setDate/.test(fnMatch[0]), 'must NOT shift the date');
+  });
+  t.it('clock screen starts at midnight (CLOCK_START_SECONDS = 0)', function () {
+    has(/var CLOCK_START_SECONDS\s*=\s*0;/);
   });
   t.it('renderTaskView uses getLogicalHour (not raw getHours())', function () {
     var rtv = APP_JS.match(/function renderTaskView[\s\S]*?expandedTasks\s*=\s*\[\]/);
@@ -126,5 +136,46 @@ t.describe('source-sync :: storage prefixes are preserved', function () {
   t.it('rebuildTaskBuckets skips archived tasks', function () {
     has(/src\[i\]\.archived\s*=\s*Boolean\(src\[i\]\.archived\);/);
     has(/if \(src\[i\]\.archived\) \{ continue; \}/);
+  });
+});
+
+t.describe('source-sync :: historical backfill helpers', function () {
+  // The test mirror (task-engine.js) re-implements isDailyTask and
+  // buildHistoricalCards. If app.js drifts, the daily-only past-day view
+  // would silently diverge from what the tests assert.
+  t.it('isDailyTask exists and matches daily/no-frequency', function () {
+    var fn = APP_JS.match(/function isDailyTask[\s\S]*?\n  \}/);
+    t.assert.ok(fn, 'isDailyTask body not found');
+    t.assert.match(fn[0], /!task\.frequency\s*\|\|\s*task\.frequency\.type === 'daily'/);
+  });
+  t.it('buildHistoricalCards filters to daily-only and expands slots', function () {
+    var fn = APP_JS.match(/function buildHistoricalCards[\s\S]*?\n  \}/);
+    t.assert.ok(fn, 'buildHistoricalCards body not found');
+    t.assert.match(fn[0], /if \(!isDailyTask\(task\)\) \{ continue; \}/,
+      'must skip non-daily tasks');
+    t.assert.match(fn[0], /task\.id \+ '__' \+ slugifyTime\(task\.times\[s\]\.label\)/,
+      'must expand multi-slot dailies into per-slot composite ids');
+  });
+  t.it('renderTaskView short-circuits to the historical view for past days', function () {
+    has(/if \(viewName !== 'work' && isHistoricalView\(\)\) \{/);
+  });
+  t.it('toggleHabit writes to the viewed day via boardDateKey', function () {
+    has(/function boardDateKey\s*\(\s*prefix\s*\)\s*\{/);
+    has(/dateKey = boardDateKey\(MYDAY_STORAGE_PREFIX\)/);
+    has(/dateKey = boardDateKey\(MORNING_STORAGE_PREFIX\)/);
+  });
+  t.it('backfill window is 7 days', function () {
+    has(/var BACKFILL_MAX_DAYS\s*=\s*7;/);
+  });
+  t.it('minBackfillKey subtracts BACKFILL_MAX_DAYS from the logical day', function () {
+    var fn = APP_JS.match(/function minBackfillKey[\s\S]*?\n  \}/);
+    t.assert.ok(fn, 'minBackfillKey body not found');
+    t.assert.match(fn[0], /getDate\(\)\s*-\s*BACKFILL_MAX_DAYS/);
+  });
+  t.it('stepViewDate clamps to [floor, today] (no forward past today, no past floor)', function () {
+    var fn = APP_JS.match(/function stepViewDate[\s\S]*?\n  \}/);
+    t.assert.ok(fn, 'stepViewDate body not found');
+    t.assert.match(fn[0], /nextKey > todayLogicalKey\(\)/, 'must block stepping past today');
+    t.assert.match(fn[0], /nextKey < minBackfillKey\(\)/, 'must block stepping before the floor');
   });
 });

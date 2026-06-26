@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
-  <link rel="stylesheet" href="assets/css/styles.css?v=41">
+  <link rel="stylesheet" href="assets/css/styles.css?v=42">
   <link rel="stylesheet" href="assets/css/auth.css?v=1">
 </head>
 <body data-auth-mode="loading">
@@ -24,8 +24,12 @@
           <button type="button" class="page-nav-btn clock" id="morning-nav-clock">Clock</button>
         </nav>
         <div class="routine-meta">
-          <h1 id="morning-heading">Start with:</h1>
-          <p id="morning-time-label">7:00 AM to 10:00 AM</p>
+          <h1 id="morning-date-heading">Today</h1>
+          <div class="date-nav nav-auth-required" id="morning-date-nav">
+            <button type="button" class="date-nav-arrow" id="morning-date-prev" aria-label="Previous day">&lsaquo;</button>
+            <button type="button" class="date-nav-today hidden" id="morning-date-today">Today</button>
+            <button type="button" class="date-nav-arrow" id="morning-date-next" aria-label="Next day">&rsaquo;</button>
+          </div>
           <div class="routine-actions">
             <a class="nav-btn nav-auth-required routine-task-link" href="dashboard.html" id="morning-to-dashboard">Dashboard</a>
             <a class="nav-btn nav-auth-required routine-task-link" href="todo.html" id="morning-to-tasks">Task Manager</a>
@@ -46,7 +50,11 @@
         </nav>
         <div class="routine-meta">
           <h1 id="myday-date-heading">Today</h1>
-          <p id="myday-task-count">0 tasks today</p>
+          <div class="date-nav nav-auth-required" id="myday-date-nav">
+            <button type="button" class="date-nav-arrow" id="myday-date-prev" aria-label="Previous day">&lsaquo;</button>
+            <button type="button" class="date-nav-today hidden" id="myday-date-today">Today</button>
+            <button type="button" class="date-nav-arrow" id="myday-date-next" aria-label="Next day">&rsaquo;</button>
+          </div>
           <div class="routine-actions">
             <a class="nav-btn nav-auth-required routine-task-link" href="dashboard.html" id="myday-to-dashboard">Dashboard</a>
             <a class="nav-btn nav-auth-required routine-task-link" href="todo.html" id="myday-to-tasks">Task Manager</a>
@@ -119,9 +127,9 @@
   <script src="assets/js/config/tasks-config.js?v=1"></script>
   <script src="assets/js/auth/auth-client.js?v=1"></script>
   <script src="assets/js/data/firestore-client.js?v=1"></script>
-  <script src="assets/js/data/storage.js?v=1"></script>
+  <script src="assets/js/data/storage.js?v=2"></script>
   <script src="assets/js/auth/auth-ui.js?v=1"></script>
-  <script src="assets/js/pages/app.js?v=31"></script>
+  <script src="assets/js/pages/app.js?v=33"></script>
   <script>
     // Boot sequence: mount chip in every screen header, hook the demo banner
     // login button, then kick off Storage which drives the rest of the UI.
