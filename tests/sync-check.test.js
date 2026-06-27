@@ -153,6 +153,8 @@ t.describe('source-sync :: historical backfill helpers', function () {
     t.assert.ok(fn, 'buildHistoricalCards body not found');
     t.assert.match(fn[0], /if \(!isDailyTask\(task\)\) \{ continue; \}/,
       'must skip non-daily tasks');
+    t.assert.match(fn[0], /if \(task\.startDate && dateKey && task\.startDate > dateKey\) \{ continue; \}/,
+      'must skip daily tasks before their startDate on past days');
     t.assert.match(fn[0], /task\.id \+ '__' \+ slugifyTime\(task\.times\[s\]\.label\)/,
       'must expand multi-slot dailies into per-slot composite ids');
   });

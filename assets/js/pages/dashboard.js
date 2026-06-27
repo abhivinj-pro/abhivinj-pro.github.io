@@ -9,7 +9,7 @@
  * arrow functions, no fetch. No frameworks. All charts are inline SVG.
  */
 (function () {
-  var TABS = ['overview', 'tasks', 'week', 'month', 'categories'];
+  var TABS = ['overview', 'tasks', 'week', 'month', 'categories', 'archived'];
 
   var state = {
     tab: 'overview',
@@ -17,6 +17,7 @@
     weekMonday: null,           // Date (Monday of selected week)
     monthCursor: null,          // Date (first of selected month)
     selectedTaskId: null,
+    selectedArchivedId: null,   // task id shown in the Archived tab
     booted: false,
     reloading: false
   };
@@ -114,6 +115,15 @@
       renderTasksTab();
     };
 
+    // Archived task picker
+    var archPicker = $('archived-picker');
+    if (archPicker) {
+      archPicker.onchange = function () {
+        state.selectedArchivedId = this.value;
+        renderArchived();
+      };
+    }
+
     // Theme toggle (dark / light)
     var themeBtn = $('dash-theme-toggle');
     if (themeBtn) { themeBtn.onclick = toggleTheme; }
@@ -184,6 +194,7 @@
       if (!foundSelected) { state.selectedTaskId = tasks.length ? tasks[0].id : null; }
 
       renderTaskPicker();
+      renderArchivedPicker();
       renderActive();
     });
   }
@@ -205,6 +216,7 @@
     if (state.tab === 'week')       { renderWeek(); }
     if (state.tab === 'month')      { renderMonth(); }
     if (state.tab === 'categories') { renderCategories(); }
+    if (state.tab === 'archived')   { renderArchived(); }
   }
 
   // ── KPI helpers ────────────────────────────────────────────────────────
@@ -468,14 +480,84 @@
     return null;
   }
 
-  function renderTasksTab() {
+  // ── Archived tab ─────────────────────────────────────────────────────────
+  function renderArchivedPicker() {
+    var sel = $('archived-picker');
+    if (!sel) { return; }
+    clearNode(sel);
+    var tasks = window.DashboardData.archivedTasks || [];
+    var byCat = {};
+    var order = window.DashboardData.CATEGORY_ORDER;
+    for (var c = 0; c < order.length; c += 1) { byCat[order[c]] = []; }
+    for (var i = 0; i < tasks.length; i += 1) {
+      var cat = window.DashboardData.normalizeCategory(tasks[i].category);
+      if (!byCat[cat]) { continue; }
+      byCat[cat].push(tasks[i]);
+    }
+    for (var ci = 0; ci < order.length; ci += 1) {
+      var bucket = byCat[order[ci]];
+      if (!bucket.length) { continue; }
+      var grp = document.createElement('optgroup');
+      grp.label = order[ci];
+      for (var t = 0; t < bucket.length; t += 1) {
+        var opt = document.createElement('option');
+        opt.value = bucket[t].id;
+        opt.textContent = bucket[t].title + (bucket[t].archivedAt ? ' \u00b7 ' + bucket[t].archivedAt : '');
+        if (bucket[t].id === state.selectedArchivedId) { opt.selected = true; }
+        grp.appendChild(opt);
+      }
+      sel.appendChild(grp);
+    }
+  }
+
+  function renderArchived() {
     var D = window.DashboardData;
-    var C = window.DashboardCharts;
+    var tasks = D.archivedTasks || [];
+    var emptyEl = $('archived-empty');
+    var bodyEl = $('archived-body');
+    if (!tasks.length) {
+      if (emptyEl) { emptyEl.classList.remove('hidden'); }
+      if (bodyEl) { bodyEl.classList.add('hidden'); }
+      return;
+    }
+    if (emptyEl) { emptyEl.classList.add('hidden'); }
+    if (bodyEl) { bodyEl.classList.remove('hidden'); }
+
+    var found = false;
+    for (var i = 0; i < tasks.length; i += 1) {
+      if (tasks[i].id === state.selectedArchivedId) { found = true; break; }
+    }
+    if (!found) { state.selectedArchivedId = tasks[0].id; }
+    var sel = $('archived-picker');
+    if (sel && sel.value !== state.selectedArchivedId) { sel.value = state.selectedArchivedId; }
+
+    var id = state.selectedArchivedId;
+    D.loadArchivedTask(id).then(function (ctx) {
+      // Ignore stale results if the user switched selection while loading.
+      if (!ctx || state.selectedArchivedId !== id) { return; }
+      D.withContext(ctx, function () {
+        renderTaskDetail('archived', ctx.tasks[0], { archived: true });
+      });
+    });
+  }
+
+  function renderTasksTab() {
     var task = findTask(state.selectedTaskId);
     if (!task) { return; }
+    renderTaskDetail('tasks', task, {});
+  }
+
+  // Renders the per-habit detail body (header, KPIs, heatmap, trend, weekday,
+  // slots, miss log) into the element set identified by `prefix`. Reused by the
+  // live Tasks tab and the read-only Archived tab (which calls it inside
+  // DashboardData.withContext so every aggregation reads the archived window).
+  function renderTaskDetail(prefix, task, opts) {
+    opts = opts || {};
+    var D = window.DashboardData;
+    var C = window.DashboardCharts;
 
     // Header card
-    var hdr = $('tasks-header-card');
+    var hdr = $(prefix + '-header-card');
     clearNode(hdr);
     var inner = document.createElement('div'); inner.className = 'task-header-inner';
     var iconBox = document.createElement('div'); iconBox.className = 'task-header-icon';
@@ -487,6 +569,11 @@
     var sub = document.createElement('p'); sub.className = 'task-header-sub';
     sub.textContent = D.normalizeCategory(task.category) + ' \u00b7 ' + D.describeFrequency(task);
     meta.appendChild(sub);
+    if (opts.archived) {
+      var badge = document.createElement('span'); badge.className = 'dash-archived-badge';
+      badge.textContent = task.archivedAt ? ('Archived \u00b7 ended ' + task.archivedAt) : 'Archived';
+      meta.appendChild(badge);
+    }
     inner.appendChild(meta);
     hdr.appendChild(inner);
 
@@ -495,7 +582,7 @@
     var totalDoneN = totalDoneFor(task.id);
     var curStreak = D.currentStreak(task.id);
     var bestStreak = D.longestStreak(task.id);
-    renderKPIs($('tasks-kpis'), [
+    renderKPIs($(prefix + '-kpis'), [
       { label: 'Done', value: String(totalDoneN), sub: 'In range', accent: task.accentClass ? String(task.accentClass).replace('accent-','') : 'cyan' },
       { label: 'Rate', value: rate == null ? '\u2014' : Math.round(rate * 100) + '%', sub: 'Of scheduled', accent: 'cyan' },
       { label: 'Streak', value: String(curStreak), sub: curStreak === 1 ? 'Day' : 'Days', accent: 'amber' },
@@ -503,10 +590,10 @@
     ]);
 
     // 12-week heatmap (or fewer if range shorter)
-    renderTaskHeatmap($('tasks-heatmap'), task);
+    renderTaskHeatmap($(prefix + '-heatmap'), task);
 
     // Weekly trend (per ISO-ish week) — completion rate of this task only
-    renderTaskTrend($('tasks-trend'), task);
+    renderTaskTrend($(prefix + '-trend'), task);
 
     // Weekday strength
     var ws = D.weekdayStrength(task.id);
@@ -514,19 +601,19 @@
     for (var i = 0; i < ws.length; i += 1) {
       bars.push({ label: ws[i].label, value: ws[i].rate, accent: task.accentClass ? String(task.accentClass).replace('accent-','') : 'cyan', dim: ws[i].scheduled === 0 });
     }
-    C.barChart($('tasks-weekday'), bars, { format: 'pct', maxValue: 1 });
+    C.barChart($(prefix + '-weekday'), bars, { format: 'pct', maxValue: 1 });
 
     // Slot breakdown (only for multi-slot tasks)
-    var slotsCard = $('tasks-slots-card');
+    var slotsCard = $(prefix + '-slots-card');
     if (task.times && task.times.length) {
       slotsCard.classList.remove('hidden');
-      renderTaskSlots($('tasks-slots'), task);
+      renderTaskSlots($(prefix + '-slots'), task);
     } else {
       slotsCard.classList.add('hidden');
     }
 
     // Miss log
-    renderTaskMissLog($('tasks-misses'), task);
+    renderTaskMissLog($(prefix + '-misses'), task);
   }
 
   function totalDoneFor(taskId) {
@@ -549,7 +636,7 @@
     if (!statuses.length) { clearNode(container); return; }
     var firstDate = statuses[0].date;
     var firstMon = D.mondayOf(firstDate);
-    var today = D.todayLogical();
+    var today = D.range.toDate; // window end (today live, archivedAt for archived)
     var weeks = Math.ceil((D.diffDays(today, firstMon) + 1) / 7);
 
     // Map dateKey -> status entry for lookup
@@ -582,7 +669,7 @@
     var C = window.DashboardCharts;
     // Weekly rate over range (group days by Monday). Use up to last 12 weeks
     // but at least fill the range.
-    var today = D.todayLogical();
+    var today = D.range.toDate; // window end (today live, archivedAt for archived)
     var thisMon = D.mondayOf(today);
     var firstMon = D.mondayOf(D.range.fromDate);
     var weekCount = Math.ceil((D.diffDays(thisMon, firstMon)) / 7) + 1;
