@@ -250,6 +250,13 @@
       return Promise.resolve();
     }
 
+    // Prefer a single ranged query over one request per day when available.
+    if (typeof window.Storage.ensureRangeLoaded === 'function' && keys.length) {
+      return window.Storage.ensureRangeLoaded(keys[0]).then(function () {
+        if (onProgress) { onProgress(keys.length, keys.length); }
+      });
+    }
+
     var total = keys.length;
     var completed = 0;
     var pending = keys.slice();

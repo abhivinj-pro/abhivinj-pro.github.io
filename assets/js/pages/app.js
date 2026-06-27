@@ -225,7 +225,8 @@
   // live "today" view; a 'YYYY-MM-DD' string means a historical day. Only the
   // Morning and My Day screens honor it (Work resets to today — its arrows are
   // hidden). See /memories plan: historical view shows ONLY daily tasks.
-  var BACKFILL_MAX_DAYS = 7;
+  var BACKFILL_MAX_DAYS = 14;
+  var FORWARD_MAX_DAYS = 7;
   var viewDateKey = null;
 
   function isDailyTask(task) {
@@ -241,8 +242,21 @@
     return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - BACKFILL_MAX_DAYS));
   }
 
+  // Furthest day the forward (plan-ahead) arrows allow: logical today + N days.
+  function maxForwardKey() {
+    var d = getLogicalDate();
+    return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + FORWARD_MAX_DAYS));
+  }
+
+  // Past day ("backfill"): viewed day is strictly before logical today.
   function isHistoricalView() {
-    return viewDateKey !== null && viewDateKey !== todayLogicalKey();
+    return viewDateKey !== null && viewDateKey < todayLogicalKey();
+  }
+
+  // Future day ("plan ahead"): viewed day is strictly after logical today.
+  // (YYYY-MM-DD keys compare lexicographically the same as chronologically.)
+  function isFutureView() {
+    return viewDateKey !== null && viewDateKey > todayLogicalKey();
   }
 
   // Effective storage dateKey for a given screen prefix. With the midnight
@@ -281,8 +295,66 @@
     return out;
   }
 
+  // Build the card list for a FUTURE (plan-ahead) day: ALL tasks scheduled on
+  // that date (isTaskForDate), unlike the daily-only backfill view. Cards use
+  // the SAME storage ids the live board would use for that date so an early
+  // tick is recognized when the day arrives: multi-slot -> one `id__<slot>`
+  // card per slot; once-span (length > 1) -> a single bare-id card with a
+  // "Day X of N" badge; everything else -> the plain task (bare id). No missed/
+  // expiry markers — the future cannot be missed.
+  function buildFutureCards(bucket, date) {
+    var out = [];
+    for (var i = 0; i < bucket.length; i += 1) {
+      var task = bucket[i];
+      if (!isTaskForDate(task, date)) { continue; }
+      if (task.times && task.times.length > 0) {
+        for (var s = 0; s < task.times.length; s += 1) {
+          out.push({
+            id: task.id + '__' + slugifyTime(task.times[s].label),
+            title: task.title,
+            timeLabel: task.times[s].label,
+            accentClass: task.accentClass,
+            icon: task.icon
+          });
+        }
+      } else if (task.frequency && task.frequency.type === 'once') {
+        var range = getOnceRange(task);
+        var totalDays = onceRangeLength(range);
+        if (totalDays > 1) {
+          var dayIdx = onceRangeDayIndex(range, getDateKey(date));
+          out.push({
+            id: task.id,
+            title: task.title,
+            timeLabel: 'Day ' + dayIdx + ' of ' + totalDays,
+            accentClass: task.accentClass,
+            icon: task.icon
+          });
+        } else {
+          out.push(task);
+        }
+      } else {
+        out.push(task);
+      }
+    }
+    return out;
+  }
+
   function formatNavHeading(date) {
     return dayNames[date.getDay()] + ', ' + monthNames[date.getMonth()].slice(0, 3) + ' ' + date.getDate();
+  }
+
+  // Relative descriptor for the date heading's eyebrow label, e.g. "Today",
+  // "Yesterday", "Tomorrow", "3 days ago", "In 2 days". Both args are
+  // YYYY-MM-DD keys; the diff is computed in whole local days.
+  function relativeDayLabel(displayedKey, todayKey) {
+    var diff = Math.round(
+      (parseLocalDateKey(displayedKey).getTime() - parseLocalDateKey(todayKey).getTime()) / 86400000
+    );
+    if (diff === 0) { return 'Today'; }
+    if (diff === -1) { return 'Yesterday'; }
+    if (diff === 1) { return 'Tomorrow'; }
+    if (diff < 0) { return Math.abs(diff) + ' days ago'; }
+    return 'In ' + diff + ' days';
   }
 
   // Both window predicates operate in logical-hour space (see getLogicalHour).
@@ -568,13 +640,20 @@
     var dateKey, state, compositeId, todayTaskIds;
     var allTasks, visibleTasks, doneMissedTasks;
 
-    // Historical backfill: a past day shows ONLY daily tasks (the ones that
-    // cannot be carried forward), as plain tickable cards with that day's saved
-    // state. Work is never historical (its arrows are hidden), so this path is
-    // My Day only.
-    if (viewName !== 'work' && isHistoricalView()) {
-      renderHistoricalTaskView(bucket, viewName);
-      return;
+    // Static-day views: a non-today day shows plain tickable cards with that
+    // day's saved state. Past (backfill) shows ONLY daily tasks; future (plan
+    // ahead) shows ALL scheduled tasks so the day can be planned and ticked
+    // early. Work is never non-today (its arrows are hidden), so these paths
+    // are My Day only.
+    if (viewName !== 'work') {
+      if (isFutureView()) {
+        renderFutureTaskView(bucket, viewName);
+        return;
+      }
+      if (isHistoricalView()) {
+        renderHistoricalTaskView(bucket, viewName);
+        return;
+      }
     }
 
     for (i = 0; i < bucket.length; i += 1) {
@@ -887,10 +966,13 @@
   // Render a past day for the Morning/My Day screens: daily tasks only, plain
   // tickable cards reflecting that day's saved record. No missed markers,
   // expiry dimming, carry-forward duplicates, or "Caught Up" section.
-  function renderHistoricalTaskView(bucket, viewName) {
+  // Shared renderer for a non-live (static) day board: plain tickable cards
+  // whose checked state comes from that day's saved record, no Caught Up
+  // section, with the day's quote shown. Used by both the past (backfill) and
+  // future (plan-ahead) views, which differ only in how `cards`/`emptyMsg` are
+  // computed by their callers.
+  function renderStaticDayView(cards, viewName, emptyMsg) {
     var dateKey = viewDateKey;
-    var cards = buildHistoricalCards(bucket);
-    var i;
 
     currentDayTasks = cards;
     currentDayView = viewName;
@@ -900,16 +982,16 @@
     }
 
     if (cards.length === 0) {
-      var emptyMsg = document.createElement('div');
-      emptyMsg.className = 'myday-empty';
-      emptyMsg.textContent = 'No daily tasks for this day';
-      mydayGrid.appendChild(emptyMsg);
+      var empty = document.createElement('div');
+      empty.className = 'myday-empty';
+      empty.textContent = emptyMsg;
+      mydayGrid.appendChild(empty);
     } else {
       renderCardsInto(mydayGrid, cards, MYDAY_STORAGE_PREFIX);
       applyState(mydayGrid, MYDAY_STORAGE_PREFIX, dateKey);
     }
 
-    // No Caught Up section in historical view.
+    // No Caught Up section in a static-day view.
     if (doneMissedSection && doneMissedGrid) {
       doneMissedSection.classList.add('hidden');
       while (doneMissedGrid.firstChild) {
@@ -926,6 +1008,15 @@
     }
 
     updateDateNavUI();
+  }
+
+  function renderHistoricalTaskView(bucket, viewName) {
+    renderStaticDayView(buildHistoricalCards(bucket), viewName, 'No daily tasks for this day');
+  }
+
+  function renderFutureTaskView(bucket, viewName) {
+    var cards = buildFutureCards(bucket, parseLocalDateKey(viewDateKey));
+    renderStaticDayView(cards, viewName, 'No tasks scheduled for this day');
   }
 
   function syncPageNavState(activeScreen) {
@@ -1264,9 +1355,17 @@
     var nextBtn = document.getElementById(prefix + '-date-next');
     var todayBtn = document.getElementById(prefix + '-date-today');
     var displayed = displayedViewDate();
-    var historical = isHistoricalView();
+    var displayedKey = getDateKey(displayed);
+    var todayKey = todayLogicalKey();
+    var offToday = displayedKey !== todayKey;
 
-    if (headingEl) { headingEl.textContent = formatNavHeading(displayed); }
+    if (headingEl) {
+      var tense = displayedKey < todayKey ? 'is-past'
+        : (displayedKey > todayKey ? 'is-future' : 'is-today');
+      headingEl.innerHTML = '<span class="date-eyebrow ' + tense + '">' +
+        relativeDayLabel(displayedKey, todayKey) + '</span>' +
+        '<span class="date-main">' + formatNavHeading(displayed) + '</span>';
+    }
 
     // Work shares the My Day screen but is always "today" — hide its arrows.
     if (navEl) {
@@ -1274,10 +1373,10 @@
       else { navEl.classList.remove('hidden'); }
     }
 
-    if (prevBtn) { prevBtn.disabled = (getDateKey(displayed) <= minBackfillKey()); }
-    if (nextBtn) { nextBtn.disabled = !historical; }
+    if (prevBtn) { prevBtn.disabled = (displayedKey <= minBackfillKey()); }
+    if (nextBtn) { nextBtn.disabled = (displayedKey >= maxForwardKey()); }
     if (todayBtn) {
-      if (historical) { todayBtn.classList.remove('hidden'); }
+      if (offToday) { todayBtn.classList.remove('hidden'); }
       else { todayBtn.classList.add('hidden'); }
     }
   }
@@ -1285,6 +1384,7 @@
   function updateDateNavUI() {
     updateNavGroup('morning', morningDateHeading, false);
     updateNavGroup('myday', mydayDateHeading, currentDayView === 'work');
+    if (calPrefix) { renderCalendar(); }
   }
 
   // Re-render both boards for the current viewDateKey (used after stepping the
@@ -1292,7 +1392,12 @@
   // through the same render path so historical/live stay consistent.
   function rerenderBoards() {
     if (routineGrid) {
-      var morningCards = isHistoricalView() ? buildHistoricalCards(morningHabits) : morningHabits;
+      var morningCards = morningHabits;
+      if (isHistoricalView()) {
+        morningCards = buildHistoricalCards(morningHabits);
+      } else if (isFutureView()) {
+        morningCards = buildFutureCards(morningHabits, parseLocalDateKey(viewDateKey));
+      }
       renderCardsInto(routineGrid, morningCards, MORNING_STORAGE_PREFIX);
       applyState(routineGrid, MORNING_STORAGE_PREFIX, boardDateKey(MORNING_STORAGE_PREFIX));
     }
@@ -1316,7 +1421,7 @@
     var base = displayedViewDate();
     var next = new Date(base.getFullYear(), base.getMonth(), base.getDate() + deltaDays);
     var nextKey = getDateKey(next);
-    if (nextKey > todayLogicalKey()) { return; }
+    if (nextKey > maxForwardKey()) { return; }
     if (nextKey < minBackfillKey()) { return; }
     if (nextKey === todayLogicalKey()) {
       goToToday();
@@ -1326,6 +1431,7 @@
   }
 
   function goToToday() {
+    closeCalendar();
     if (viewDateKey === null) {
       updateDateNavUI();
       return;
@@ -1334,25 +1440,143 @@
     rerenderBoards();
   }
 
+  // ─── Pop-up date picker (mini month calendar) ────────────────────────────
+  // A small calendar anchored under the date-nav. Only days inside the
+  // navigable window (minBackfillKey()..maxForwardKey()) are enabled; the
+  // window spans at most two calendar months, so month paging is clamped to
+  // just those months. `calPrefix` tracks which screen's popover is open.
+  var CAL_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  var CAL_DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  var calPrefix = null;     // 'morning' | 'myday' | null
+  var calMonth = null;      // Date pinned to the 1st of the displayed month
+
+  // True when the month offset by `dir` contains at least one in-window day.
+  function calMonthHasDays(dir) {
+    var min = minBackfillKey();
+    var max = maxForwardKey();
+    var shifted = new Date(calMonth.getFullYear(), calMonth.getMonth() + dir, 1);
+    var firstKey = getDateKey(new Date(shifted.getFullYear(), shifted.getMonth(), 1));
+    var lastKey = getDateKey(new Date(shifted.getFullYear(), shifted.getMonth() + 1, 0));
+    return !(lastKey < min || firstKey > max);
+  }
+
+  function renderCalendar() {
+    if (!calPrefix || !calMonth) { return; }
+    var pop = document.getElementById(calPrefix + '-date-cal-pop');
+    if (!pop) { return; }
+    var min = minBackfillKey();
+    var max = maxForwardKey();
+    var todayKey = todayLogicalKey();
+    var selectedKey = getDateKey(displayedViewDate());
+    var year = calMonth.getFullYear();
+    var month = calMonth.getMonth();
+    var firstDow = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var prevChevron = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"></path></svg>';
+    var nextChevron = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"></path></svg>';
+    var html = '';
+    html += '<div class="date-cal-head">';
+    html += '<button type="button" class="date-cal-pg" data-pg="-1" aria-label="Previous month"' +
+      (calMonthHasDays(-1) ? '' : ' disabled') + '>' + prevChevron + '</button>';
+    html += '<span class="date-cal-title">' + CAL_MONTHS[month] + ' ' + year + '</span>';
+    html += '<button type="button" class="date-cal-pg" data-pg="1" aria-label="Next month"' +
+      (calMonthHasDays(1) ? '' : ' disabled') + '>' + nextChevron + '</button>';
+    html += '</div>';
+    html += '<div class="date-cal-dow">';
+    for (var w = 0; w < 7; w += 1) { html += '<span>' + CAL_DOW[w] + '</span>'; }
+    html += '</div>';
+    html += '<div class="date-cal-days">';
+    for (var p = 0; p < firstDow; p += 1) { html += '<span></span>'; }
+    for (var d = 1; d <= daysInMonth; d += 1) {
+      var cellDate = new Date(year, month, d);
+      var key = getDateKey(cellDate);
+      var inRange = (key >= min && key <= max);
+      var cls = 'date-cal-day';
+      if (key === todayKey) { cls += ' is-today'; }
+      if (key === selectedKey) { cls += ' is-selected'; }
+      html += '<button type="button" class="' + cls + '" data-key="' + key + '"' +
+        (inRange ? '' : ' disabled') + ' aria-label="' + formatNavHeading(cellDate) + '">' +
+        d + '</button>';
+    }
+    html += '</div>';
+    pop.innerHTML = html;
+  }
+
+  function openCalendar(prefix) {
+    if (calPrefix && calPrefix !== prefix) { closeCalendar(); }
+    calPrefix = prefix;
+    var dv = displayedViewDate();
+    calMonth = new Date(dv.getFullYear(), dv.getMonth(), 1);
+    var pop = document.getElementById(prefix + '-date-cal-pop');
+    var btn = document.getElementById(prefix + '-date-cal');
+    renderCalendar();
+    if (pop) { pop.classList.remove('hidden'); }
+    if (btn) { btn.setAttribute('aria-expanded', 'true'); }
+  }
+
+  function closeCalendar() {
+    if (!calPrefix) { return; }
+    var pop = document.getElementById(calPrefix + '-date-cal-pop');
+    var btn = document.getElementById(calPrefix + '-date-cal');
+    if (pop) { pop.classList.add('hidden'); }
+    if (btn) { btn.setAttribute('aria-expanded', 'false'); }
+    calPrefix = null;
+  }
+
+  function toggleCalendar(prefix) {
+    if (calPrefix === prefix) { closeCalendar(); }
+    else { openCalendar(prefix); }
+  }
+
+  function onCalendarPopClick(e) {
+    // Keep this click from reaching the document outside-click handler: paging
+    // rebuilds the popover (detaching the clicked node), which would otherwise
+    // look like an outside click and close the calendar.
+    e.stopPropagation();
+    var node = e.target;
+    while (node && node !== this && !(node.getAttribute &&
+        (node.getAttribute('data-key') || node.getAttribute('data-pg')))) {
+      node = node.parentNode;
+    }
+    if (!node || node === this || node.disabled) { return; }
+    var pg = node.getAttribute('data-pg');
+    if (pg) {
+      calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + parseInt(pg, 10), 1);
+      renderCalendar();
+      return;
+    }
+    var key = node.getAttribute('data-key');
+    if (key) {
+      closeCalendar();
+      if (key === todayLogicalKey()) { goToToday(); }
+      else { setViewDate(key); }
+    }
+  }
+
   function setupNavButtons() {
     var navHandlers = {
       morning: function () {
+        closeCalendar();
         manualScreen = 'morning';
         syncView();
         fitAllTitles();
       },
       myday: function () {
+        closeCalendar();
         manualScreen = 'myday';
         syncView();
         fitAllTitles();
       },
       work: function () {
+        closeCalendar();
         viewDateKey = null;
         manualScreen = 'work';
         syncView();
         fitAllTitles();
       },
       clock: function () {
+        closeCalendar();
         viewDateKey = null;
         manualScreen = 'clock';
         syncView();
@@ -1392,6 +1616,35 @@
         if (todayBtn) { todayBtn.addEventListener('click', function () { goToToday(); }); }
       })(datePrefixes[di]);
     }
+
+    // Calendar pop-up: trigger button toggles it; clicks inside are delegated
+    // (day select + month paging). Open state is shared via calPrefix.
+    for (var ci = 0; ci < datePrefixes.length; ci += 1) {
+      (function (prefix) {
+        var calBtn = document.getElementById(prefix + '-date-cal');
+        var calPop = document.getElementById(prefix + '-date-cal-pop');
+        if (calBtn) {
+          calBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggleCalendar(prefix);
+          });
+        }
+        if (calPop) { calPop.addEventListener('click', onCalendarPopClick); }
+      })(datePrefixes[ci]);
+    }
+
+    // Dismiss the calendar on an outside click or the Escape key.
+    document.addEventListener('click', function (e) {
+      if (!calPrefix) { return; }
+      var pop = document.getElementById(calPrefix + '-date-cal-pop');
+      var btn = document.getElementById(calPrefix + '-date-cal');
+      if (pop && pop.contains(e.target)) { return; }
+      if (btn && btn.contains(e.target)) { return; }
+      closeCalendar();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.keyCode === 27 || e.key === 'Escape') { closeCalendar(); }
+    });
 
     // Returning to the app (tab refocus / device wake) should snap back to
     // today so a stale historical view doesn't linger across the midnight reset.

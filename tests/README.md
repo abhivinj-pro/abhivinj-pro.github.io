@@ -38,6 +38,9 @@ tests/
 ├── date-primitives.test.js      # Date / time / logical-hour primitives
 ├── scheduling.test.js           # Frequency types, isTaskForDate, carry window math
 ├── render-task-view.test.js     # End-to-end renderTaskView scenarios
+├── archive.test.js              # Stale once-task archival grace window
+├── backfill.test.js             # Backward date nav (past days, daily-only view)
+├── forward.test.js              # Forward date nav (future days, plan-ahead view)
 └── sync-check.test.js           # Regex guards against drift in app.js
 ```
 
@@ -78,6 +81,12 @@ Functions covered by sync checks:
 | `wasEverCompleted`      | Excludes today (range `[from, throughDate-1]`)                       |
 | `wasOnceDayCaughtUp`    | Excludes today (be30e0a fix)                                         |
 | `renderTaskView`        | Uses `getLogicalHour()` (bug #1); single-day once calls `wasEverCompleted` (bug #2) |
+| `isHistoricalView`      | Past-only: `viewDateKey < todayLogicalKey()`                        |
+| `isFutureView`          | Future-only: `viewDateKey > todayLogicalKey()`                      |
+| `minBackfillKey` / `maxForwardKey` | Floor = today − 7; ceiling = today + 7                   |
+| `stepViewDate`          | Clamped to `[floor, ceiling]`; today → `null`                       |
+| `buildHistoricalCards`  | Daily-only, multi-slot expanded (past view)                         |
+| `buildFutureCards`      | All scheduled (`isTaskForDate`), once "Day X of N", slot-expanded   |
 
 ---
 
@@ -118,6 +127,23 @@ Functions covered by sync checks:
 | monthly             | 28  | 7        |
 | quarterly+          | ≥56 | 14 (cap) |
 | once (any)          | ∞   | 14 (cap) |
+
+### Date navigation (board stepping)
+The board can step off "today" in either direction (`stepViewDate`), clamped
+to a 7-day window on each side. The two directions are deliberately different:
+
+| Direction | Predicate         | View shows                                  | Why |
+|-----------|-------------------|---------------------------------------------|-----|
+| Past      | `isHistoricalView`| DAILY tasks only (`buildHistoricalCards`)   | Weekly/interval/once misses are carried forward onto the live board, so the past view only needs the dailies that can't be caught up otherwise. |
+| Future    | `isFutureView`    | ALL scheduled tasks (`buildFutureCards`)    | Plan-ahead: preview everything due that day and optionally tick it early. |
+
+- Floor = logical today − 7 (`minBackfillKey`); ceiling = logical today + 7
+  (`maxForwardKey`); stepping onto today returns `null` (live mode).
+- A tick on a non-today day reads/writes that day's doc via `boardDateKey`.
+- Future early-completion uses the **same** id scheme the live board will use
+  for that date (multi-slot → `id__<slot>`, multi-day once → bare `task.id`
+  with a "Day X of N" badge, else bare task) so the tick is recognized when
+  the day actually arrives. `forward.test.js` asserts this id parity.
 
 ### Regression-named tests (named after the commits / bugs they guard)
 - **iPad UTC date shift** (commit 448a41e) — `parseLocalDateKey` does not

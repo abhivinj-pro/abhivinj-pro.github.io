@@ -1,8 +1,8 @@
 // Scenario tests for the "backfill" date-navigation feature: stepping the board
-// back up to 7 days to tick off DAILY tasks missed before the midnight reset.
+// back up to 14 days to tick off DAILY tasks missed before the midnight reset.
 //
 // Covers the exact scenarios discussed during design:
-//   • 7-day window clamping + no-forward-past-today
+//   • 14-day window clamping + no-forward-past-today
 //   • the midnight logical-day rollover interaction
 //   • which day a tick reads/writes (boardDateKey) for Morning vs My Day
 //   • historical view = daily-only, multi-slot expanded, saved ticks pre-checked
@@ -16,7 +16,7 @@
 var t = require('./harness');
 var E = require('./task-engine');
 
-// Friday 2026-06-26, noon → logical day = 2026-06-26, floor = 2026-06-19.
+// Friday 2026-06-26, noon → logical day = 2026-06-26, floor = 2026-06-12.
 var NOON = new Date(2026, 5, 26, 12, 0);
 // 00:30 is already the new calendar day (rollover is at midnight).
 var PRE_ROLLOVER = new Date(2026, 5, 26, 0, 30);
@@ -51,23 +51,23 @@ t.describe('backfill :: stepViewDate window clamping', function () {
   t.it('from a past day, Previous → one more day back', function () {
     t.assert.equal(E.stepViewDate('2026-06-25', -1, NOON), '2026-06-24');
   });
-  t.it('7 consecutive Previous clicks reach the floor, then stop', function () {
+  t.it('14 consecutive Previous clicks reach the floor, then stop', function () {
     var key = null;
     var keys = [];
-    for (var i = 0; i < 9; i += 1) {
+    for (var i = 0; i < 16; i += 1) {
       key = E.stepViewDate(key, -1, NOON);
       keys.push(key);
     }
-    // 7 distinct days back, then the 8th/9th clicks are clamped (no change).
-    t.assert.equal(keys[6], '2026-06-19', 'floor is logical today − 7 days');
-    t.assert.equal(keys[7], '2026-06-19', 'clamped at floor');
-    t.assert.equal(keys[8], '2026-06-19', 'still clamped');
+    // 14 distinct days back, then the 15th/16th clicks are clamped (no change).
+    t.assert.equal(keys[13], '2026-06-12', 'floor is logical today − 14 days');
+    t.assert.equal(keys[14], '2026-06-12', 'clamped at floor');
+    t.assert.equal(keys[15], '2026-06-12', 'still clamped');
   });
-  t.it('minBackfillKey is exactly 7 days before logical today', function () {
-    t.assert.equal(E.minBackfillKey(NOON), '2026-06-19');
+  t.it('minBackfillKey is exactly 14 days before logical today', function () {
+    t.assert.equal(E.minBackfillKey(NOON), '2026-06-12');
   });
-  t.it('from live today, Next is a no-op (cannot go past today)', function () {
-    t.assert.equal(E.stepViewDate(null, 1, NOON), null);
+  t.it('from live today, Next → tomorrow (plan-ahead, future view)', function () {
+    t.assert.equal(E.stepViewDate(null, 1, NOON), '2026-06-27');
   });
   t.it('from yesterday, Next → back to live today (null)', function () {
     t.assert.equal(E.stepViewDate('2026-06-25', 1, NOON), null);
@@ -85,8 +85,8 @@ t.describe('backfill :: midnight rollover interaction', function () {
     // Just past midnight: logical today is Jun 26, so back = Jun 25.
     t.assert.equal(E.stepViewDate(null, -1, PRE_ROLLOVER), '2026-06-25');
   });
-  t.it('floor at 00:30 is 7 days before the logical day', function () {
-    t.assert.equal(E.minBackfillKey(PRE_ROLLOVER), '2026-06-19');
+  t.it('floor at 00:30 is 14 days before the logical day', function () {
+    t.assert.equal(E.minBackfillKey(PRE_ROLLOVER), '2026-06-12');
   });
 });
 

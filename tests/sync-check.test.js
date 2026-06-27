@@ -156,26 +156,52 @@ t.describe('source-sync :: historical backfill helpers', function () {
     t.assert.match(fn[0], /task\.id \+ '__' \+ slugifyTime\(task\.times\[s\]\.label\)/,
       'must expand multi-slot dailies into per-slot composite ids');
   });
-  t.it('renderTaskView short-circuits to the historical view for past days', function () {
-    has(/if \(viewName !== 'work' && isHistoricalView\(\)\) \{/);
+  t.it('renderTaskView short-circuits to future then historical for non-today days', function () {
+    has(/if \(viewName !== 'work'\) \{/);
+    has(/if \(isFutureView\(\)\) \{\s*renderFutureTaskView\(bucket, viewName\);\s*return;\s*\}/);
+    has(/if \(isHistoricalView\(\)\) \{\s*renderHistoricalTaskView\(bucket, viewName\);\s*return;\s*\}/);
+  });
+  t.it('isHistoricalView is past-only and isFutureView is future-only', function () {
+    var hist = APP_JS.match(/function isHistoricalView[\s\S]*?\n  \}/);
+    t.assert.ok(hist, 'isHistoricalView body not found');
+    t.assert.match(hist[0], /viewDateKey < todayLogicalKey\(\)/, 'history must be strictly before today');
+    var fut = APP_JS.match(/function isFutureView[\s\S]*?\n  \}/);
+    t.assert.ok(fut, 'isFutureView body not found');
+    t.assert.match(fut[0], /viewDateKey > todayLogicalKey\(\)/, 'future must be strictly after today');
+  });
+  t.it('buildFutureCards shows all scheduled tasks (isTaskForDate) and once "Day X of N"', function () {
+    var fn = APP_JS.match(/function buildFutureCards[\s\S]*?\n  \}/);
+    t.assert.ok(fn, 'buildFutureCards body not found');
+    t.assert.match(fn[0], /if \(!isTaskForDate\(task, date\)\) \{ continue; \}/,
+      'must skip tasks not scheduled for the viewed date');
+    t.assert.match(fn[0], /task\.id \+ '__' \+ slugifyTime\(task\.times\[s\]\.label\)/,
+      'must expand multi-slot tasks into per-slot composite ids');
+    t.assert.match(fn[0], /'Day ' \+ dayIdx \+ ' of ' \+ totalDays/,
+      'must badge a multi-day once span');
   });
   t.it('toggleHabit writes to the viewed day via boardDateKey', function () {
     has(/function boardDateKey\s*\(\s*prefix\s*\)\s*\{/);
     has(/dateKey = boardDateKey\(MYDAY_STORAGE_PREFIX\)/);
     has(/dateKey = boardDateKey\(MORNING_STORAGE_PREFIX\)/);
   });
-  t.it('backfill window is 7 days', function () {
-    has(/var BACKFILL_MAX_DAYS\s*=\s*7;/);
+  t.it('backfill window is 14 days and forward window is 7 days', function () {
+    has(/var BACKFILL_MAX_DAYS\s*=\s*14;/);
+    has(/var FORWARD_MAX_DAYS\s*=\s*7;/);
   });
   t.it('minBackfillKey subtracts BACKFILL_MAX_DAYS from the logical day', function () {
     var fn = APP_JS.match(/function minBackfillKey[\s\S]*?\n  \}/);
     t.assert.ok(fn, 'minBackfillKey body not found');
     t.assert.match(fn[0], /getDate\(\)\s*-\s*BACKFILL_MAX_DAYS/);
   });
-  t.it('stepViewDate clamps to [floor, today] (no forward past today, no past floor)', function () {
+  t.it('maxForwardKey adds FORWARD_MAX_DAYS to the logical day', function () {
+    var fn = APP_JS.match(/function maxForwardKey[\s\S]*?\n  \}/);
+    t.assert.ok(fn, 'maxForwardKey body not found');
+    t.assert.match(fn[0], /getDate\(\)\s*\+\s*FORWARD_MAX_DAYS/);
+  });
+  t.it('stepViewDate clamps to [floor, ceiling] (no past floor, no future ceiling)', function () {
     var fn = APP_JS.match(/function stepViewDate[\s\S]*?\n  \}/);
     t.assert.ok(fn, 'stepViewDate body not found');
-    t.assert.match(fn[0], /nextKey > todayLogicalKey\(\)/, 'must block stepping past today');
+    t.assert.match(fn[0], /nextKey > maxForwardKey\(\)/, 'must block stepping past the forward ceiling');
     t.assert.match(fn[0], /nextKey < minBackfillKey\(\)/, 'must block stepping before the floor');
   });
 });
