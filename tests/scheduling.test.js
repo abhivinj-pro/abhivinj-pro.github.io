@@ -82,6 +82,33 @@ t.describe('scheduling :: isTaskForDate', function () {
   });
 });
 
+t.describe('scheduling :: isTaskForDate startDate clamp', function () {
+  var may26_tue = new Date(2026, 4, 26);
+  var may27_wed = new Date(2026, 4, 27);
+  var may28_thu = new Date(2026, 4, 28);
+
+  t.it('daily: not scheduled before startDate, scheduled on/after', function () {
+    var task = { frequency: { type: 'daily' }, startDate: '2026-05-27' };
+    t.assert.equal(E.isTaskForDate(task, may26_tue), false, 'day before start');
+    t.assert.equal(E.isTaskForDate(task, may27_wed), true,  'start day');
+    t.assert.equal(E.isTaskForDate(task, may28_thu), true,  'day after start');
+  });
+  t.it('weekly: startDate suppresses an otherwise-matching weekday', function () {
+    // Wednesdays, but started Thursday 2026-05-28 → the 27th Wed is excluded.
+    var task = { frequency: { type: 'weekly', days: [3] }, startDate: '2026-05-28' };
+    t.assert.equal(E.isTaskForDate(task, may27_wed), false, 'Wed before start');
+    t.assert.equal(E.isTaskForDate(task, new Date(2026, 5, 3)), true, 'Wed after start');
+  });
+  t.it('legacy task without startDate stays unbounded', function () {
+    var task = { frequency: { type: 'daily' } };
+    t.assert.equal(E.isTaskForDate(task, may26_tue), true);
+  });
+  t.it('startDate equal to date is inclusive (>= not >)', function () {
+    var task = { frequency: { type: 'daily' }, startDate: '2026-05-27' };
+    t.assert.equal(E.isTaskForDate(task, may27_wed), true);
+  });
+});
+
 t.describe('scheduling :: nextOccurrenceDate / lastScheduledBefore', function () {
   var gym = { frequency: { type: 'weekly', days: [1, 3, 5] } }; // M/W/F
   t.it('finds next M/W/F from a Thu', function () {

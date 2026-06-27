@@ -273,11 +273,14 @@
   // dailies expanded into one card per slot (composite ids so the dashboard
   // scores them per slot). No missed/expiry/carry-forward — every card is a
   // plain toggle whose checked state comes from that day's saved record.
-  function buildHistoricalCards(bucket) {
+  function buildHistoricalCards(bucket, dateKey) {
     var out = [];
     for (var i = 0; i < bucket.length; i += 1) {
       var task = bucket[i];
       if (!isDailyTask(task)) { continue; }
+      // Effective-start bound: a daily task is not shown on past days before
+      // its startDate (the day it began). Legacy tasks (no startDate) unbounded.
+      if (task.startDate && dateKey && task.startDate > dateKey) { continue; }
       if (task.times && task.times.length > 0) {
         for (var s = 0; s < task.times.length; s += 1) {
           out.push({
@@ -539,6 +542,13 @@
   function isTaskForDate(task, date) {
     var freq = task.frequency;
     var startDate, normalizedDate, normalizedStart, diffMs, diffWeeks;
+
+    // Universal effective-start lower bound: a task is never scheduled before
+    // its startDate (the day it began / was created). Applies to every
+    // frequency type. Legacy tasks without startDate stay unbounded.
+    if (task.startDate && getDateKey(date) < task.startDate) {
+      return false;
+    }
 
     if (!freq || freq.type === 'daily') {
       return true;
@@ -1011,7 +1021,7 @@
   }
 
   function renderHistoricalTaskView(bucket, viewName) {
-    renderStaticDayView(buildHistoricalCards(bucket), viewName, 'No daily tasks for this day');
+    renderStaticDayView(buildHistoricalCards(bucket, viewDateKey), viewName, 'No daily tasks for this day');
   }
 
   function renderFutureTaskView(bucket, viewName) {
@@ -1384,7 +1394,7 @@
   function updateDateNavUI() {
     updateNavGroup('morning', morningDateHeading, false);
     updateNavGroup('myday', mydayDateHeading, currentDayView === 'work');
-    if (calPrefix) { renderCalendar(); }
+    if (calPrefix) { renderDatePicker(); }
   }
 
   // Re-render both boards for the current viewDateKey (used after stepping the
@@ -1394,7 +1404,7 @@
     if (routineGrid) {
       var morningCards = morningHabits;
       if (isHistoricalView()) {
-        morningCards = buildHistoricalCards(morningHabits);
+        morningCards = buildHistoricalCards(morningHabits, viewDateKey);
       } else if (isFutureView()) {
         morningCards = buildFutureCards(morningHabits, parseLocalDateKey(viewDateKey));
       }
@@ -1461,7 +1471,7 @@
     return !(lastKey < min || firstKey > max);
   }
 
-  function renderCalendar() {
+  function renderDatePicker() {
     if (!calPrefix || !calMonth) { return; }
     var pop = document.getElementById(calPrefix + '-date-cal-pop');
     if (!pop) { return; }
@@ -1510,7 +1520,7 @@
     calMonth = new Date(dv.getFullYear(), dv.getMonth(), 1);
     var pop = document.getElementById(prefix + '-date-cal-pop');
     var btn = document.getElementById(prefix + '-date-cal');
-    renderCalendar();
+    renderDatePicker();
     if (pop) { pop.classList.remove('hidden'); }
     if (btn) { btn.setAttribute('aria-expanded', 'true'); }
   }
@@ -1543,7 +1553,7 @@
     var pg = node.getAttribute('data-pg');
     if (pg) {
       calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + parseInt(pg, 10), 1);
-      renderCalendar();
+      renderDatePicker();
       return;
     }
     var key = node.getAttribute('data-key');

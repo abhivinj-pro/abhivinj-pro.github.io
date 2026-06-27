@@ -71,6 +71,7 @@ function archiveTask(task) {
   var out = JSON.parse(JSON.stringify(task));
   out.archived = true;
   out.manuallyArchived = true;
+  out.archivedAt = TODAY;
   delete out.manuallyUnarchived;
   return out;
 }
@@ -79,6 +80,7 @@ function unarchiveTask(task) {
   var out = JSON.parse(JSON.stringify(task));
   out.archived = false;
   delete out.manuallyArchived;
+  delete out.archivedAt;
   if (out.frequency && out.frequency.type === 'once') {
     out.manuallyUnarchived = true;
   }
@@ -251,6 +253,21 @@ t.describe('archive :: archiveTask / unarchiveTask', function () {
     t.assert.equal(out.archived, true);
     t.assert.equal(out.manuallyArchived, true);
   });
+  t.it('archiveTask stamps archivedAt boundary', function () {
+    var out = archiveTask(dailyTask());
+    t.assert.equal(out.archivedAt, TODAY);
+  });
+  t.it('unarchiveTask clears archivedAt boundary', function () {
+    var out = unarchiveTask(dailyTask({ archived: true, manuallyArchived: true, archivedAt: TODAY }));
+    t.assert.equal(out.archivedAt, undefined);
+  });
+  t.it('re-archive after unarchive re-stamps a fresh archivedAt', function () {
+    var d = dailyTask();
+    var roundTrip = unarchiveTask(archiveTask(d));
+    t.assert.equal(roundTrip.archivedAt, undefined);
+    var reArchived = archiveTask(roundTrip);
+    t.assert.equal(reArchived.archivedAt, TODAY);
+  });
   t.it('unarchiveTask on once-task sets manuallyUnarchived', function () {
     var out = unarchiveTask(onceTask({ archived: true, manuallyArchived: true }));
     t.assert.equal(out.archived, false);
@@ -329,11 +346,24 @@ t.describe('source-sync :: archive logic in todo.js', function () {
     t.assert.ok(fn);
     t.assert.match(fn[0], /manuallyArchived\s*=\s*true/);
   });
+  t.it('archiveTask stamps archivedAt from getTodayStr()', function () {
+    var fn = TODO_JS.match(/function archiveTask[\s\S]*?\n  \}/);
+    t.assert.ok(fn);
+    t.assert.match(fn[0], /archivedAt\s*=\s*getTodayStr\(\)/);
+  });
+  t.it('unarchiveTask deletes archivedAt boundary', function () {
+    var fn = TODO_JS.match(/function unarchiveTask[\s\S]*?\n  \}/);
+    t.assert.ok(fn);
+    t.assert.match(fn[0], /delete\s+tasks\[index\]\.archivedAt/);
+  });
   t.it('unarchiveTask sets manuallyUnarchived on once-tasks only', function () {
     var fn = TODO_JS.match(/function unarchiveTask[\s\S]*?\n  \}/);
     t.assert.ok(fn);
     t.assert.match(fn[0], /frequency\.type\s*===\s*['"]once['"]/);
     t.assert.match(fn[0], /manuallyUnarchived\s*=\s*true/);
+  });
+  t.it('addTask stamps startDate on new tasks', function () {
+    t.assert.match(TODO_JS, /startDate:\s*todayKey/);
   });
   t.it('app.js rebuildTaskBuckets still skips archived tasks', function () {
     // Cross-checks the board pages respect the archive flag set in todo.js.

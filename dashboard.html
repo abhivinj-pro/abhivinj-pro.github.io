@@ -49,6 +49,7 @@
           <button type="button" class="dash-tab" data-tab="week">Week</button>
           <button type="button" class="dash-tab" data-tab="month">Month</button>
           <button type="button" class="dash-tab" data-tab="categories">Categories</button>
+          <button type="button" class="dash-tab" data-tab="archived">Archived</button>
         </nav>
         <div class="dash-range" id="dash-range" role="group" aria-label="Date range">
           <button type="button" class="dash-range-btn" data-range="7">7d</button>
@@ -276,6 +277,70 @@
             <p class="dash-card-sub">Stacked completions over last 12 weeks</p>
           </div>
           <div class="dash-chart" id="cat-stacked"></div>
+        </div>
+      </section>
+
+      <!-- Archived (read-only analysis of past tasks) -->
+      <section class="dash-tab-panel hidden" data-panel="archived">
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h2>Archived habits</h2>
+            <p class="dash-card-sub">Review a past habit's history without bringing it back to your board</p>
+          </div>
+          <div class="dash-picker-row">
+            <select class="dash-picker" id="archived-picker" aria-label="Archived task"></select>
+          </div>
+        </div>
+
+        <div class="dash-empty hidden" id="archived-empty">
+          <p>No archived habits yet. When you archive a recurring task it will appear here for analysis.</p>
+        </div>
+
+        <div id="archived-body">
+          <div class="dash-card" id="archived-header-card"></div>
+
+          <div class="dash-kpi-row" id="archived-kpis"></div>
+
+          <div class="dash-card dash-card-wide">
+            <div class="dash-card-head">
+              <h2>Activity heatmap</h2>
+              <p class="dash-card-sub">Scheduled vs completed over its active life</p>
+            </div>
+            <div class="dash-heatmap-wrap" id="archived-heatmap"></div>
+          </div>
+
+          <div class="dash-grid-2">
+            <div class="dash-card">
+              <div class="dash-card-head">
+                <h2>Weekly trend</h2>
+                <p class="dash-card-sub">Completion rate per ISO week</p>
+              </div>
+              <div class="dash-chart" id="archived-trend"></div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-head">
+                <h2>Weekday strength</h2>
+                <p class="dash-card-sub">Rate by day of week</p>
+              </div>
+              <div class="dash-chart" id="archived-weekday"></div>
+            </div>
+          </div>
+
+          <div class="dash-card" id="archived-slots-card">
+            <div class="dash-card-head">
+              <h2>Slot breakdown</h2>
+              <p class="dash-card-sub">Per time-of-day slot</p>
+            </div>
+            <div class="dash-chart" id="archived-slots"></div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <h2>Miss log</h2>
+              <p class="dash-card-sub">Scheduled but not done</p>
+            </div>
+            <div class="dash-list dash-list-scroll" id="archived-misses"></div>
+          </div>
         </div>
       </section>
 

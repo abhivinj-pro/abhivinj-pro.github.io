@@ -87,6 +87,9 @@
   // ── Recurrence (mirrors app.js#isTaskForDate) ────────────────────────────
   function isTaskForDate(task, date) {
     var freq = task.frequency;
+    // Universal effective-start lower bound (mirrors app.js): never scheduled
+    // before task.startDate. Legacy tasks without startDate stay unbounded.
+    if (task.startDate && fmt(date) < task.startDate) { return false; }
     if (!freq || freq.type === 'daily') { return true; }
     if (freq.type === 'weekly') {
       return (freq.days || []).indexOf(date.getDay()) !== -1;
@@ -133,8 +136,7 @@
   var state = {
     tasks: [],
     range: null,
-    dailyStatus: {},
-    loaded: false
+    dailyStatus: {},    archivedTasks: [],    loaded: false
   };
 
   // ── Channel resolution ───────────────────────────────────────────────────
@@ -302,24 +304,128 @@
       rangeDays: rangeDays
     };
 
-    // Pull tasks from Storage; filter out one-time + Work.
+    // Pull tasks from Storage; filter out one-time + Work. Archived recurring
+    // tasks are kept aside (state.archivedTasks) for the read-only Archived tab
+    // so they never pollute the live aggregates below.
     var src = (window.Storage && window.Storage.tasks) || [];
     var picked = [];
+    var archived = [];
     for (var i = 0; i < src.length; i += 1) {
       var task = src[i];
-      if (task.archived) { continue; }
       var cat = normalizeCategory(task.category);
       if (cat === 'Work') { continue; }
       if (task.frequency && task.frequency.type === 'once') { continue; }
+      if (task.archived) { archived.push(task); continue; }
       picked.push(task);
     }
     state.tasks = picked;
+    state.archivedTasks = archived;
     state.loaded = false;
 
     return loadAllDays(onProgress).then(function () {
       buildDailyStatus();
       state.loaded = true;
     });
+  }
+
+  // ── Archived-task analysis (read-only, isolated) ─────────────────────────
+  // Builds a private, state-shaped context for a single archived task bounded
+  // to its active window [startDate .. archivedAt] (legacy tasks fall back to
+  // the trailing ARCH_LOOKBACK days ending today). The live `state` is only
+  // borrowed synchronously while buildDailyStatus runs, never across an await,
+  // so the main dashboard's context is never observed in a swapped state.
+  var ARCH_LOOKBACK = 365;
+
+  function loadKeys(keys) {
+    if (!window.Storage || window.Storage.mode === 'demo' || !window.Storage.user || !keys.length) {
+      return Promise.resolve();
+    }
+    if (typeof window.Storage.ensureRangeLoaded === 'function') {
+      return window.Storage.ensureRangeLoaded(keys[0])['catch'](function () {});
+    }
+    var pending = keys.slice();
+    return new Promise(function (resolve) {
+      var active = 0;
+      var CONCURRENCY = 6;
+      function done() { active -= 1; spawn(); }
+      function spawn() {
+        while (pending.length && active < CONCURRENCY) {
+          active += 1;
+          window.Storage.ensureDayLoaded(pending.shift()).then(done, done);
+        }
+        if (!pending.length && active === 0) { resolve(); }
+      }
+      spawn();
+    });
+  }
+
+  function findArchivedTask(taskId) {
+    var src = (window.Storage && window.Storage.tasks) || [];
+    for (var i = 0; i < src.length; i += 1) {
+      if (src[i].id === taskId && src[i].archived) { return src[i]; }
+    }
+    return null;
+  }
+
+  // Returns Promise<ctx|null>. ctx is state-shaped: { tasks:[task], range,
+  // dailyStatus, loaded } — pass it to withContext() to render via the existing
+  // per-task aggregations.
+  function loadArchivedTask(taskId) {
+    var task = findArchivedTask(taskId);
+    if (!task) { return Promise.resolve(null); }
+
+    var today = todayLogical();
+    var endDate = task.archivedAt ? parseKey(task.archivedAt) : today;
+    if (isNaN(endDate.getTime()) || endDate.getTime() > today.getTime()) { endDate = today; }
+    var minStart = addDays(endDate, -(ARCH_LOOKBACK - 1));
+    var startDate = minStart;
+    if (task.startDate) {
+      var sd = parseKey(task.startDate);
+      if (!isNaN(sd.getTime()) && sd.getTime() > minStart.getTime()) { startDate = sd; }
+    }
+
+    var days = [];
+    var cursor = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    while (cursor.getTime() <= endDate.getTime()) {
+      days.push({ key: fmt(cursor), date: new Date(cursor.getTime()) });
+      cursor = addDays(cursor, 1);
+    }
+    if (!days.length) { return Promise.resolve(null); }
+
+    var ctx = {
+      tasks: [task],
+      range: {
+        days: days,
+        fromKey: days[0].key,
+        toKey: days[days.length - 1].key,
+        fromDate: startDate,
+        toDate: endDate,
+        rangeDays: days.length
+      },
+      dailyStatus: {},
+      archivedTasks: [],
+      loaded: false
+    };
+
+    var keys = [];
+    for (var i = 0; i < days.length; i += 1) { keys.push(days[i].key); }
+
+    return loadKeys(keys).then(function () {
+      // Borrow `state` synchronously (no await inside) to reuse buildDailyStatus.
+      var saved = state;
+      state = ctx;
+      try { buildDailyStatus(); } finally { state = saved; }
+      ctx.loaded = true;
+      return ctx;
+    });
+  }
+
+  // Run `fn` with `ctx` as the active aggregation context, then restore. The
+  // callback MUST be synchronous (no await) so the live state is never leaked.
+  function withContext(ctx, fn) {
+    var saved = state;
+    state = ctx;
+    try { return fn(); } finally { state = saved; }
   }
 
   // ── Aggregations ─────────────────────────────────────────────────────────
@@ -762,9 +868,12 @@
   window.DashboardData = {
     load: load,
     get tasks() { return state.tasks; },
+    get archivedTasks() { return state.archivedTasks; },
     get range() { return state.range; },
     get dailyStatus() { return state.dailyStatus; },
     get loaded() { return state.loaded; },
+    loadArchivedTask: loadArchivedTask,
+    withContext: withContext,
     CATEGORY_ORDER: CATEGORY_ORDER,
     CATEGORY_ACCENT: CATEGORY_ACCENT,
     WEEKDAY_LABELS: WEEKDAY_LABELS,

@@ -79,11 +79,14 @@ function isDailyTask(task) {
   return !task.frequency || task.frequency.type === 'daily';
 }
 
-function buildHistoricalCards(bucket) {
+function buildHistoricalCards(bucket, dateKey) {
   var out = [];
   for (var i = 0; i < bucket.length; i += 1) {
     var task = bucket[i];
     if (!isDailyTask(task)) { continue; }
+    // Effective-start bound (mirrors app.js): skip daily tasks on past days
+    // before their startDate. Legacy tasks (no startDate) stay unbounded.
+    if (task.startDate && dateKey && task.startDate > dateKey) { continue; }
     if (task.times && task.times.length > 0) {
       for (var s = 0; s < task.times.length; s += 1) {
         out.push({
@@ -185,6 +188,9 @@ function onceRangeDayIndex(range, dateKey) {
 
 function isTaskForDate(task, date) {
   var f = task.frequency;
+  // Universal effective-start lower bound (mirrors app.js): never scheduled
+  // before task.startDate. Legacy tasks without startDate stay unbounded.
+  if (task.startDate && getDateKey(date) < task.startDate) return false;
   if (!f || f.type === 'daily') return true;
   if (f.type === 'weekly') return f.days.indexOf(date.getDay()) !== -1;
   if (f.type === 'interval') {

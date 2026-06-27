@@ -534,6 +534,18 @@
   font-size: 13px;
 }
 
+.dash-archived-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 /* ── Week strip ─────────────────────────────────────────────────────────── */
 .dash-nav-row {
   display: -webkit-box;

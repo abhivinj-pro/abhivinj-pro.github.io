@@ -610,7 +610,10 @@
         category: data.category,
         accentClass: getAccentForIndex(tasks.length),
         icon: selectedIcon,
-        archived: false
+        archived: false,
+        // Effective scheduling start: a task is never scheduled/missed before
+        // the day it was created (see isTaskForDate in app.js / dashboard).
+        startDate: todayKey
       };
       if (data.category !== MORNING_CATEGORY) {
         newTask.frequency = data.frequency;
@@ -639,6 +642,9 @@
   function archiveTask(index) {
     tasks[index].archived = true;
     tasks[index].manuallyArchived = true;
+    // Effective scheduling end: marks when the task stopped being active so
+    // dashboard analytics bound its window and don't count later days as misses.
+    tasks[index].archivedAt = getTodayStr();
     // Clear opposite intent so flags stay coherent.
     delete tasks[index].manuallyUnarchived;
     saveDraft();
@@ -648,6 +654,8 @@
   function unarchiveTask(index) {
     tasks[index].archived = false;
     delete tasks[index].manuallyArchived;
+    // Drop the end boundary so a later re-archive re-stamps a fresh date.
+    delete tasks[index].archivedAt;
     // For once-tasks, remember the user explicitly unarchived so the
     // 14-day auto-archive in loadTasks does not re-archive on next load.
     if (tasks[index].frequency && tasks[index].frequency.type === 'once') {

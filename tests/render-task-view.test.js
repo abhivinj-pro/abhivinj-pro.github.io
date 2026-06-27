@@ -409,6 +409,33 @@ t.describe('buildHistoricalCards :: daily-only filtering', function () {
   });
 });
 
+t.describe('buildHistoricalCards :: startDate clamp', function () {
+  var dailyWithStart = { id: 'newdaily', title: 'New Daily', frequency: { type: 'daily' }, startDate: '2026-06-10' };
+
+  t.it('hides a daily task on days before its startDate', function () {
+    var cards = E.buildHistoricalCards([dailyWithStart], '2026-06-09');
+    t.assert.equal(cards.length, 0);
+  });
+  t.it('shows a daily task on its startDate', function () {
+    var cards = E.buildHistoricalCards([dailyWithStart], '2026-06-10');
+    t.assert.equal(cards.length, 1);
+    t.assert.equal(cards[0].id, 'newdaily');
+  });
+  t.it('shows a daily task on days after its startDate', function () {
+    var cards = E.buildHistoricalCards([dailyWithStart], '2026-06-15');
+    t.assert.equal(cards.length, 1);
+  });
+  t.it('legacy daily without startDate stays visible on any past day', function () {
+    var legacy = { id: 'legacy', title: 'Legacy', frequency: { type: 'daily' } };
+    var cards = E.buildHistoricalCards([legacy], '2020-01-01');
+    t.assert.equal(cards.length, 1);
+  });
+  t.it('omitting dateKey leaves startDate tasks visible (live board path)', function () {
+    var cards = E.buildHistoricalCards([dailyWithStart]);
+    t.assert.equal(cards.length, 1);
+  });
+});
+
 t.describe('isDailyTask', function () {
   t.it('true for explicit daily', function () {
     t.assert.ok(E.isDailyTask(aligners));
