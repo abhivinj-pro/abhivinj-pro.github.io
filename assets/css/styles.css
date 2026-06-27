@@ -110,6 +110,43 @@ body {
 .routine-meta h1 {
   font-size: 34px;
   line-height: 1;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: end;
+      -ms-flex-align: end;
+          align-items: flex-end;
+  gap: 5px;
+}
+
+/* Relative-day eyebrow above the date (Today / Yesterday / In 2 days …). */
+.date-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.date-eyebrow.is-today {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #8b5cf6;
+}
+
+.date-eyebrow.is-past,
+.date-eyebrow.is-future {
+  color: var(--muted);
+}
+
+.date-main {
+  display: block;
 }
 
 .routine-meta p {
@@ -123,6 +160,7 @@ body {
    only appears when viewing a past day. */
 .date-nav {
   margin-top: 4px;
+  position: relative;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -139,7 +177,8 @@ body {
 }
 
 .date-nav-arrow,
-.date-nav-today {
+.date-nav-today,
+.date-nav-cal {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
@@ -151,7 +190,8 @@ body {
   border-radius: 999px;
 }
 
-.date-nav-arrow {
+.date-nav-arrow,
+.date-nav-cal {
   width: 34px;
   height: 34px;
   padding: 0;
@@ -165,6 +205,17 @@ body {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+}
+
+.date-nav-cal-icon {
+  width: 17px;
+  height: 17px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* SVG chevron renders identically on every device, unlike the previous
@@ -182,9 +233,34 @@ body {
 
 .date-nav-today {
   height: 34px;
-  padding: 0 14px;
-  font-size: 15px;
+  padding: 0 14px 0 11px;
+  font-size: 14px;
+  font-weight: 600;
   margin-left: 8px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.date-nav-today:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.date-nav-today-icon {
+  width: 15px;
+  height: 15px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .date-nav-today.hidden {
@@ -194,6 +270,155 @@ body {
 .date-nav-arrow:disabled {
   opacity: 0.3;
   cursor: default;
+}
+
+/* ── Pop-up date picker (mini month calendar) ─────────────────────────────── */
+.date-cal-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 264px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(13, 17, 27, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+          box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(14px);
+  text-align: left;
+}
+
+.date-cal-pop.hidden {
+  display: none;
+}
+
+.date-cal-head {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.date-cal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.date-cal-pg {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  cursor: pointer;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.date-cal-pg svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.date-cal-pg:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.date-cal-dow,
+.date-cal-days {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[7];
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.date-cal-dow {
+  margin-bottom: 4px;
+}
+
+.date-cal-dow span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+.date-cal-days {
+  gap: 2px;
+}
+
+.date-cal-day {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  height: 32px;
+  border-radius: 9px;
+  padding: 0;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.date-cal-day:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.date-cal-day:disabled {
+  opacity: 0.22;
+  cursor: default;
+}
+
+.date-cal-day.is-today {
+  -webkit-box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+          box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+}
+
+.date-cal-day.is-selected,
+.date-cal-day.is-selected:hover {
+  background: -webkit-gradient(linear, left top, right bottom, from(#6366f1), to(#8b5cf6));
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-weight: 600;
 }
 
 .routine-grid {

@@ -35,6 +35,7 @@
 
   var listeners = [];
   var dayCache = {};                   // key: prefix+dateKey -> state object
+  var loadedDays = {};                 // dateKey -> true once fetched (even empty)
   var dayWriteTimers = {};             // key: dateKey -> { timer, channels: {} }
   var pollTimer = null;
   var tasksSaveInFlight = false;
@@ -176,23 +177,74 @@
       });
   }
 
-  function loadCloudDay(uid, dateKey) {
-    return window.Firestore.getDoc('users/' + uid + '/days/' + dateKey)
-      .then(function (doc) {
-        var morning = (doc && doc.morning) ? doc.morning : {};
-        var myday = (doc && doc.myday) ? doc.myday : {};
-        dayCache[cacheKey(MORNING_PREFIX, dateKey)] = morning;
-        dayCache[cacheKey(MYDAY_PREFIX, dateKey)] = myday;
+  // Bulk-load every day document whose id (a YYYY-MM-DD key) is >= minKey via
+  // a single structured query. Missing days are simply absent from the result
+  // instead of producing a 404 per day, so this both eliminates console noise
+  // and collapses N requests into one. Returns the array of loaded day rows.
+  function loadDaysFrom(uid, minKey) {
+    var query = {
+      from: [{ collectionId: 'days' }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: '__name__' },
+          op: 'GREATER_THAN_OR_EQUAL',
+          value: {
+            referenceValue: window.Firestore.resourceName(
+              'users/' + uid + '/days/' + minKey
+            )
+          }
+        }
+      },
+      orderBy: [{ field: { fieldPath: '__name__' }, direction: 'ASCENDING' }]
+    };
+    return window.Firestore.runQuery('users/' + uid, query)
+      .then(function (rows) {
+        for (var i = 0; i < rows.length; i += 1) {
+          var dk = rows[i].id;
+          var data = rows[i].data || {};
+          dayCache[cacheKey(MORNING_PREFIX, dk)] = data.morning || {};
+          dayCache[cacheKey(MYDAY_PREFIX, dk)] = data.myday || {};
+          loadedDays[dk] = true;
+        }
+        return rows;
+      });
+  }
+
+  // Load a single day via an equality query rather than a document GET, so an
+  // empty day resolves to "no data" without a 404.
+  function loadOneDay(uid, dateKey) {
+    var query = {
+      from: [{ collectionId: 'days' }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: '__name__' },
+          op: 'EQUAL',
+          value: {
+            referenceValue: window.Firestore.resourceName(
+              'users/' + uid + '/days/' + dateKey
+            )
+          }
+        }
+      }
+    };
+    return window.Firestore.runQuery('users/' + uid, query)
+      .then(function (rows) {
+        var data = rows.length ? (rows[0].data || {}) : {};
+        dayCache[cacheKey(MORNING_PREFIX, dateKey)] = data.morning || {};
+        dayCache[cacheKey(MYDAY_PREFIX, dateKey)] = data.myday || {};
+        loadedDays[dateKey] = true;
       });
   }
 
   function loadAllDays(uid) {
-    var keys = preloadDateKeys();
-    var promises = [];
-    for (var i = 0; i < keys.length; i += 1) {
-      promises.push(loadCloudDay(uid, keys[i])['catch'](function () { /* swallow */ }));
-    }
-    return Promise.all(promises);
+    var keys = preloadDateKeys();           // today + past 14
+    var minKey = keys[keys.length - 1];     // oldest key in the window
+    return loadDaysFrom(uid, minKey)['catch'](function () { /* swallow */ })
+      .then(function () {
+        // Mark every day in the preload window as attempted so empty days are
+        // remembered and not re-fetched one-by-one on navigation.
+        for (var i = 0; i < keys.length; i += 1) { loadedDays[keys[i]] = true; }
+      });
   }
 
   // ── Cloud write (debounced per date) ──────────────────────────────────────
@@ -224,6 +276,7 @@
   function handleAuthChange(user) {
     // Reset per-session state.
     dayCache = {};
+    loadedDays = {};
     for (var k in dayWriteTimers) {
       if (Object.prototype.hasOwnProperty.call(dayWriteTimers, k)) {
         window.clearTimeout(dayWriteTimers[k]);
@@ -273,6 +326,7 @@
             dayCache[cacheKey(MORNING_PREFIX, keys[i])] = cached.morning || {};
             dayCache[cacheKey(MYDAY_PREFIX, keys[i])] = cached.myday || {};
           }
+          loadedDays[keys[i]] = true;
         }
       } else {
         state.tasks = [];
@@ -317,9 +371,7 @@
     }
 
     var jobs = [loadCloudTasks(uid)['catch'](function () { return null; })];
-    for (var j = 0; j < keys.length; j += 1) {
-      jobs.push(loadCloudDay(uid, keys[j])['catch'](function () { return null; }));
-    }
+    jobs.push(loadDaysFrom(uid, keys[keys.length - 1])['catch'](function () { return null; }));
 
     Promise.all(jobs).then(function (results) {
       // Re-check that the user hasn't started typing/tapping mid-flight.
@@ -335,7 +387,7 @@
         }
         changed = true;
       }
-      // loadCloudDay already mutated dayCache; just diff to decide whether
+      // loadDaysFrom already mutated dayCache; just diff to decide whether
       // to notify the UI.
       for (var k = 0; k < keys.length; k += 1) {
         var dk2 = keys[k];
@@ -408,11 +460,16 @@
     // scrolled the calendar far back). Resolves once dayCache is populated.
     ensureDayLoaded: function (dateKey) {
       if (state.mode === 'demo' || !state.user) { return Promise.resolve(); }
-      if (dayCache[cacheKey(MORNING_PREFIX, dateKey)] ||
-          dayCache[cacheKey(MYDAY_PREFIX, dateKey)]) {
-        return Promise.resolve();
-      }
-      return loadCloudDay(state.user.uid, dateKey)['catch'](function () {});
+      if (loadedDays[dateKey]) { return Promise.resolve(); }
+      return loadOneDay(state.user.uid, dateKey)['catch'](function () {});
+    },
+
+    // Bulk-load every day from fromKey through today (and any future days) in a
+    // single query. Used by views that need a wide range (e.g. the dashboard's
+    // multi-week history) so they avoid issuing one request per day.
+    ensureRangeLoaded: function (fromKey) {
+      if (state.mode === 'demo' || !state.user) { return Promise.resolve(); }
+      return loadDaysFrom(state.user.uid, fromKey)['catch'](function () {});
     },
 
     onChange: function (cb) {

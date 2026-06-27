@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
-  <link rel="stylesheet" href="assets/css/styles.css?v=42">
+  <link rel="stylesheet" href="assets/css/styles.css?v=46">
   <link rel="stylesheet" href="assets/css/auth.css?v=1">
 </head>
 <body data-auth-mode="loading">
@@ -27,8 +27,10 @@
           <h1 id="morning-date-heading">Today</h1>
           <div class="date-nav nav-auth-required" id="morning-date-nav">
             <button type="button" class="date-nav-arrow" id="morning-date-prev" aria-label="Previous day"><svg class="date-nav-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"></path></svg></button>
-            <button type="button" class="date-nav-today hidden" id="morning-date-today">Today</button>
+            <button type="button" class="date-nav-today hidden" id="morning-date-today" aria-label="Jump to today"><svg class="date-nav-today-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14l-4-4 4-4"></path><path d="M5 10h9a5 5 0 0 1 5 5v3"></path></svg><span>Today</span></button>
             <button type="button" class="date-nav-arrow" id="morning-date-next" aria-label="Next day"><svg class="date-nav-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"></path></svg></button>
+            <button type="button" class="date-nav-cal" id="morning-date-cal" aria-label="Open date picker" aria-haspopup="dialog" aria-expanded="false"><svg class="date-nav-cal-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 9.5h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg></button>
+            <div class="date-cal-pop hidden" id="morning-date-cal-pop" role="dialog" aria-label="Select date"></div>
           </div>
           <div class="routine-actions">
             <a class="nav-btn nav-auth-required routine-task-link" href="dashboard.html" id="morning-to-dashboard">Dashboard</a>
@@ -52,8 +54,10 @@
           <h1 id="myday-date-heading">Today</h1>
           <div class="date-nav nav-auth-required" id="myday-date-nav">
             <button type="button" class="date-nav-arrow" id="myday-date-prev" aria-label="Previous day"><svg class="date-nav-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"></path></svg></button>
-            <button type="button" class="date-nav-today hidden" id="myday-date-today">Today</button>
+            <button type="button" class="date-nav-today hidden" id="myday-date-today" aria-label="Jump to today"><svg class="date-nav-today-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14l-4-4 4-4"></path><path d="M5 10h9a5 5 0 0 1 5 5v3"></path></svg><span>Today</span></button>
             <button type="button" class="date-nav-arrow" id="myday-date-next" aria-label="Next day"><svg class="date-nav-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"></path></svg></button>
+            <button type="button" class="date-nav-cal" id="myday-date-cal" aria-label="Open date picker" aria-haspopup="dialog" aria-expanded="false"><svg class="date-nav-cal-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 9.5h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg></button>
+            <div class="date-cal-pop hidden" id="myday-date-cal-pop" role="dialog" aria-label="Select date"></div>
           </div>
           <div class="routine-actions">
             <a class="nav-btn nav-auth-required routine-task-link" href="dashboard.html" id="myday-to-dashboard">Dashboard</a>
@@ -126,10 +130,10 @@
   <script src="assets/js/config/pro-allowlist.js?v=1"></script>
   <script src="assets/js/config/tasks-config.js?v=1"></script>
   <script src="assets/js/auth/auth-client.js?v=1"></script>
-  <script src="assets/js/data/firestore-client.js?v=1"></script>
-  <script src="assets/js/data/storage.js?v=2"></script>
+  <script src="assets/js/data/firestore-client.js?v=2"></script>
+  <script src="assets/js/data/storage.js?v=3"></script>
   <script src="assets/js/auth/auth-ui.js?v=1"></script>
-  <script src="assets/js/pages/app.js?v=33"></script>
+  <script src="assets/js/pages/app.js?v=38"></script>
   <script>
     // Boot sequence: mount chip in every screen header, hook the demo banner
     // login button, then kick off Storage which drives the rest of the UI.

@@ -101,6 +101,49 @@ function buildHistoricalCards(bucket) {
   return out;
 }
 
+// Mirror of app.js buildFutureCards. A FUTURE (plan-ahead) day shows ALL tasks
+// scheduled on that date (isTaskForDate), unlike the daily-only backfill view,
+// using the SAME storage ids the live board would use for that date so an early
+// tick is recognized when the day arrives: multi-slot -> one `id__<slot>` card
+// per slot; once-span (length > 1) -> a single bare-id card with a "Day X of N"
+// label; everything else -> the plain task (bare id).
+function buildFutureCards(bucket, date) {
+  var out = [];
+  for (var i = 0; i < bucket.length; i += 1) {
+    var task = bucket[i];
+    if (!isTaskForDate(task, date)) { continue; }
+    if (task.times && task.times.length > 0) {
+      for (var s = 0; s < task.times.length; s += 1) {
+        out.push({
+          id: task.id + '__' + slugifyTime(task.times[s].label),
+          title: task.title,
+          timeLabel: task.times[s].label,
+          accentClass: task.accentClass,
+          icon: task.icon
+        });
+      }
+    } else if (task.frequency && task.frequency.type === 'once') {
+      var range = getOnceRange(task);
+      var totalDays = onceRangeLength(range);
+      if (totalDays > 1) {
+        var dayIdx = onceRangeDayIndex(range, getDateKey(date));
+        out.push({
+          id: task.id,
+          title: task.title,
+          timeLabel: 'Day ' + dayIdx + ' of ' + totalDays,
+          accentClass: task.accentClass,
+          icon: task.icon
+        });
+      } else {
+        out.push(task);
+      }
+    } else {
+      out.push(task);
+    }
+  }
+  return out;
+}
+
 // Wrap-around slots (e.g. 22→1) are normalized to slot.to + 24 so a single
 // inclusive/exclusive comparison handles both cases.
 function isWithinTimeWindow(slot, logicalHour) {
@@ -361,12 +404,17 @@ function renderTaskView(bucket, clock, stateByDay) {
 // clamping / resolution rules can be unit-tested without the DOM.
 //
 //   • BACKFILL_MAX_DAYS  — how far back the arrows allow (app.js ~L227)
+//   • FORWARD_MAX_DAYS   — how far forward (plan-ahead) the arrows allow
 //   • minBackfillKey     — floor date key (logical today − MAX days)
-//   • isHistoricalView   — viewDateKey set AND not equal to logical today
+//   • maxForwardKey      — ceiling date key (logical today + FORWARD days)
+//   • isHistoricalView   — viewDateKey set AND strictly before logical today
+//   • isFutureView       — viewDateKey set AND strictly after logical today
 //   • boardDateKey       — which day a tick reads/writes for a given screen
 //   • stepViewDate       — clamped step; returns the new viewDateKey (null=today)
 //   • renderHistoricalView — daily-only cards + that day's checked state
-var BACKFILL_MAX_DAYS = 7;
+//   • renderFutureView   — all-scheduled cards + that day's checked state
+var BACKFILL_MAX_DAYS = 14;
+var FORWARD_MAX_DAYS = 7;
 
 function logicalKey(clock) {
   return getDateKey(getLogicalDate(clock));
@@ -377,8 +425,19 @@ function minBackfillKey(clock) {
   return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - BACKFILL_MAX_DAYS));
 }
 
+function maxForwardKey(clock) {
+  var d = getLogicalDate(clock);
+  return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + FORWARD_MAX_DAYS));
+}
+
+// Past day: viewDateKey set AND strictly before logical today.
 function isHistoricalView(viewDateKey, clock) {
-  return viewDateKey !== null && viewDateKey !== logicalKey(clock);
+  return viewDateKey !== null && viewDateKey < logicalKey(clock);
+}
+
+// Future day: viewDateKey set AND strictly after logical today.
+function isFutureView(viewDateKey, clock) {
+  return viewDateKey !== null && viewDateKey > logicalKey(clock);
 }
 
 // Morning and My Day now resolve to the same logical (calendar) day; in
@@ -390,13 +449,14 @@ function boardDateKey(prefix, viewDateKey, clock) {
 }
 
 // Returns the resulting viewDateKey: null = back to live today, a 'YYYY-MM-DD'
-// string = a past day, or the unchanged input when the step is out of bounds
-// (no forward past today; no further back than the 7-day floor).
+// string = a past OR future day, or the unchanged input when the step is out of
+// bounds (no further forward than the +FORWARD floor; no further back than the
+// 7-day floor).
 function stepViewDate(currentViewKey, deltaDays, clock) {
   var base = currentViewKey ? parseLocalDateKey(currentViewKey) : getLogicalDate(clock);
   var next = new Date(base.getFullYear(), base.getMonth(), base.getDate() + deltaDays);
   var nextKey = getDateKey(next);
-  if (nextKey > logicalKey(clock)) return currentViewKey;
+  if (nextKey > maxForwardKey(clock)) return currentViewKey;
   if (nextKey < minBackfillKey(clock)) return currentViewKey;
   if (nextKey === logicalKey(clock)) return null;
   return nextKey;
@@ -422,9 +482,30 @@ function renderHistoricalView(bucket, viewDateKey, stateByDay) {
   return { dateKey: viewDateKey, cards: out };
 }
 
+// Mirror of renderFutureTaskView's data decisions: all-scheduled cards (via
+// buildFutureCards), each card's `checked` reflects that day's saved record,
+// and `missed` is always false (the future cannot be missed).
+function renderFutureView(bucket, viewDateKey, stateByDay) {
+  var cards = buildFutureCards(bucket, parseLocalDateKey(viewDateKey));
+  var state = (stateByDay && stateByDay[viewDateKey]) || {};
+  var out = [];
+  for (var i = 0; i < cards.length; i += 1) {
+    var c = cards[i];
+    out.push({
+      id: c.id,
+      title: c.title,
+      timeLabel: c.timeLabel || null,
+      checked: !!state[c.id],
+      missed: false
+    });
+  }
+  return { dateKey: viewDateKey, cards: out };
+}
+
 module.exports = {
   MAX_CARRY_DAYS: MAX_CARRY_DAYS,
   BACKFILL_MAX_DAYS: BACKFILL_MAX_DAYS,
+  FORWARD_MAX_DAYS: FORWARD_MAX_DAYS,
   getDateKey: getDateKey,
   parseLocalDateKey: parseLocalDateKey,
   getLogicalDate: getLogicalDate,
@@ -442,9 +523,13 @@ module.exports = {
   renderTaskView: renderTaskView,
   isDailyTask: isDailyTask,
   buildHistoricalCards: buildHistoricalCards,
+  buildFutureCards: buildFutureCards,
   minBackfillKey: minBackfillKey,
+  maxForwardKey: maxForwardKey,
   isHistoricalView: isHistoricalView,
+  isFutureView: isFutureView,
   boardDateKey: boardDateKey,
   stepViewDate: stepViewDate,
-  renderHistoricalView: renderHistoricalView
+  renderHistoricalView: renderHistoricalView,
+  renderFutureView: renderFutureView
 };

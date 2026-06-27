@@ -120,6 +120,16 @@
     });
   }
 
+  // Full Firestore resource name (without the API host) for the given document
+  // path. Used to build `referenceValue` operands in structured queries.
+  function resourceName(path) {
+    var cfg = window.FIREBASE_CONFIG;
+    if (!cfg || !cfg.projectId) {
+      throw new Error('Firebase config missing. Edit firebase-config.js.');
+    }
+    return 'projects/' + cfg.projectId + '/databases/(default)/documents/' + path;
+  }
+
   // ── Public API ────────────────────────────────────────────────────────────
   var Firestore = {
     getDoc: function (path) {
@@ -127,6 +137,34 @@
         if (!resp || !resp.fields) { return null; }
         return decodeFields(resp.fields);
       });
+    },
+
+    resourceName: resourceName,
+
+    // Run a structured query against the collection(s) under `parentPath`
+    // (a document path, e.g. 'users/abc'). Returns an array of
+    // { id: <docId>, data: <decoded fields> }. Unlike getDoc, a query never
+    // 404s for missing documents — it simply omits them — so callers can read
+    // a date range without generating console noise for empty days.
+    runQuery: function (parentPath, structuredQuery) {
+      var url = baseUrl() + parentPath + ':runQuery';
+      return authedXhr('POST', url, { structuredQuery: structuredQuery })
+        .then(function (resp) {
+          var out = [];
+          if (!resp || Object.prototype.toString.call(resp) !== '[object Array]') {
+            return out;
+          }
+          for (var i = 0; i < resp.length; i += 1) {
+            var doc = resp[i] && resp[i].document;
+            if (!doc || !doc.name) { continue; }
+            var segs = doc.name.split('/');
+            out.push({
+              id: segs[segs.length - 1],
+              data: doc.fields ? decodeFields(doc.fields) : {}
+            });
+          }
+          return out;
+        });
     },
 
     setDoc: function (path, data) {
