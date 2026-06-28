@@ -721,7 +721,8 @@
             title: task.title,
             timeLabel: 'Day ' + dayIdx + ' of ' + totalDays,
             accentClass: task.accentClass,
-            icon: task.icon
+            icon: task.icon,
+            isOnce: true
           });
         } else {
           expandedTasks.push(task);
@@ -893,7 +894,19 @@
       pushCarryForward(task);
     }
 
+    // One-time (once) tasks take the highest precedence within this group, so
+    // they always lead. Among the rest, timed tasks (with a time-window label)
+    // come before plain untimed tasks. The sort is stable, so config order is
+    // preserved within each tier. A multi-day once card carries an explicit
+    // isOnce flag (its synthetic object has no frequency); a single-day once
+    // card is the raw task, detected via frequency.type.
+    function expandedIsOnce(x) {
+      return x.isOnce === true || (x.frequency && x.frequency.type === 'once');
+    }
     expandedTasks.sort(function (a, b) {
+      var aO = expandedIsOnce(a) ? 0 : 1;
+      var bO = expandedIsOnce(b) ? 0 : 1;
+      if (aO !== bO) { return aO - bO; }
       var aT = a.timeLabel ? 0 : 1;
       var bT = b.timeLabel ? 0 : 1;
       return aT - bT;
