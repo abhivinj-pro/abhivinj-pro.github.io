@@ -44,7 +44,7 @@ A personal habit-tracking and task-management web app hosted on GitHub Pages. De
 
 ## Icon Library
 
-`assets/js/icons/icon-library-color.js` contains a curated SVG icon library (Health, Fitness, Food, Mind, Home, and more). The Task Manager lets you search and filter icons by name, tag, or category with a visual picker. (A monochrome outline variant, `icon-library.js`, is kept alongside it for reference.)
+`assets/js/icons/icon-library-color.js` contains a curated SVG icon library (Health, Fitness, Food, Mind, Home, and more). The Task Manager lets you search and filter icons by name, tag, or category with a visual picker.
 
 ## Project structure
 
