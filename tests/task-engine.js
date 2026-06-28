@@ -289,10 +289,11 @@ function renderTaskView(bucket, clock, stateByDay) {
         expanded.push({
           id: task.id,
           title: task.title,
-          timeLabel: 'Day ' + onceRangeDayIndex(range, todayKey) + ' of ' + totalDays
+          timeLabel: 'Day ' + onceRangeDayIndex(range, todayKey) + ' of ' + totalDays,
+          isOnce: true
         });
       } else {
-        expanded.push({ id: task.id, title: task.title });
+        expanded.push({ id: task.id, title: task.title, isOnce: true });
       }
     } else {
       expanded.push({ id: task.id, title: task.title });
@@ -390,7 +391,12 @@ function renderTaskView(bucket, clock, stateByDay) {
     pushCarryForward(b);
   }
 
-  expanded.sort(function (a, b) { return (a.timeLabel ? 0 : 1) - (b.timeLabel ? 0 : 1); });
+  // Once tasks lead; then timed-before-plain. Stable sort preserves config order.
+  expanded.sort(function (a, b) {
+    var aO = a.isOnce ? 0 : 1, bO = b.isOnce ? 0 : 1;
+    if (aO !== bO) return aO - bO;
+    return (a.timeLabel ? 0 : 1) - (b.timeLabel ? 0 : 1);
+  });
 
   var all = expanded.concat(carry).concat(missed);
   var visible = [], caughtUp = [];
