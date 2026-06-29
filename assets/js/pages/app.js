@@ -222,11 +222,12 @@
   // The board normally shows "today" (the logical date). The date arrows let a
   // user step back up to BACKFILL_MAX_DAYS to tick off DAILY tasks they did but
   // could not check before the midnight rollover. `viewDateKey === null` means the
-  // live "today" view; a 'YYYY-MM-DD' string means a historical day. Only the
-  // Morning and My Day screens honor it (Work resets to today — its arrows are
-  // hidden). See /memories plan: historical view shows ONLY daily tasks.
+  // live "today" view; a 'YYYY-MM-DD' string means a historical day. Morning
+  // and My Day honor both backfill and forward; Work is forward-only (starts at
+  // today, may step ahead). See /memories plan: historical view shows ONLY daily tasks.
   var BACKFILL_MAX_DAYS = 14;
   var FORWARD_MAX_DAYS = 7;
+  var WORK_FORWARD_MAX_DAYS = 14;
   var viewDateKey = null;
 
   function isDailyTask(task) {
@@ -242,10 +243,18 @@
     return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() - BACKFILL_MAX_DAYS));
   }
 
+  // Earliest day the date-nav allows for the current view. My Day / Morning may
+  // backfill; Work is forward-only, so it can never step before today.
+  function navMinKey() {
+    return currentDayView === 'work' ? todayLogicalKey() : minBackfillKey();
+  }
+
   // Furthest day the forward (plan-ahead) arrows allow: logical today + N days.
+  // Work plans further out than My Day / Morning.
   function maxForwardKey() {
     var d = getLogicalDate();
-    return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + FORWARD_MAX_DAYS));
+    var span = currentDayView === 'work' ? WORK_FORWARD_MAX_DAYS : FORWARD_MAX_DAYS;
+    return getDateKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + span));
   }
 
   // Past day ("backfill"): viewed day is strictly before logical today.
@@ -653,17 +662,15 @@
     // Static-day views: a non-today day shows plain tickable cards with that
     // day's saved state. Past (backfill) shows ONLY daily tasks; future (plan
     // ahead) shows ALL scheduled tasks so the day can be planned and ticked
-    // early. Work is never non-today (its arrows are hidden), so these paths
-    // are My Day only.
-    if (viewName !== 'work') {
-      if (isFutureView()) {
-        renderFutureTaskView(bucket, viewName);
-        return;
-      }
-      if (isHistoricalView()) {
-        renderHistoricalTaskView(bucket, viewName);
-        return;
-      }
+    // early. Work is forward-only, so it shares the future path but never the
+    // historical (backfill) one.
+    if (isFutureView()) {
+      renderFutureTaskView(bucket, viewName);
+      return;
+    }
+    if (viewName !== 'work' && isHistoricalView()) {
+      renderHistoricalTaskView(bucket, viewName);
+      return;
     }
 
     for (i = 0; i < bucket.length; i += 1) {
@@ -1396,7 +1403,7 @@
       else { navEl.classList.remove('hidden'); }
     }
 
-    if (prevBtn) { prevBtn.disabled = (displayedKey <= minBackfillKey()); }
+    if (prevBtn) { prevBtn.disabled = (displayedKey <= navMinKey()); }
     if (nextBtn) { nextBtn.disabled = (displayedKey >= maxForwardKey()); }
     if (todayBtn) {
       if (offToday) { todayBtn.classList.remove('hidden'); }
@@ -1406,7 +1413,7 @@
 
   function updateDateNavUI() {
     updateNavGroup('morning', morningDateHeading, false);
-    updateNavGroup('myday', mydayDateHeading, currentDayView === 'work');
+    updateNavGroup('myday', mydayDateHeading, false);
     if (calPrefix) { renderDatePicker(); }
   }
 
@@ -1445,7 +1452,7 @@
     var next = new Date(base.getFullYear(), base.getMonth(), base.getDate() + deltaDays);
     var nextKey = getDateKey(next);
     if (nextKey > maxForwardKey()) { return; }
-    if (nextKey < minBackfillKey()) { return; }
+    if (nextKey < navMinKey()) { return; }
     if (nextKey === todayLogicalKey()) {
       goToToday();
     } else {
@@ -1476,7 +1483,7 @@
 
   // True when the month offset by `dir` contains at least one in-window day.
   function calMonthHasDays(dir) {
-    var min = minBackfillKey();
+    var min = navMinKey();
     var max = maxForwardKey();
     var shifted = new Date(calMonth.getFullYear(), calMonth.getMonth() + dir, 1);
     var firstKey = getDateKey(new Date(shifted.getFullYear(), shifted.getMonth(), 1));
@@ -1488,7 +1495,7 @@
     if (!calPrefix || !calMonth) { return; }
     var pop = document.getElementById(calPrefix + '-date-cal-pop');
     if (!pop) { return; }
-    var min = minBackfillKey();
+    var min = navMinKey();
     var max = maxForwardKey();
     var todayKey = todayLogicalKey();
     var selectedKey = getDateKey(displayedViewDate());
