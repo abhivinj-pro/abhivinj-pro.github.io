@@ -108,20 +108,11 @@
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
   }());
 
+  var FLAG_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="22" x2="4" y2="3" stroke="#8d6e63" stroke-width="2" stroke-linecap="round"/><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" fill="#ef5350" stroke="#c62828" stroke-width="0.5"/><path d="M4 9s1-1 4-1 5 2 8 2" stroke="#ff8a80" stroke-width="0.8" fill="none" opacity="0.6"/></svg>';
+
   var SOURCE_TASKS = [
-    { id: 'cisa-work-2026-06-04-day-6-pki-ssl-tls', title: 'Day 6 PKI, SSL/TLS', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-04-day-7-1-osi-tcp-ip-udp', title: 'Day 7.1 OSI, TCP/IP, UDP', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-04-day-7-2-ssh-telnet-dhcp', title: 'Day 7.2 SSH, TELNET, DHCP', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-04-day-8-1-data-classification-user-training', title: 'Day 8.1 Data Classification & User Training', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-04-two-questions-on-data-classification-with-summarised-concept', title: 'Two Questions on Data Classification with Summarised Concept', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-04-day-8-2-attack-techniques', title: 'Day 8.2 Attack Techniques', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-04-day-9-1-syn-flood-attack', title: 'Day 9.1 SYN Flood Attack', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-04-day-9-2-worms-trojan-horse-virus', title: 'Day 9.2 Worms, Trojan Horse, Virus', date: '2026-06-04' },
-    { id: 'cisa-work-2026-06-05-day-9-3-trap-doors-back-door', title: 'Day 9.3 Trap Doors / Back Door', date: '2026-06-05' },
-    { id: 'cisa-work-2026-06-05-day-9-4-salami-slicing', title: 'Day 9.4 Salami Slicing', date: '2026-06-05' },
-    { id: 'cisa-work-2026-06-05-day-10-1-bombs', title: 'Day 10.1 Bombs', date: '2026-06-05' },
-    { id: 'cisa-work-2026-06-05-day-10-2-pharming', title: 'Day 10.2 Pharming (DNS Server Poisoning & Malware based Pharming)', date: '2026-06-05' },
-    { id: 'cisa-work-2026-06-05-day-10-3-juice-jacking-pdos-banana-attack', title: 'Day 10.3 Juice Jacking, PDoS, Banana Attack', date: '2026-06-05' }
+    { id: 'test-task1', title: 'Task1', date: '2026-06-29', icon: FLAG_ICON },
+    { id: 'test-task2', title: 'Task2', date: '2026-07-05', icon: FLAG_ICON }
   ];
 
   var logEl = document.getElementById('log');
