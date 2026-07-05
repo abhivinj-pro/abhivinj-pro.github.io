@@ -2,6 +2,7 @@
   const ACCENT_CLASSES = ['accent-pink', 'accent-blue', 'accent-green', 'accent-cyan', 'accent-amber', 'accent-purple'];
   const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const MORNING_CATEGORY = 'Morning Routine';
   const WORK_CATEGORY = 'Work';
 
@@ -15,6 +16,9 @@
   let selectedIcon = DEFAULT_ICON;
   let iconPickerOpen = false;
   let iconCategoryFilter = 'All';
+  // Working set of explicit occurrence dates (YYYY-MM-DD) for a `once` task in
+  // "Specific dates" mode. Kept sorted + de-duped by addOnceDate.
+  let onceDates = [];
 
   const taskList = document.getElementById('task-list');
   const filterBar = document.getElementById('filter-bar');
@@ -29,6 +33,13 @@
   const oncePanel = document.getElementById('once-panel');
   const onceStartDateInput = document.getElementById('once-start-date');
   const onceEndDateInput = document.getElementById('once-end-date');
+  const onceModeRadios = document.querySelectorAll('input[name="once-mode"]');
+  const onceRangePanel = document.getElementById('once-range-panel');
+  const onceDatesPanel = document.getElementById('once-dates-panel');
+  const onceDateInput = document.getElementById('once-date-input');
+  const onceAddDateBtn = document.getElementById('once-add-date-btn');
+  const onceDatesList = document.getElementById('once-dates-list');
+  const onceDatesCount = document.getElementById('once-dates-count');
   const timesPanel = document.getElementById('times-panel');
   const timeSlotsList = document.getElementById('time-slots-list');
   const addSlotBtn = document.getElementById('add-slot-btn');
@@ -215,18 +226,28 @@
     } else if (freq.type === 'interval') {
       desc = 'Every ' + freq.every + ' weeks on ' + DAY_NAMES[freq.day] + ' (from ' + freq.startDate + ')';
     } else if (freq.type === 'once') {
-      const start = freq.startDate || freq.date;
-      const end = freq.endDate || freq.date || start;
-      if (!start) {
-        desc = 'One-time (no date)';
-      } else if (!end || start === end) {
-        desc = 'One-time on ' + start;
+      if (freq.dates && freq.dates.length) {
+        const sorted = freq.dates.slice().sort();
+        if (sorted.length === 1) {
+          desc = 'One-time on ' + sorted[0];
+        } else {
+          const preview = sorted.slice(0, 3).join(', ');
+          desc = sorted.length + ' specific dates (' + preview + (sorted.length > 3 ? ', \u2026' : '') + ')';
+        }
       } else {
-        const days = Math.round(
-          (new Date(end + 'T00:00:00').getTime() - new Date(start + 'T00:00:00').getTime())
-            / (24 * 60 * 60 * 1000)
-        ) + 1;
-        desc = 'Multi-day from ' + start + ' to ' + end + ' (' + days + ' days)';
+        const start = freq.startDate || freq.date;
+        const end = freq.endDate || freq.date || start;
+        if (!start) {
+          desc = 'One-time (no date)';
+        } else if (!end || start === end) {
+          desc = 'One-time on ' + start;
+        } else {
+          const days = Math.round(
+            (new Date(end + 'T00:00:00').getTime() - new Date(start + 'T00:00:00').getTime())
+              / (24 * 60 * 60 * 1000)
+          ) + 1;
+          desc = 'Multi-day from ' + start + ' to ' + end + ' (' + days + ' days)';
+        }
       }
     } else {
       desc = 'Unknown';
@@ -276,7 +297,12 @@
     if (!task || !task.frequency || task.frequency.type !== 'once') {
       return '';
     }
-    return task.frequency.endDate || task.frequency.date || task.frequency.startDate || '';
+    const freq = task.frequency;
+    if (freq.dates && freq.dates.length) {
+      // Last (max) occurrence drives the auto-archive window.
+      return freq.dates.slice().sort()[freq.dates.length - 1];
+    }
+    return freq.endDate || freq.date || freq.startDate || '';
   }
 
   // Match MAX_CARRY_DAYS in app.js: once-tasks remain visible as Missed for up
@@ -459,15 +485,30 @@
       document.getElementById('interval-start').value = getTodayStr();
     }
 
-    if (freqType === 'once' && task && task.frequency) {
+    onceDates = [];
+    if (freqType === 'once' && task && task.frequency && task.frequency.dates && task.frequency.dates.length) {
+      // Explicit-dates task: populate the Specific-dates mode.
+      task.frequency.dates.forEach(addOnceDate);
+      updateOnceMode('dates');
+      const today = getTodayStr();
+      onceStartDateInput.value = today;
+      onceEndDateInput.value = today;
+      onceDateInput.value = '';
+    } else if (freqType === 'once' && task && task.frequency) {
       const onceStart = task.frequency.startDate || task.frequency.date || getTodayStr();
       const onceEnd = task.frequency.endDate || task.frequency.date || onceStart;
       onceStartDateInput.value = onceStart;
       onceEndDateInput.value = onceEnd;
+      updateOnceMode('range');
+      onceDateInput.value = '';
+      renderOnceDates();
     } else {
       const today = getTodayStr();
       onceStartDateInput.value = today;
       onceEndDateInput.value = today;
+      updateOnceMode('range');
+      onceDateInput.value = '';
+      renderOnceDates();
     }
 
     clearSlots();
@@ -498,6 +539,63 @@
     weeklyPanel.classList.toggle('hidden', type !== 'weekly');
     intervalPanel.classList.toggle('hidden', type !== 'interval');
     oncePanel.classList.toggle('hidden', type !== 'once');
+  }
+
+  function getOnceMode() {
+    const checked = document.querySelector('input[name="once-mode"]:checked');
+    return checked ? checked.value : 'range';
+  }
+
+  function updateOnceMode(mode) {
+    onceModeRadios.forEach(r => { r.checked = r.value === mode; });
+    onceRangePanel.classList.toggle('hidden', mode !== 'range');
+    onceDatesPanel.classList.toggle('hidden', mode !== 'dates');
+  }
+
+  // Short, locale-independent label for a YYYY-MM-DD key, e.g. "Sun, Jul 5, 2026".
+  function formatOnceDate(key) {
+    const d = parseDateKey(key);
+    if (!d) { return key; }
+    return DAY_SHORT[d.getDay()] + ', ' + MONTH_SHORT[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  function parseDateKey(key) {
+    if (!key || typeof key !== 'string') { return null; }
+    const p = key.split('-');
+    if (p.length < 3) { return null; }
+    const y = parseInt(p[0], 10), m = parseInt(p[1], 10), day = parseInt(p[2], 10);
+    if (isNaN(y) || isNaN(m) || isNaN(day)) { return null; }
+    return new Date(y, m - 1, day);
+  }
+
+  function addOnceDate(key) {
+    if (!key || onceDates.indexOf(key) !== -1) { return; }
+    onceDates.push(key);
+    onceDates.sort();
+    renderOnceDates();
+  }
+
+  function removeOnceDate(key) {
+    const idx = onceDates.indexOf(key);
+    if (idx !== -1) {
+      onceDates.splice(idx, 1);
+      renderOnceDates();
+    }
+  }
+
+  function renderOnceDates() {
+    onceDatesList.innerHTML = '';
+    onceDates.forEach(key => {
+      const li = document.createElement('li');
+      li.className = 'once-date-chip';
+      li.innerHTML = '<span class="once-date-label">' + escapeHtml(formatOnceDate(key)) + '</span>' +
+        '<button type="button" class="once-date-remove" data-date="' + key + '" aria-label="Remove date">&times;</button>';
+      onceDatesList.appendChild(li);
+    });
+    const n = onceDates.length;
+    onceDatesCount.textContent = n === 0
+      ? 'No dates added yet.'
+      : n + (n === 1 ? ' date added.' : ' dates added.');
   }
 
   function getTodayStr() {
@@ -535,14 +633,22 @@
     }
 
     if (freqType === 'once') {
-      const start = onceStartDateInput.value || getTodayStr();
-      let end = onceEndDateInput.value || start;
-      if (end < start) {
-        alert('End date cannot be before start date.');
-        return null;
+      if (getOnceMode() === 'dates') {
+        if (onceDates.length === 0) {
+          alert('Please add at least one date.');
+          return null;
+        }
+        frequency.dates = onceDates.slice().sort();
+      } else {
+        const start = onceStartDateInput.value || getTodayStr();
+        let end = onceEndDateInput.value || start;
+        if (end < start) {
+          alert('End date cannot be before start date.');
+          return null;
+        }
+        frequency.startDate = start;
+        frequency.endDate = end;
       }
-      frequency.startDate = start;
-      frequency.endDate = end;
     }
 
     result.frequency = frequency;
@@ -710,6 +816,29 @@
     radio.addEventListener('change', () => {
       updateFreqPanels(radio.value);
     });
+  });
+
+  onceModeRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      updateOnceMode(radio.value);
+    });
+  });
+
+  onceAddDateBtn.addEventListener('click', () => {
+    const key = onceDateInput.value;
+    if (!key) {
+      alert('Please pick a date to add.');
+      return;
+    }
+    addOnceDate(key);
+    onceDateInput.value = '';
+  });
+
+  onceDatesList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.once-date-remove');
+    if (btn) {
+      removeOnceDate(btn.getAttribute('data-date'));
+    }
   });
 
   timesModeRadios.forEach(radio => {

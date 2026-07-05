@@ -44,6 +44,46 @@ t.describe('scheduling :: onceRangeLength / onceRangeDayIndex', function () {
   });
 });
 
+t.describe('scheduling :: once explicit dates shape', function () {
+  var vaccine = { frequency: { type: 'once', dates: ['2026-07-05', '2026-07-08', '2026-07-15', '2026-07-29'] } };
+
+  t.it('getOnceRange exposes sorted dates + first/last bounds', function () {
+    var r = E.getOnceRange(vaccine);
+    t.assert.deepEqual(r.dates, ['2026-07-05', '2026-07-08', '2026-07-15', '2026-07-29']);
+    t.assert.equal(r.startDate, '2026-07-05');
+    t.assert.equal(r.endDate, '2026-07-29');
+  });
+  t.it('getOnceRange de-dupes and sorts unsorted input', function () {
+    var r = E.getOnceRange({ frequency: { type: 'once', dates: ['2026-07-15', '2026-07-05', '2026-07-15'] } });
+    t.assert.deepEqual(r.dates, ['2026-07-05', '2026-07-15']);
+  });
+  t.it('onceRangeLength counts occurrences, not span days', function () {
+    t.assert.equal(E.onceRangeLength(E.getOnceRange(vaccine)), 4);
+  });
+  t.it('onceRangeDayIndex is 1-based position among occurrences', function () {
+    var r = E.getOnceRange(vaccine);
+    t.assert.equal(E.onceRangeDayIndex(r, '2026-07-05'), 1);
+    t.assert.equal(E.onceRangeDayIndex(r, '2026-07-15'), 3);
+    t.assert.equal(E.onceRangeDayIndex(r, '2026-07-29'), 4);
+  });
+  t.it('onceRangeDayIndex returns 0 for an in-between non-occurrence day', function () {
+    var r = E.getOnceRange(vaccine);
+    t.assert.equal(E.onceRangeDayIndex(r, '2026-07-06'), 0);
+    t.assert.equal(E.onceRangeDayIndex(r, '2026-07-20'), 0);
+  });
+  t.it('isTaskForDate matches only the listed dates', function () {
+    t.assert.equal(E.isTaskForDate(vaccine, new Date(2026, 6, 5)), true, 'Jul 5');
+    t.assert.equal(E.isTaskForDate(vaccine, new Date(2026, 6, 6)), false, 'Jul 6 (gap)');
+    t.assert.equal(E.isTaskForDate(vaccine, new Date(2026, 6, 8)), true, 'Jul 8');
+    t.assert.equal(E.isTaskForDate(vaccine, new Date(2026, 6, 15)), true, 'Jul 15');
+    t.assert.equal(E.isTaskForDate(vaccine, new Date(2026, 6, 16)), false, 'Jul 16 (gap)');
+    t.assert.equal(E.isTaskForDate(vaccine, new Date(2026, 6, 29)), true, 'Jul 29');
+  });
+  t.it('empty dates array is not a usable once shape', function () {
+    t.assert.equal(E.getOnceRange({ frequency: { type: 'once', dates: [] } }), null);
+  });
+});
+
 t.describe('scheduling :: isTaskForDate', function () {
   var may27_wed = new Date(2026, 4, 27); // Wed
   var may28_thu = new Date(2026, 4, 28);

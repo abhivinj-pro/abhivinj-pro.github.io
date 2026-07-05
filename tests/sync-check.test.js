@@ -87,7 +87,7 @@ t.describe('source-sync :: app.js still defines the mirrored helpers', function 
     // every subsequent day until MAX_CARRY_DAYS.
     var legacyBranch = APP_JS.match(/Legacy single-day path[\s\S]{0,800}/);
     t.assert.ok(legacyBranch, 'legacy single-day branch comment not found');
-    t.assert.match(legacyBranch[0], /wasEverCompleted\s*\(\s*task\.id\s*,\s*d\s*,\s*todayNorm\s*\)/,
+    t.assert.match(legacyBranch[0], /wasEverCompleted\s*\(\s*task\.id\s*,\s*dDate\s*,\s*todayNorm\s*\)/,
       'single-day once branch must call wasEverCompleted to suppress resurrection');
   });
   t.it('MAX_CARRY_DAYS is 14', function () {

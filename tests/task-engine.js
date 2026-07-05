@@ -161,10 +161,30 @@ function isExpiredTimeWindow(slot, logicalHour) {
 
 // ── Frequency / scheduling ──────────────────────────────────────────────────
 
-// Normalizes legacy {date} (single-day) and new {startDate,endDate} (span).
+// Sort + dedupe YYYY-MM-DD keys ascending (mirrors app.js normalizeOnceDates).
+function normalizeOnceDates(list) {
+  if (!list || !list.length) return [];
+  var seen = {}, out = [];
+  for (var i = 0; i < list.length; i += 1) {
+    var k = list[i];
+    if (typeof k !== 'string' || !k || seen[k]) continue;
+    seen[k] = true; out.push(k);
+  }
+  out.sort();
+  return out;
+}
+
+// Normalizes legacy {date} (single-day), {startDate,endDate} (span), and
+// {dates:[...]} (explicit non-contiguous occurrences). Explicit-dates ranges
+// also carry a sorted/de-duped `dates` array; startDate/endDate = first/last.
 function getOnceRange(task) {
   if (!task || !task.frequency || task.frequency.type !== 'once') return null;
   var f = task.frequency;
+  if (f.dates && f.dates.length) {
+    var dates = normalizeOnceDates(f.dates);
+    if (!dates.length) return null;
+    return { startDate: dates[0], endDate: dates[dates.length - 1], dates: dates };
+  }
   var s = f.startDate || f.date;
   if (!s) return null;
   var e = f.endDate || f.date || s;
@@ -174,13 +194,16 @@ function getOnceRange(task) {
 
 function onceRangeLength(range) {
   if (!range) return 0;
+  if (range.dates) return range.dates.length;
   var s = parseLocalDateKey(range.startDate);
   var e = parseLocalDateKey(range.endDate);
   return Math.round((e.getTime() - s.getTime()) / 86400000) + 1;
 }
 
 function onceRangeDayIndex(range, dateKey) {
-  if (!range || dateKey < range.startDate || dateKey > range.endDate) return 0;
+  if (!range) return 0;
+  if (range.dates) return range.dates.indexOf(dateKey) + 1;
+  if (dateKey < range.startDate || dateKey > range.endDate) return 0;
   var s = parseLocalDateKey(range.startDate);
   var d = parseLocalDateKey(dateKey);
   return Math.round((d.getTime() - s.getTime()) / 86400000) + 1;
@@ -204,6 +227,7 @@ function isTaskForDate(task, date) {
     var r = getOnceRange(task);
     if (!r) return false;
     var k = getDateKey(date);
+    if (r.dates) return r.dates.indexOf(k) !== -1;
     return k >= r.startDate && k <= r.endDate;
   }
   return false;
@@ -362,20 +386,32 @@ function renderTaskView(bucket, clock, stateByDay) {
       var endD = parseLocalDateKey(r2.endDate);
       var lastInspect = new Date(todayNorm.getTime()); lastInspect.setDate(lastInspect.getDate() - 1);
       if (endD.getTime() < lastInspect.getTime()) lastInspect = endD;
-      var d = new Date(startD.getTime());
-      while (d.getTime() <= lastInspect.getTime()) {
-        var dKey = getDateKey(d);
-        var since = Math.round((todayNorm.getTime() - d.getTime()) / 86400000);
-        if (since < 1 || since > MAX_CARRY_DAYS) { d.setDate(d.getDate() + 1); continue; }
+      var inspectKeys = [];
+      if (r2.dates) {
+        var lastInspectKey = getDateKey(lastInspect);
+        for (var di = 0; di < r2.dates.length; di += 1) {
+          if (r2.dates[di] <= lastInspectKey) inspectKeys.push(r2.dates[di]);
+        }
+      } else {
+        var d = new Date(startD.getTime());
+        while (d.getTime() <= lastInspect.getTime()) {
+          inspectKeys.push(getDateKey(d));
+          d.setDate(d.getDate() + 1);
+        }
+      }
+      for (var ik = 0; ik < inspectKeys.length; ik += 1) {
+        var dKey = inspectKeys[ik];
+        var dDate = parseLocalDateKey(dKey);
+        var since = Math.round((todayNorm.getTime() - dDate.getTime()) / 86400000);
+        if (since < 1 || since > MAX_CARRY_DAYS) continue;
         var sd = readState(dKey);
-        if (sd[b.id]) { d.setDate(d.getDate() + 1); continue; }
-        if (isSpan && wasOnceDayCaughtUp(b, dKey, todayNorm)) { d.setDate(d.getDate() + 1); continue; }
+        if (sd[b.id]) continue;
+        if (isSpan && wasOnceDayCaughtUp(b, dKey, todayNorm)) continue;
         if (isSpan) {
           pushCarryForwardOnceDay(b, r2, dKey, spanLen);
-        } else if (!todayTaskIds[b.id] && !wasEverCompleted(b.id, d, todayNorm)) {
+        } else if (!todayTaskIds[b.id] && !wasEverCompleted(b.id, dDate, todayNorm)) {
           pushCarryForward(b);
         }
-        d.setDate(d.getDate() + 1);
       }
       continue;
     }
