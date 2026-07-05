@@ -517,12 +517,37 @@
     }
   }
 
+  // Sort + dedupe a list of YYYY-MM-DD keys ascending. Non-string/empty entries
+  // are dropped so a malformed saved task cannot poison the schedule.
+  function normalizeOnceDates(list) {
+    if (!list || !list.length) { return []; }
+    var seen = {};
+    var out = [];
+    for (var i = 0; i < list.length; i += 1) {
+      var key = list[i];
+      if (typeof key !== 'string' || !key || seen[key]) { continue; }
+      seen[key] = true;
+      out.push(key);
+    }
+    out.sort();
+    return out;
+  }
+
   // Normalize a `once` frequency into {startDate, endDate} (YYYY-MM-DD strings).
-  // Supports legacy { date } (single-day) and new { startDate, endDate } (span).
-  // Returns null if the frequency is not a usable `once` shape.
+  // Supports legacy { date } (single-day), { startDate, endDate } (contiguous
+  // span), and { dates: [...] } (explicit non-contiguous occurrences). For the
+  // explicit-dates shape the returned object also carries a sorted, de-duped
+  // `dates` array and startDate/endDate are its first/last occurrence (so bound
+  // checks such as auto-archive keep working). Returns null if not a usable
+  // `once` shape.
   function getOnceRange(task) {
     if (!task || !task.frequency || task.frequency.type !== 'once') { return null; }
     var freq = task.frequency;
+    if (freq.dates && freq.dates.length) {
+      var dates = normalizeOnceDates(freq.dates);
+      if (!dates.length) { return null; }
+      return { startDate: dates[0], endDate: dates[dates.length - 1], dates: dates };
+    }
     var start = freq.startDate || freq.date;
     if (!start) { return null; }
     var end = freq.endDate || freq.date || start;
@@ -531,18 +556,24 @@
     return { startDate: start, endDate: end };
   }
 
-  // Inclusive day-count of a once range. Single-day ranges return 1.
+  // Count of scheduled occurrences in a once range. For an explicit-dates range
+  // it is the number of dates; for a contiguous span it is the inclusive
+  // day-count (single-day ranges return 1).
   function onceRangeLength(range) {
     if (!range) { return 0; }
+    if (range.dates) { return range.dates.length; }
     var s = parseLocalDateKey(range.startDate);
     var e = parseLocalDateKey(range.endDate);
     var diff = Math.round((e.getTime() - s.getTime()) / (24 * 60 * 60 * 1000));
     return diff + 1;
   }
 
-  // 1-based day index of `dateKey` within `range`. Returns 0 if outside.
+  // 1-based index of `dateKey` among the range's occurrences. Returns 0 if the
+  // date is not a scheduled occurrence.
   function onceRangeDayIndex(range, dateKey) {
-    if (!range || dateKey < range.startDate || dateKey > range.endDate) { return 0; }
+    if (!range) { return 0; }
+    if (range.dates) { return range.dates.indexOf(dateKey) + 1; }
+    if (dateKey < range.startDate || dateKey > range.endDate) { return 0; }
     var s = parseLocalDateKey(range.startDate);
     var d = parseLocalDateKey(dateKey);
     return Math.round((d.getTime() - s.getTime()) / (24 * 60 * 60 * 1000)) + 1;
@@ -580,6 +611,7 @@
       var range = getOnceRange(task);
       if (!range) { return false; }
       var key = getDateKey(date);
+      if (range.dates) { return range.dates.indexOf(key) !== -1; }
       return key >= range.startDate && key <= range.endDate;
     }
 
@@ -847,23 +879,31 @@
           lastInspect = endD;
         }
 
-        var d = new Date(startD.getTime());
-        while (d.getTime() <= lastInspect.getTime()) {
-          var dKey = getDateKey(d);
-          var daysSinceD = Math.round((todayNorm.getTime() - d.getTime()) / (24 * 60 * 60 * 1000));
-          if (daysSinceD < 1 || daysSinceD > MAX_CARRY_DAYS) {
-            d.setDate(d.getDate() + 1);
-            continue;
+        // The set of past occurrence day-keys to inspect. Explicit-dates tasks
+        // only consider their listed dates; contiguous spans walk every day in
+        // [startDate, lastInspect].
+        var inspectKeys = [];
+        if (range.dates) {
+          var lastInspectKey = getDateKey(lastInspect);
+          for (var di = 0; di < range.dates.length; di += 1) {
+            if (range.dates[di] <= lastInspectKey) { inspectKeys.push(range.dates[di]); }
           }
+        } else {
+          var d = new Date(startD.getTime());
+          while (d.getTime() <= lastInspect.getTime()) {
+            inspectKeys.push(getDateKey(d));
+            d.setDate(d.getDate() + 1);
+          }
+        }
+
+        for (var ik = 0; ik < inspectKeys.length; ik += 1) {
+          var dKey = inspectKeys[ik];
+          var dDate = parseLocalDateKey(dKey);
+          var daysSinceD = Math.round((todayNorm.getTime() - dDate.getTime()) / (24 * 60 * 60 * 1000));
+          if (daysSinceD < 1 || daysSinceD > MAX_CARRY_DAYS) { continue; }
           var stateForD = readState(MYDAY_STORAGE_PREFIX, dKey);
-          if (stateForD[task.id]) {
-            d.setDate(d.getDate() + 1);
-            continue;
-          }
-          if (isSpan && wasOnceDayCaughtUp(task, dKey, todayNorm)) {
-            d.setDate(d.getDate() + 1);
-            continue;
-          }
+          if (stateForD[task.id]) { continue; }
+          if (isSpan && wasOnceDayCaughtUp(task, dKey, todayNorm)) { continue; }
           if (isSpan) {
             pushCarryForwardOnceDay(task, range, dKey, spanLen);
           } else {
@@ -877,11 +917,10 @@
             // D+2 onwards because the visible/Caught-Up split only inspects
             // *today's* state[task.id]. Matches the semantics used for
             // weekly/interval tasks further below.
-            if (!todayTaskIds[task.id] && !wasEverCompleted(task.id, d, todayNorm)) {
+            if (!todayTaskIds[task.id] && !wasEverCompleted(task.id, dDate, todayNorm)) {
               pushCarryForward(task);
             }
           }
-          d.setDate(d.getDate() + 1);
         }
         continue;
       }

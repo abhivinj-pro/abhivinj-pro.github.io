@@ -109,15 +109,38 @@
           </div>
 
           <div class="form-group freq-panel hidden" id="once-panel">
-            <div class="interval-row">
-              <label for="once-start-date">Start date</label>
-              <input type="date" id="once-start-date" class="form-input form-input-sm">
+            <div class="once-mode-toggle" id="once-mode-toggle">
+              <label class="once-mode-option">
+                <input type="radio" name="once-mode" value="range" checked>
+                <span>Date range</span>
+              </label>
+              <label class="once-mode-option">
+                <input type="radio" name="once-mode" value="dates">
+                <span>Specific dates</span>
+              </label>
             </div>
-            <div class="interval-row">
-              <label for="once-end-date">End date</label>
-              <input type="date" id="once-end-date" class="form-input form-input-sm">
+
+            <div class="once-mode-panel" id="once-range-panel">
+              <div class="interval-row">
+                <label for="once-start-date">Start date</label>
+                <input type="date" id="once-start-date" class="form-input form-input-sm">
+              </div>
+              <div class="interval-row">
+                <label for="once-end-date">End date</label>
+                <input type="date" id="once-end-date" class="form-input form-input-sm">
+              </div>
+              <p class="form-help">For a single-day task, leave end date equal to start. For a multi-day task, each day in the range becomes its own check-in.</p>
             </div>
-            <p class="form-help">For a single-day task, leave end date equal to start. For a multi-day task, each day in the range becomes its own check-in.</p>
+
+            <div class="once-mode-panel hidden" id="once-dates-panel">
+              <div class="once-dates-add">
+                <input type="date" id="once-date-input" class="form-input form-input-sm">
+                <button type="button" class="btn btn-secondary" id="once-add-date-btn">Add date</button>
+              </div>
+              <ul class="once-dates-list" id="once-dates-list"></ul>
+              <p class="once-dates-count" id="once-dates-count">No dates added yet.</p>
+              <p class="form-help">Add each date this task should occur (e.g. a vaccine on non-consecutive days). Every date becomes its own check-in and only those days appear on the board.</p>
+            </div>
           </div>
 
           <div class="form-group freq-panel hidden" id="weekly-panel">
