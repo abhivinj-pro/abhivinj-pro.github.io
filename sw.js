@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var CACHE_VERSION = 'v1';
+var CACHE_VERSION = 'v3';
 var SHELL_CACHE = 'habit-shell-' + CACHE_VERSION;
 var RUNTIME_CACHE = 'habit-runtime-' + CACHE_VERSION;
 var FONT_CACHE = 'habit-fonts-' + CACHE_VERSION;
@@ -25,6 +25,7 @@ var SHELL_ASSETS = [
   './index.html',
   './todo.html',
   './dashboard.html',
+  './settings.html',
   './manifest.webmanifest',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',

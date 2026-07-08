@@ -33,6 +33,13 @@
   var WRITE_DEBOUNCE_MS = 700;
   var POLL_INTERVAL_MS = 60 * 1000;    // background refetch cadence
 
+  // User-configurable app settings and their defaults. `morningStart` /
+  // `morningEnd` / `mydayEnd` are "HH:MM" strings that drive the
+  // Clock -> Morning -> My Day -> Clock auto-switch in app.js.
+  function defaultSettings() {
+    return { morningStart: '07:00', morningEnd: '10:00', mydayEnd: '23:59' };
+  }
+
   var listeners = [];
   var dayCache = {};                   // key: prefix+dateKey -> state object
   var loadedDays = {};                 // dateKey -> true once fetched (even empty)
@@ -44,6 +51,7 @@
     mode: 'loading',
     user: null,
     tasks: [],
+    settings: defaultSettings(),
     isPro: false
   };
 
@@ -177,6 +185,29 @@
       });
   }
 
+  // Accept only well-formed "HH:MM" 24-hour strings; fall back to the default.
+  function sanitizeTime(value, fallback) {
+    if (typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value)) {
+      return value;
+    }
+    return fallback;
+  }
+
+  function sanitizeSettings(raw) {
+    var def = defaultSettings();
+    if (!raw || typeof raw !== 'object') { return def; }
+    return {
+      morningStart: sanitizeTime(raw.morningStart, def.morningStart),
+      morningEnd: sanitizeTime(raw.morningEnd, def.morningEnd),
+      mydayEnd: sanitizeTime(raw.mydayEnd, def.mydayEnd)
+    };
+  }
+
+  function loadCloudSettings(uid) {
+    return window.Firestore.getDoc('users/' + uid + '/config/settings')
+      .then(function (doc) { return sanitizeSettings(doc); });
+  }
+
   // Bulk-load every day document whose id (a YYYY-MM-DD key) is >= minKey via
   // a single structured query. Missing days are simply absent from the result
   // instead of producing a 404 per day, so this both eliminates console noise
@@ -290,6 +321,7 @@
       state.user = null;
       state.isPro = false;
       state.tasks = sampleDemoTasks();
+      state.settings = defaultSettings();
       emit();
       return Promise.resolve();
     }
@@ -298,13 +330,16 @@
     state.isPro = isProEmail(user.email);
     state.mode = state.isPro ? 'pro-fallback' : 'cloud';
     state.tasks = [];
+    state.settings = defaultSettings();
     emit();  // mark "loading" so UI can show spinner if it wants
 
     return Promise.all([
       loadCloudTasks(user.uid),
-      loadAllDays(user.uid)
+      loadAllDays(user.uid),
+      loadCloudSettings(user.uid)
     ]).then(function (results) {
       state.tasks = results[0] || [];
+      state.settings = results[2] || defaultSettings();
       if (state.isPro) {
         writeLocalJson(localTasksKey(user.uid), state.tasks);
       }
@@ -515,6 +550,22 @@
              function (e) { tasksSaveInFlight = false; throw e; });
     },
 
+    // Persist user settings (e.g. morning window). Sanitised before saving so a
+    // malformed value can never break the auto-switch logic.
+    saveSettings: function (settings) {
+      if (state.mode === 'demo' || !state.user) {
+        return Promise.reject(new Error('Sign in to save settings.'));
+      }
+      state.settings = sanitizeSettings(settings);
+      emit();
+      return window.Firestore.setDoc('users/' + state.user.uid + '/config/settings', {
+        morningStart: state.settings.morningStart,
+        morningEnd: state.settings.morningEnd,
+        mydayEnd: state.settings.mydayEnd,
+        updatedAt: new Date().toISOString()
+      });
+    },
+
     readDayState: function (prefix, dateKey) {
       var cached = dayCache[cacheKey(prefix, dateKey)];
       return cached ? cached : {};
@@ -618,6 +669,7 @@
     // Read-only accessors so consumers don't mutate internal state directly.
     get mode() { return state.mode; },
     get tasks() { return state.tasks; },
+    get settings() { return state.settings; },
     get user() { return state.user; },
     get isPro() { return state.isPro; }
   };

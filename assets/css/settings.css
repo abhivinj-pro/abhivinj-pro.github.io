@@ -1,0 +1,119 @@
+/*
+ * settings.css — Settings page (settings.html).
+ * Builds on todo.css (shared .btn, .form-group, .form-input, header styles).
+ */
+
+.settings-app {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.settings-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.settings-card-head {
+  margin-bottom: 20px;
+}
+
+.settings-card-head h2 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.settings-card-sub {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.settings-card-sub strong {
+  color: var(--text);
+}
+
+.settings-time-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.settings-window-preview {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 12px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-window-preview li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.settings-window-preview li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.settings-window-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.settings-window-range {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-status {
+  margin: 16px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.settings-status.settings-status-error {
+  color: var(--danger-hover);
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.settings-actions-start {
+  justify-content: flex-start;
+  margin-top: 0;
+}
+
+@media (max-width: 560px) {
+  .settings-time-grid {
+    grid-template-columns: 1fr;
+  }
+  .settings-actions {
+    justify-content: stretch;
+  }
+  .settings-actions .btn {
+    flex: 1;
+  }
+}

@@ -17,7 +17,7 @@
     }
   </script>
   <link rel="stylesheet" href="assets/css/todo.css">
-  <link rel="stylesheet" href="assets/css/auth.css?v=1">
+  <link rel="stylesheet" href="assets/css/auth.css?v=3">
 </head>
 <body data-auth-mode="loading">
   <div class="auth-wall hidden" id="auth-wall">
@@ -39,9 +39,6 @@
         <div class="header-bar-right">
           <a class="auth-link dash-back-link" href="index.html">← Habit Board</a>
           <a class="auth-link dash-back-link" href="dashboard.html">Dashboard</a>
-          <button type="button" class="auth-link dash-back-link backup-btn" id="backup-export-btn">Export</button>
-          <button type="button" class="auth-link dash-back-link backup-btn" id="backup-import-btn">Import</button>
-          <input type="file" id="backup-file-input" accept="application/json,.json" hidden>
           <span id="todo-chip-slot"></span>
         </div>
       </div>
@@ -220,35 +217,6 @@
     </div>
   </div>
 
-  <div class="backup-modal-overlay hidden" id="backup-modal" role="dialog" aria-modal="true" aria-labelledby="backup-modal-title">
-    <div class="backup-modal">
-      <h2 id="backup-modal-title">Import backup</h2>
-      <p class="backup-modal-file" id="backup-modal-file">No file selected</p>
-      <fieldset class="backup-mode">
-        <legend>How should this backup be applied?</legend>
-        <label class="backup-mode-opt">
-          <input type="radio" name="backup-mode" value="merge" checked>
-          <span>
-            <strong>Merge</strong>
-            Keep everything you have and layer the backup on top. Existing tasks and completions win only where the backup adds something new.
-          </span>
-        </label>
-        <label class="backup-mode-opt">
-          <input type="radio" name="backup-mode" value="replace">
-          <span>
-            <strong>Replace</strong>
-            Overwrite tasks and each day's completions with the backup's values. This can remove current data.
-          </span>
-        </label>
-      </fieldset>
-      <p class="backup-modal-status hidden" id="backup-modal-status"></p>
-      <div class="backup-modal-actions">
-        <button type="button" class="btn btn-secondary" id="backup-cancel-btn">Cancel</button>
-        <button type="button" class="btn btn-primary" id="backup-confirm-btn">Import</button>
-      </div>
-    </div>
-  </div>
-
   <script src="assets/js/polyfills.js?v=1"></script>
   <script src="assets/js/config/firebase-config.js?v=1"></script>
   <script src="assets/js/config/pro-allowlist.js?v=1"></script>
@@ -256,8 +224,8 @@
   <script src="assets/js/icons/icon-library-color.js"></script>
   <script src="assets/js/auth/auth-client.js?v=1"></script>
   <script src="assets/js/data/firestore-client.js?v=2"></script>
-  <script src="assets/js/data/storage.js?v=4"></script>
-  <script src="assets/js/auth/auth-ui.js?v=1"></script>
-  <script src="assets/js/pages/todo.js?v=4"></script>
+  <script src="assets/js/data/storage.js?v=6"></script>
+  <script src="assets/js/auth/auth-ui.js?v=2"></script>
+  <script src="assets/js/pages/todo.js?v=5"></script>
 </body>
 </html>
