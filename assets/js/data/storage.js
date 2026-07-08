@@ -415,6 +415,76 @@
     }
   }
 
+  // ── Backup / restore helpers ──────────────────────────────────────────────
+  // Day-document ids are user-supplied when importing a backup file, and they
+  // are interpolated into a Firestore path, so validate strictly to prevent
+  // path traversal onto sibling docs (e.g. config/tasks).
+  function isValidDateKey(k) {
+    return typeof k === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(k);
+  }
+
+  // Merge imported tasks into the current list by id (imported wins), keeping
+  // existing order and appending genuinely new tasks at the end.
+  function mergeTasks(currentTasks, importedTasks) {
+    var byId = {};
+    var order = [];
+    var i, t;
+    for (i = 0; i < currentTasks.length; i += 1) {
+      t = currentTasks[i];
+      if (t && t.id) { byId[t.id] = t; order.push(t.id); }
+    }
+    for (i = 0; i < importedTasks.length; i += 1) {
+      t = importedTasks[i];
+      if (!t || !t.id) { continue; }
+      if (!Object.prototype.hasOwnProperty.call(byId, t.id)) { order.push(t.id); }
+      byId[t.id] = t; // imported wins
+    }
+    var out = [];
+    for (i = 0; i < order.length; i += 1) { out.push(deepClone(byId[order[i]])); }
+    return out;
+  }
+
+  // Shallow-merge two per-day check maps; overlay (imported) wins per task id.
+  function mergeStateMap(base, overlay) {
+    var out = {};
+    var k;
+    for (k in base) {
+      if (Object.prototype.hasOwnProperty.call(base, k)) { out[k] = base[k]; }
+    }
+    for (k in overlay) {
+      if (Object.prototype.hasOwnProperty.call(overlay, k)) { out[k] = overlay[k]; }
+    }
+    return out;
+  }
+
+  // Write imported day documents one at a time (import is rare; keeps us from
+  // flooding Firestore). In merge mode each day is fetched first and combined.
+  function writeImportedDays(uid, daysObj, dayKeys, replace) {
+    var idx = 0;
+    function writeOne(dk, existing) {
+      var incoming = daysObj[dk] || {};
+      var inMorning = incoming.morning || {};
+      var inMyday = incoming.myday || {};
+      var payload = {
+        morning: replace ? inMorning : mergeStateMap(existing.morning || {}, inMorning),
+        myday: replace ? inMyday : mergeStateMap(existing.myday || {}, inMyday),
+        updatedAt: new Date().toISOString()
+      };
+      return window.Firestore.setDoc('users/' + uid + '/days/' + dk, payload);
+    }
+    function step() {
+      if (idx >= dayKeys.length) { return Promise.resolve(); }
+      var dk = dayKeys[idx];
+      idx += 1;
+      if (replace) { return writeOne(dk, {}).then(step); }
+      return window.Firestore.getDoc('users/' + uid + '/days/' + dk)
+        .then(function (doc) { return writeOne(dk, doc || {}); },
+              function () { return writeOne(dk, {}); })
+        .then(step);
+    }
+    return step();
+  }
+
   // ── Public API ────────────────────────────────────────────────────────────
   var Storage = {
     PREFIXES: { MORNING: MORNING_PREFIX, MYDAY: MYDAY_PREFIX },
@@ -470,6 +540,71 @@
     ensureRangeLoaded: function (fromKey) {
       if (state.mode === 'demo' || !state.user) { return Promise.resolve(); }
       return loadDaysFrom(state.user.uid, fromKey)['catch'](function () {});
+    },
+
+    // Produce a full backup: the task list plus every day's completion history.
+    // Resolves to a plain JSON-serialisable object.
+    exportAll: function () {
+      if (state.mode === 'demo' || !state.user) {
+        return Promise.reject(new Error('Sign in to export your data.'));
+      }
+      var uid = state.user.uid;
+      return Promise.all([
+        loadCloudTasks(uid),
+        loadDaysFrom(uid, '0000-01-01')   // early key -> every day document
+      ]).then(function (results) {
+        var tasks = results[0] || [];
+        var rows = results[1] || [];
+        var days = {};
+        for (var i = 0; i < rows.length; i += 1) {
+          if (!isValidDateKey(rows[i].id)) { continue; }
+          var d = rows[i].data || {};
+          days[rows[i].id] = { morning: d.morning || {}, myday: d.myday || {} };
+        }
+        return {
+          app: 'habit-board',
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          uid: uid,
+          email: (state.user && state.user.email) || null,
+          tasks: tasks,
+          days: days
+        };
+      });
+    },
+
+    // Restore a backup produced by exportAll. `mode` is 'merge' (default) or
+    // 'replace'. Resolves to a small summary of what was written.
+    importAll: function (data, mode) {
+      if (state.mode === 'demo' || !state.user) {
+        return Promise.reject(new Error('Sign in to import your data.'));
+      }
+      if (!data ||
+          Object.prototype.toString.call(data.tasks) !== '[object Array]' ||
+          !data.days || typeof data.days !== 'object') {
+        return Promise.reject(new Error('This file is not a valid Habit Board backup.'));
+      }
+      var replace = (mode === 'replace');
+      var uid = state.user.uid;
+
+      var dayKeys = [];
+      for (var k in data.days) {
+        if (Object.prototype.hasOwnProperty.call(data.days, k) && isValidDateKey(k)) {
+          dayKeys.push(k);
+        }
+      }
+
+      var nextTasks = replace ? deepClone(data.tasks)
+                              : mergeTasks(state.tasks, data.tasks);
+
+      return Storage.saveTasks(nextTasks).then(function () {
+        return writeImportedDays(uid, data.days, dayKeys, replace);
+      }).then(function () {
+        return loadAllDays(uid); // refresh the preload window from the server
+      }).then(function () {
+        emit();
+        return { tasks: nextTasks.length, days: dayKeys.length };
+      });
     },
 
     onChange: function (cb) {
