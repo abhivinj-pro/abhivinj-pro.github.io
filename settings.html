@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#05070d">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <title>Settings</title>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js')['catch'](function () {});
+      });
+    }
+  </script>
+  <link rel="stylesheet" href="assets/css/todo.css">
+  <link rel="stylesheet" href="assets/css/settings.css?v=1">
+  <link rel="stylesheet" href="assets/css/auth.css?v=3">
+</head>
+<body data-auth-mode="loading">
+  <div class="auth-wall hidden" id="auth-wall">
+    <h2>Sign in required</h2>
+    <p>Settings are tied to your account. Log in or create an account to continue.</p>
+    <button type="button" class="auth-btn auth-btn-primary" id="auth-wall-login">Log in</button>
+    <p style="margin-top:14px"><a href="index.html" class="auth-link">Back to the clock</a></p>
+  </div>
+
+  <div class="settings-app hidden" id="settings-root">
+    <header class="todo-header">
+      <div class="header-bar">
+        <div class="header-bar-left">
+          <div class="todo-heading-row">
+            <h1>Settings</h1>
+          </div>
+        </div>
+        <div class="header-bar-right">
+          <a class="auth-link dash-back-link" href="index.html">← Habit Board</a>
+          <a class="auth-link dash-back-link" href="todo.html">Task Manager</a>
+          <a class="auth-link dash-back-link" href="dashboard.html">Dashboard</a>
+          <span id="settings-chip-slot"></span>
+        </div>
+      </div>
+      <p class="todo-subtitle">Personalise timings and manage your data backups</p>
+    </header>
+
+    <div class="settings-layout">
+      <!-- ── Timings ─────────────────────────────────────────────────────── -->
+      <section class="settings-card" id="timings-card">
+        <div class="settings-card-head">
+          <h2>Screen timings</h2>
+          <p class="settings-card-sub">Choose when each screen is shown by default. Before Morning starts you'll see the <strong>Clock</strong>; then <strong>Morning</strong>, then <strong>My Day</strong>; after My Day ends the <strong>Clock</strong> returns.</p>
+        </div>
+
+        <form id="timings-form" autocomplete="off">
+          <div class="settings-time-grid">
+            <div class="form-group">
+              <label for="morning-start">Morning starts</label>
+              <input type="time" id="morning-start" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="morning-end">Morning ends</label>
+              <input type="time" id="morning-end" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="myday-end">My Day ends</label>
+              <input type="time" id="myday-end" class="form-input" required>
+            </div>
+          </div>
+
+          <ul class="settings-window-preview" id="settings-window-preview" aria-live="polite"></ul>
+
+          <p class="settings-status hidden" id="timings-status"></p>
+
+          <div class="settings-actions">
+            <button type="button" class="btn btn-secondary" id="timings-reset-btn">Reset to defaults</button>
+            <button type="submit" class="btn btn-primary" id="timings-save-btn">Save timings</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── Backup ──────────────────────────────────────────────────────── -->
+      <section class="settings-card" id="backup-card">
+        <div class="settings-card-head">
+          <h2>Backup &amp; restore</h2>
+          <p class="settings-card-sub">Export a full backup of your tasks and completion history, or import one to restore or move between devices.</p>
+        </div>
+
+        <div class="settings-actions settings-actions-start">
+          <button type="button" class="btn btn-primary" id="backup-export-btn">Export backup</button>
+          <button type="button" class="btn btn-secondary" id="backup-import-btn">Import backup</button>
+          <input type="file" id="backup-file-input" accept="application/json,.json" hidden>
+        </div>
+        <p class="settings-status hidden" id="backup-status"></p>
+      </section>
+    </div>
+  </div>
+
+  <div class="backup-modal-overlay hidden" id="backup-modal" role="dialog" aria-modal="true" aria-labelledby="backup-modal-title">
+    <div class="backup-modal">
+      <h2 id="backup-modal-title">Import backup</h2>
+      <p class="backup-modal-file" id="backup-modal-file">No file selected</p>
+      <fieldset class="backup-mode">
+        <legend>How should this backup be applied?</legend>
+        <label class="backup-mode-opt">
+          <input type="radio" name="backup-mode" value="merge" checked>
+          <span>
+            <strong>Merge</strong>
+            Keep everything you have and layer the backup on top. Existing tasks and completions win only where the backup adds something new.
+          </span>
+        </label>
+        <label class="backup-mode-opt">
+          <input type="radio" name="backup-mode" value="replace">
+          <span>
+            <strong>Replace</strong>
+            Overwrite tasks and each day's completions with the backup's values. This can remove current data.
+          </span>
+        </label>
+      </fieldset>
+      <p class="backup-modal-status hidden" id="backup-modal-status"></p>
+      <div class="backup-modal-actions">
+        <button type="button" class="btn btn-secondary" id="backup-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="backup-confirm-btn">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <noscript>
+    <div class="noscript-note">This page needs JavaScript enabled to manage settings.</div>
+  </noscript>
+
+  <script src="assets/js/polyfills.js?v=1"></script>
+  <script src="assets/js/config/firebase-config.js?v=1"></script>
+  <script src="assets/js/config/pro-allowlist.js?v=1"></script>
+  <script src="assets/js/config/tasks-config.js?v=1"></script>
+  <script src="assets/js/auth/auth-client.js?v=1"></script>
+  <script src="assets/js/data/firestore-client.js?v=2"></script>
+  <script src="assets/js/data/storage.js?v=6"></script>
+  <script src="assets/js/auth/auth-ui.js?v=2"></script>
+  <script src="assets/js/pages/settings.js?v=2"></script>
+</body>
+</html>

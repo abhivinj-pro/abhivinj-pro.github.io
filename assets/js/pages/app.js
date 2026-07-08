@@ -6,6 +6,29 @@
   var CLOCK_START_SECONDS = 0;
   var MORNING_START_SECONDS = 7 * 60 * 60;
   var MORNING_END_SECONDS = 10 * 60 * 60;
+  var MYDAY_END_SECONDS = (24 * 60 * 60) - 60; // 23:59 default
+
+  // Convert an "HH:MM" 24-hour string to seconds-of-day, falling back to the
+  // supplied default when the value is missing or malformed.
+  function timeStringToSeconds(str, fallbackSeconds) {
+    if (typeof str === 'string') {
+      var m = str.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+      if (m) { return (parseInt(m[1], 10) * 3600) + (parseInt(m[2], 10) * 60); }
+    }
+    return fallbackSeconds;
+  }
+
+  // Screen windows (seconds-of-day) from the user's saved settings. Before
+  // `start` the Clock shows; `start`..`end` is Morning; `end`..`mydayEnd` is
+  // My Day; after `mydayEnd` the Clock shows again.
+  function getMorningWindowSeconds() {
+    var s = (window.Storage && window.Storage.settings) || {};
+    return {
+      start: timeStringToSeconds(s.morningStart, MORNING_START_SECONDS),
+      end: timeStringToSeconds(s.morningEnd, MORNING_END_SECONDS),
+      mydayEnd: timeStringToSeconds(s.mydayEnd, MYDAY_END_SECONDS)
+    };
+  }
 
   // Task buckets are rebuilt from Storage.tasks whenever auth/cloud state
   // changes; they start empty and populate on the first Storage event.
@@ -1118,14 +1141,18 @@
     if (mode === 'demo' || mode === 'loading') {
       return 'clock';
     }
+    var win = getMorningWindowSeconds();
     var seconds = (date.getHours() * 3600) + (date.getMinutes() * 60) + date.getSeconds();
-    if (seconds >= CLOCK_START_SECONDS && seconds < MORNING_START_SECONDS) {
+    if (seconds >= CLOCK_START_SECONDS && seconds < win.start) {
       return 'clock';
     }
-    if (seconds >= MORNING_START_SECONDS && seconds < MORNING_END_SECONDS) {
+    if (seconds >= win.start && seconds < win.end) {
       return 'morning';
     }
-    return 'myday';
+    if (seconds >= win.end && seconds < win.mydayEnd) {
+      return 'myday';
+    }
+    return 'clock';
   }
 
   function updateClock(now) {

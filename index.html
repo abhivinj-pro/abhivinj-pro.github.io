@@ -5,12 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#05070d">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <title>Habit Board</title>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js')['catch'](function () {});
+      });
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Playfair+Display:ital,wght@1,500;1,700&display=swap">
   <link rel="stylesheet" href="assets/css/styles.css?v=46">
-  <link rel="stylesheet" href="assets/css/auth.css?v=1">
+  <link rel="stylesheet" href="assets/css/auth.css?v=3">
 </head>
 <body data-auth-mode="loading">
   <div class="top-scroll-buffer" aria-hidden="true"></div>
@@ -131,9 +141,9 @@
   <script src="assets/js/config/tasks-config.js?v=1"></script>
   <script src="assets/js/auth/auth-client.js?v=1"></script>
   <script src="assets/js/data/firestore-client.js?v=2"></script>
-  <script src="assets/js/data/storage.js?v=3"></script>
-  <script src="assets/js/auth/auth-ui.js?v=1"></script>
-  <script src="assets/js/pages/app.js?v=39"></script>
+  <script src="assets/js/data/storage.js?v=6"></script>
+  <script src="assets/js/auth/auth-ui.js?v=2"></script>
+  <script src="assets/js/pages/app.js?v=41"></script>
   <script>
     // Boot sequence: mount chip in every screen header, hook the demo banner
     // login button, then kick off Storage which drives the rest of the UI.

@@ -3,9 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#05070d">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <title>Task Manager</title>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js')['catch'](function () {});
+      });
+    }
+  </script>
   <link rel="stylesheet" href="assets/css/todo.css">
-  <link rel="stylesheet" href="assets/css/auth.css?v=1">
+  <link rel="stylesheet" href="assets/css/auth.css?v=3">
 </head>
 <body data-auth-mode="loading">
   <div class="auth-wall hidden" id="auth-wall">
@@ -212,8 +224,8 @@
   <script src="assets/js/icons/icon-library-color.js"></script>
   <script src="assets/js/auth/auth-client.js?v=1"></script>
   <script src="assets/js/data/firestore-client.js?v=2"></script>
-  <script src="assets/js/data/storage.js?v=3"></script>
-  <script src="assets/js/auth/auth-ui.js?v=1"></script>
-  <script src="assets/js/pages/todo.js?v=3"></script>
+  <script src="assets/js/data/storage.js?v=6"></script>
+  <script src="assets/js/auth/auth-ui.js?v=2"></script>
+  <script src="assets/js/pages/todo.js?v=5"></script>
 </body>
 </html>

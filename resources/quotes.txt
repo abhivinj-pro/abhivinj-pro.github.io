@@ -1,111 +1,112 @@
-One percent better today!
-Future you is watching.
-Proof, not promises.
-Tiny wins stack up.
-Reset. Refocus. Repeat.
-Mood follows action.
-Done beats perfect.
-Quiet work, loud results.
-Keep the chain alive.
-One task closer.
-Momentum loves movement.
-Care is a flex.
-Built by repetition.
-Keep your word.
-Healthy is the upgrade.
-Rituals shape reality.
-Discipline looks attractive.
-Today counts too.
-Earn your confidence.
-Your habits introduce you.
-Tiny effort, major payoff.
-The streak matters.
-You become routines.
-Better than yesterday.
-Consistency changes faces.
-Stay soft, stay strong.
-Keep evolving quietly.
-Care creates glow.
-Repeat until effortless.
-Wellness is the vibe.
-Become hard to stop.
-Small habits age well.
-One more checkbox.
-Daily maintenance matters.
-Level up privately.
-Less excuses, more care.
-Effort shows eventually.
-Energy is earned.
-Build, don’t rush.
-Your body remembers.
-Tiny choices define you.
-Progress likes patience.
-You’re under construction.
-Romanticize self-care.
-Keep showing discipline.
-Invest in your baseline.
-Better systems, better life.
-Results love routine.
-Habit is the shortcut.
-Upgrade in silence.
-A reset, not failure.
-You owe yourself care.
-Little things compound.
-Routine beats intensity.
-Wellness over burnout.
-Strong starts quietly.
-Repetition builds identity.
-Keep becoming better.
-Locked into growth.
-Care now, glow later.
-Tiny actions echo loudly.
-Build trust with yourself.
-Healing is maintenance.
-Make discipline automatic.
-Your future feels this.
-Stay in motion.
-Healthy habits hit different.
-Every step leaves evidence.
-The comeback is daily.
-Keep collecting small wins.
-Self-care is elite.
-Progress hides in repetition.
-Becoming takes practice.
-Wellness is attractive.
-Keep the promise alive.
-Better habits, clearer mind.
-Tiny routines, huge impact.
-Discipline protects peace.
-Care is never wasted.
-Build habits worth keeping.
-Slow growth still grows.
-Keep choosing improvement.
-Wellness is wealth.
-One more act of care.
-Effort leaves fingerprints.
-Daily care ages beautifully.
-Growth loves consistency.
-Upgrade your normal.
-Habits write your story.
-Maintenance is self-respect.
-Tiny care, lasting change.
-Show up anyway.
-Repetition creates results.
-Protect your future self.
-Keep watering yourself.
-Small habits shape destiny.
-Keep earning your glow.
-Progress happens quietly.
-Healing takes repetition.
-Care is a lifestyle.
-You are what repeats.
-Stay loyal to growth.
-Better days need habits.
-Tiny discipline wins big.
-Daily care compounds quietly.
-The goal is balance.
-Habits outlast motivation.
-One better choice today.
-Self-care is strength.
-Build the better version.
-Routine makes transformation boring.
+# Daily quotes — one per line. Format: Quote — Author
+# Lines starting with # are ignored. Blank lines are ignored.
+We are what we repeatedly do. Excellence, then, is not an act, but a habit. — Will Durant
+You do not rise to the level of your goals. You fall to the level of your systems. — James Clear
+Habits are the compound interest of self-improvement. — James Clear
+Discipline is the bridge between goals and accomplishment. — Jim Rohn
+Motivation is what gets you started. Habit is what keeps you going. — Jim Rohn
+Success is the sum of small efforts repeated day in and day out. — Robert Collier
+The secret of your future is hidden in your daily routine. — Mike Murdock
+Quality is not an act, it is a habit. — Aristotle
+It does not matter how slowly you go as long as you do not stop. — Confucius
+The journey of a thousand miles begins with a single step. — Lao Tzu
+Well done is better than well said. — Benjamin Franklin
+By failing to prepare, you are preparing to fail. — Benjamin Franklin
+Little strokes fell great oaks. — Benjamin Franklin
+Continuous improvement is better than delayed perfection. — Mark Twain
+The secret of getting ahead is getting started. — Mark Twain
+A year from now you may wish you had started today. — Karen Lamb
+The best time to plant a tree was twenty years ago. The second best time is now. — Chinese Proverb
+Do not wait to strike till the iron is hot, but make it hot by striking. — William Butler Yeats
+Whether you think you can or you think you cannot, you are right. — Henry Ford
+Nothing will work unless you do. — Maya Angelou
+You may encounter many defeats, but you must not be defeated. — Maya Angelou
+Believe you can and you are halfway there. — Theodore Roosevelt
+Do what you can, with what you have, where you are. — Theodore Roosevelt
+It always seems impossible until it is done. — Nelson Mandela
+The greatest glory in living lies not in never falling, but in rising every time we fall. — Nelson Mandela
+Fall seven times, stand up eight. — Japanese Proverb
+Our greatest weakness lies in giving up. — Thomas A. Edison
+Genius is one percent inspiration and ninety-nine percent perspiration. — Thomas A. Edison
+I have not failed. I have just found ten thousand ways that will not work. — Thomas A. Edison
+Perseverance is not a long race; it is many short races one after another. — Walter Elliot
+Success is not final, failure is not fatal: it is the courage to continue that counts. — Winston Churchill
+Never, never, never give up. — Winston Churchill
+If you are going through hell, keep going. — Winston Churchill
+The only way to do great work is to love what you do. — Steve Jobs
+Your time is limited, so do not waste it living someone else's life. — Steve Jobs
+Whatever you are, be a good one. — Abraham Lincoln
+Discipline is choosing between what you want now and what you want most. — Abraham Lincoln
+The future depends on what you do today. — Mahatma Gandhi
+Live as if you were to die tomorrow. Learn as if you were to live forever. — Mahatma Gandhi
+You must be the change you wish to see in the world. — Mahatma Gandhi
+An investment in knowledge pays the best interest. — Benjamin Franklin
+The mind is everything. What you think you become. — Buddha
+No one saves us but ourselves. No one can and no one may. We ourselves must walk the path. — Buddha
+What we think, we become. — Buddha
+Knowing is not enough; we must apply. Willing is not enough; we must do. — Johann Wolfgang von Goethe
+Whatever you can do, or dream you can, begin it. Boldness has genius, power, and magic in it. — Johann Wolfgang von Goethe
+The starting point of all achievement is desire. — Napoleon Hill
+Patience, persistence and perspiration make an unbeatable combination for success. — Napoleon Hill
+Action is the foundational key to all success. — Pablo Picasso
+Only put off until tomorrow what you are willing to die having left undone. — Pablo Picasso
+Amateurs sit and wait for inspiration, the rest of us just get up and go to work. — Stephen King
+The way to get started is to quit talking and begin doing. — Walt Disney
+If you can dream it, you can do it. — Walt Disney
+Champions keep playing until they get it right. — Billie Jean King
+It is not the will to win that matters, everyone has that. It is the will to prepare to win that matters. — Paul Bryant
+Hard work beats talent when talent does not work hard. — Tim Notke
+Do not count the days, make the days count. — Muhammad Ali
+It is not whether you get knocked down, it is whether you get up. — Vince Lombardi
+The only place where success comes before work is in the dictionary. — Vidal Sassoon
+There are no shortcuts to any place worth going. — Beverly Sills
+The difference between ordinary and extraordinary is that little extra. — Jimmy Johnson
+Great things are done by a series of small things brought together. — Vincent van Gogh
+I find that the harder I work, the more luck I seem to have. — Thomas Jefferson
+Determine never to be idle. No person will have occasion to complain of the want of time who never loses any. — Thomas Jefferson
+Energy and persistence conquer all things. — Benjamin Franklin
+Start where you are. Use what you have. Do what you can. — Arthur Ashe
+Success is not built on success. It is built on failure. — Sumner Redstone
+Small deeds done are better than great deeds planned. — Peter Marshall
+The path to success is to take massive, determined action. — Tony Robbins
+Setting goals is the first step in turning the invisible into the visible. — Tony Robbins
+A goal without a plan is just a wish. — Antoine de Saint-Exupery
+What you get by achieving your goals is not as important as what you become by achieving your goals. — Zig Ziglar
+People often say that motivation does not last. Well, neither does bathing; that is why we recommend it daily. — Zig Ziglar
+You do not have to be great to start, but you have to start to be great. — Zig Ziglar
+The only limit to our realization of tomorrow will be our doubts of today. — Franklin D. Roosevelt
+The habit of persistence is the habit of victory. — Herbert Kaufman
+We first make our habits, and then our habits make us. — John Dryden
+Motivation gets you going, but discipline keeps you growing. — John C. Maxwell
+You will never change your life until you change something you do daily. — John C. Maxwell
+Do not let what you cannot do interfere with what you can do. — John Wooden
+Make each day your masterpiece. — John Wooden
+Little things make big things happen. — John Wooden
+It is not the load that breaks you down, it is the way you carry it. — Lou Holtz
+The successful warrior is the average man, with laser-like focus. — Bruce Lee
+Long-term consistency beats short-term intensity. — Bruce Lee
+Absorb what is useful, discard what is not, add what is uniquely your own. — Bruce Lee
+Take care of your body. It is the only place you have to live. — Jim Rohn
+Either you run the day or the day runs you. — Jim Rohn
+Do not wish it were easier, wish you were better. — Jim Rohn
+The pain of discipline weighs ounces, the pain of regret weighs tons. — Jim Rohn
+Your life does not get better by chance, it gets better by change. — Jim Rohn
+Formal education will make you a living; self-education will make you a fortune. — Jim Rohn
+We become what we repeatedly do. — Sean Covey
+The key is not to prioritize what is on your schedule, but to schedule your priorities. — Stephen R. Covey
+Most of us spend too much time on what is urgent and not enough time on what is important. — Stephen R. Covey
+Begin with the end in mind. — Stephen R. Covey
+Happiness is not something ready-made. It comes from your own actions. — Dalai Lama
+The best preparation for tomorrow is doing your best today. — H. Jackson Brown Jr.
+Twenty years from now you will be more disappointed by the things you did not do. — H. Jackson Brown Jr.
+Well begun is half done. — Aristotle
+Knowing yourself is the beginning of all wisdom. — Aristotle
+Excellence is never an accident. It is the result of high intention and intelligent effort. — Aristotle
+It is never too late to be what you might have been. — George Eliot
+Change your thoughts and you change your world. — Norman Vincent Peale
+Slow and steady wins the race. — Aesop
+A river cuts through rock not because of its power but its persistence. — James N. Watkins
+Discipline equals freedom. — Jocko Willink
+The chains of habit are too weak to be felt until they are too strong to be broken. — Samuel Johnson
+Concentrate all your thoughts upon the work at hand. — Alexander Graham Bell
+Great works are performed not by strength but by perseverance. — Samuel Johnson

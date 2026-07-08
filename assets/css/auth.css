@@ -58,6 +58,32 @@
   line-height: 1.4;
 }
 
+.auth-popup-settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: var(--text, #f6f8fb);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+.auth-popup-settings svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.auth-popup-settings:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .auth-popup-logout {
   display: block;
   width: 100%;
