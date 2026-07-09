@@ -615,10 +615,12 @@ body {
 }
 
 /* Title gets its own full-width row so long names fit; readout + counter sit
-   on the row below, and the whole group is vertically centred with the icon. */
-.measure-title {
+   on the row below, and the whole group is vertically centred with the icon.
+   Scoped to .habit-card.measure so it outranks the device-specific
+   .habit-title sizes in the media queries below. */
+.habit-card.measure .measure-title {
   margin: 0;
-  font-size: 40px;
+  font-size: 40px !important;
   line-height: 1.02;
   font-weight: 900;
   letter-spacing: -0.02em;
@@ -1479,8 +1481,8 @@ body {
     padding: 0 15px;
   }
 
-  .measure-title {
-    font-size: 30px;
+  .habit-card.measure .measure-title {
+    font-size: 32px !important;
   }
 
   .measure-value {
