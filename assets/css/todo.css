@@ -636,6 +636,16 @@ select.form-input {
   color-scheme: dark;
 }
 
+/* The native option list on desktop browsers renders in a light popup and
+   inherits the control's light text colour, making options nearly invisible.
+   Force a dark row background with light text so they're readable everywhere.
+   (iOS/iPadOS uses a native picker that ignores these, and already reads fine.) */
+select.form-input option,
+select.form-input optgroup {
+  background-color: #0d111b;
+  color: #f6f8fb;
+}
+
 input[type="date"].form-input {
   color-scheme: dark;
 }
