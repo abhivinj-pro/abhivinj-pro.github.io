@@ -568,8 +568,7 @@
       '" style="width:0%"></span></div>';
 
     var controls, contentInner;
-    var textBlock = '<div class="measure-text"><span class="habit-title measure-title">' +
-      task.title + '</span>' + readout + '</div>';
+    var titleHtml = '<span class="habit-title measure-title">' + task.title + '</span>';
     if (useChips) {
       var chipVals = window.TaskProgress.quickAdds(task);
       var chipHtml = '';
@@ -579,14 +578,14 @@
       }
       chipHtml += '<button type="button" class="measure-chip ghost measure-manual">Enter\u2026</button>';
       controls = '<div class="measure-chips">' + chipHtml + '</div>';
-      contentInner = '<div class="measure-main">' + textBlock + '</div>' + barHtml + controls;
+      contentInner = titleHtml + '<div class="measure-row">' + readout + '</div>' + barHtml + controls;
     } else {
       controls = '<span class="measure-stepper">' +
         '<button type="button" class="measure-btn measure-minus">\u2212</button>' +
         '<button type="button" class="measure-num">0</button>' +
         '<button type="button" class="measure-btn plus measure-plus">+</button>' +
         '</span>';
-      contentInner = '<div class="measure-main">' + textBlock + controls + '</div>' + barHtml;
+      contentInner = titleHtml + '<div class="measure-row">' + readout + controls + '</div>' + barHtml;
     }
 
     var card = document.createElement('div');
