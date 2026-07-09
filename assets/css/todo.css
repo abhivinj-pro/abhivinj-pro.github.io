@@ -587,6 +587,24 @@ html, body {
   margin-top: 32px;
 }
 
+.measure-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.measure-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.measure-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .export-output {
   width: 100%;
   padding: 16px;

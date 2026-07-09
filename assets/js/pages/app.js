@@ -445,7 +445,194 @@
     }
   }
 
-  function createHabitCard(habit, index, onActivate) {
+  // ── Measurable habits ──────────────────────────────────────────────────────
+  function measureTaskById(taskId) {
+    var list = (window.Storage && window.Storage.tasks) || [];
+    for (var i = 0; i < list.length; i += 1) {
+      if (list[i] && list[i].id === taskId) { return list[i]; }
+    }
+    return null;
+  }
+
+  function accentFillClass(accentClass) {
+    var map = {
+      'accent-pink': 'fill-pink', 'accent-blue': 'fill-blue', 'accent-green': 'fill-green',
+      'accent-cyan': 'fill-cyan', 'accent-amber': 'fill-amber', 'accent-purple': 'fill-purple'
+    };
+    return map[accentClass] || 'fill-blue';
+  }
+
+  // Repaint a measurable card's dynamic bits (value, goal, bar, met state)
+  // from the stored day-state. Reused on create and after every +/- change.
+  function applyMeasureCard(card, task, prefix, dateKey) {
+    var raw = readState(prefix, dateKey)[task.id];
+    var e = window.TaskProgress.readEntry(raw, task);
+    var valEl = card.querySelector('.measure-value');
+    var goalEl = card.querySelector('.measure-goal');
+    var numEl = card.querySelector('.measure-num');
+    var barFill = card.querySelector('.measure-bar-fill');
+    var bar = card.querySelector('.measure-bar');
+    var minusBtn = card.querySelector('.measure-minus');
+    if (valEl) { valEl.textContent = window.TaskProgress.formatNumber(e.value); }
+    if (goalEl) { goalEl.textContent = '/ ' + window.TaskProgress.formatNumber(e.goal); }
+    if (numEl) { numEl.textContent = window.TaskProgress.formatNumber(e.value); }
+    if (barFill) {
+      var pct = e.goal > 0 ? (e.value / e.goal) * 100 : 0;
+      if (pct > 100) { pct = 100; }
+      if (pct < 0) { pct = 0; }
+      barFill.style.width = pct + '%';
+    }
+    if (bar) {
+      bar.className = (e.value > e.goal) ? 'measure-bar over' : 'measure-bar';
+    }
+    if (e.done) { card.classList.add('is-met'); } else { card.classList.remove('is-met'); }
+    if (minusBtn) { minusBtn.disabled = e.value <= 0; }
+  }
+
+  function setMeasureValue(card, task, prefix, newValue) {
+    if (window.Storage && window.Storage.mode === 'demo') {
+      if (window.AuthUI) {
+        window.AuthUI.openLogin({ message: 'Log in to track your day across devices.' });
+      }
+      return;
+    }
+    if (newValue < 0) { newValue = 0; }
+    var dateKey = boardDateKey(prefix);
+    var state = readState(prefix, dateKey);
+    var before = window.TaskProgress.readEntry(state[task.id], task);
+    state[task.id] = window.TaskProgress.writeEntry(state[task.id], task, newValue);
+    writeState(prefix, dateKey, state);
+    var after = window.TaskProgress.readEntry(state[task.id], task);
+    if (after.done && !before.done) { playTaskSound(true); }
+    else if (!after.done && before.done) { playTaskSound(false); }
+    applyMeasureCard(card, task, prefix, dateKey);
+  }
+
+  function adjustMeasure(card, task, prefix, delta) {
+    var cur = window.TaskProgress.valueOf(readState(prefix, boardDateKey(prefix))[task.id], task);
+    setMeasureValue(card, task, prefix, cur + delta);
+  }
+
+  // Swap the counter's number button for an inline field to type an exact value.
+  function openMeasureInput(card, task, prefix, numBtn) {
+    var stepper = numBtn.parentNode;
+    if (!stepper) { return; }
+    var cur = window.TaskProgress.valueOf(readState(prefix, boardDateKey(prefix))[task.id], task);
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'measure-input';
+    input.setAttribute('inputmode', 'numeric');
+    input.value = String(cur);
+    stepper.replaceChild(input, numBtn);
+    input.focus();
+    if (input.select) { input.select(); }
+    var closed = false;
+    function restore() {
+      if (closed) { return; }
+      closed = true;
+      if (input.parentNode) { input.parentNode.replaceChild(numBtn, input); }
+    }
+    function commit() {
+      var v = parseFloat(input.value);
+      restore();
+      if (isFinite(v) && v >= 0) { setMeasureValue(card, task, prefix, v); }
+    }
+    input.onclick = function (ev) { ev.stopPropagation(); };
+    input.onkeydown = function (ev) {
+      if (ev.keyCode === 13) { ev.preventDefault(); commit(); }
+      else if (ev.keyCode === 27) { restore(); }
+    };
+    input.onblur = commit;
+  }
+
+  // Large-goal manual entry (chip variant has no number button).
+  function promptMeasureValue(card, task, prefix) {
+    var cur = window.TaskProgress.valueOf(readState(prefix, boardDateKey(prefix))[task.id], task);
+    var res = window.prompt('Set value', String(cur));
+    if (res === null) { return; }
+    var v = parseFloat(res);
+    if (isFinite(v) && v >= 0) { setMeasureValue(card, task, prefix, v); }
+  }
+
+  function createMeasureCard(task, index, prefix) {
+    var accent = task.accentClass || accentClasses[index % accentClasses.length];
+    var fillClass = accentFillClass(accent);
+    var unit = window.TaskProgress.unitLabel(task);
+    var useChips = window.TaskProgress.usesChips(task);
+    var step = window.TaskProgress.stepOf(task);
+
+    var readout = '<span class="measure-readout"><span class="measure-value">0</span>' +
+      '<span class="measure-goal">/ 0</span>' +
+      (unit ? '<span class="measure-unit">' + unit + '</span>' : '') + '</span>';
+    var barHtml = '<div class="measure-bar"><span class="measure-bar-fill ' + fillClass +
+      '" style="width:0%"></span></div>';
+
+    var controls, rowHtml;
+    if (useChips) {
+      var chipVals = window.TaskProgress.quickAdds(task);
+      var chipHtml = '';
+      for (var c = 0; c < chipVals.length; c += 1) {
+        chipHtml += '<button type="button" class="measure-chip" data-add="' + chipVals[c] +
+          '">+' + window.TaskProgress.formatNumber(chipVals[c]) + '</button>';
+      }
+      chipHtml += '<button type="button" class="measure-chip ghost measure-manual">Enter\u2026</button>';
+      controls = '<div class="measure-chips">' + chipHtml + '</div>';
+      rowHtml = '<div class="measure-row">' + readout + '</div>' + barHtml + controls;
+    } else {
+      controls = '<span class="measure-stepper">' +
+        '<button type="button" class="measure-btn measure-minus">\u2212</button>' +
+        '<button type="button" class="measure-num">0</button>' +
+        '<button type="button" class="measure-btn plus measure-plus">+</button>' +
+        '</span>';
+      rowHtml = '<div class="measure-row">' + readout + controls + '</div>' + barHtml;
+    }
+
+    var card = document.createElement('div');
+    card.className = 'habit-card measure';
+    card.setAttribute('data-habit-id', task.id);
+    card.setAttribute('role', 'group');
+    card.setAttribute('aria-label', task.title);
+    card.innerHTML =
+      '<div class="habit-card-inner">' +
+        '<div class="habit-index ' + accent + '">' + (task.icon || '') + '</div>' +
+        '<div class="habit-content measure-content">' +
+          '<div class="measure-head"><span class="habit-title measure-title">' + task.title + '</span></div>' +
+          rowHtml +
+        '</div>' +
+      '</div>';
+
+    // Tap the card body to add one step; explicit controls stop propagation.
+    card.onclick = function () { adjustMeasure(card, task, prefix, step); };
+    var minusBtn = card.querySelector('.measure-minus');
+    var plusBtn = card.querySelector('.measure-plus');
+    var numBtn = card.querySelector('.measure-num');
+    if (minusBtn) {
+      minusBtn.onclick = function (ev) { ev.stopPropagation(); adjustMeasure(card, task, prefix, -step); };
+    }
+    if (plusBtn) {
+      plusBtn.onclick = function (ev) { ev.stopPropagation(); adjustMeasure(card, task, prefix, step); };
+    }
+    if (numBtn) {
+      numBtn.onclick = function (ev) { ev.stopPropagation(); openMeasureInput(card, task, prefix, numBtn); };
+    }
+    var chips = card.querySelectorAll('.measure-chip');
+    for (var q = 0; q < chips.length; q += 1) {
+      (function (chip) {
+        if (chip.className.indexOf('measure-manual') !== -1) {
+          chip.onclick = function (ev) { ev.stopPropagation(); promptMeasureValue(card, task, prefix); };
+        } else {
+          var add = parseFloat(chip.getAttribute('data-add')) || step;
+          chip.onclick = function (ev) { ev.stopPropagation(); adjustMeasure(card, task, prefix, add); };
+        }
+      }(chips[q]));
+    }
+    return card;
+  }
+
+  function createHabitCard(habit, index, onActivate, prefix) {
+    if (window.TaskProgress && window.TaskProgress.isMeasurable(habit)) {
+      return createMeasureCard(habit, index, prefix);
+    }
     var card = document.createElement('button');
     card.type = 'button';
     card.className = 'habit-card';
@@ -479,7 +666,7 @@
       ? function (habitId) { toggleHabit(grid, storagePrefix, habitId); }
       : null;
     for (index = 0; index < habitsList.length; index += 1) {
-      fragment.appendChild(createHabitCard(habitsList[index], index, onActivate));
+      fragment.appendChild(createHabitCard(habitsList[index], index, onActivate, storagePrefix));
     }
     grid.appendChild(fragment);
   }
@@ -490,6 +677,11 @@
     var index;
     for (index = 0; index < cards.length; index += 1) {
       var card = cards[index];
+      if (card.className.indexOf('measure') !== -1) {
+        var mtask = measureTaskById(card.getAttribute('data-habit-id'));
+        if (mtask) { applyMeasureCard(card, mtask, prefix, dateKey); }
+        continue;
+      }
       var isCompleted = Boolean(state[card.getAttribute('data-habit-id')]);
       if (isCompleted) {
         card.classList.add('completed');

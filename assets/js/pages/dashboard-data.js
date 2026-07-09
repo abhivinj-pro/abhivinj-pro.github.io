@@ -156,26 +156,40 @@
       for (var t = 0; t < state.tasks.length; t += 1) {
         var task = state.tasks[t];
         var scheduled = isTaskForDate(task, date);
-        var slotCount = (task.times && task.times.length) ? task.times.length : 1;
-        var doneCount = 0;
 
         // Read the right channel.
         var prefix = channelForTask(task);
         var dayState = window.Storage.readDayState(prefix, dateKey) || {};
 
-        if (scheduled) {
-          if (task.times && task.times.length) {
-            for (var s = 0; s < task.times.length; s += 1) {
-              var cid = task.id + '__' + slugifyTime(task.times[s].label);
-              if (dayState[cid]) { doneCount += 1; }
-            }
+        var slotCount, doneCount;
+        if (window.TaskProgress && window.TaskProgress.isMeasurable(task)) {
+          // A measurable day counts as one slot whose completion is the
+          // fraction value/goal (capped at 1 so over-achievement doesn't skew
+          // aggregate rates). value >= goal => fully done.
+          var me = window.TaskProgress.readEntry(dayState[task.id], task);
+          slotCount = 1;
+          if (me.value >= me.goal) {
+            doneCount = 1;
           } else {
-            if (dayState[task.id]) { doneCount = 1; }
+            doneCount = (scheduled && me.goal > 0) ? (me.value / me.goal) : 0;
           }
         } else {
-          // Not scheduled — still count a "ticked" entry if the user
-          // back-completed (rare). Use bare id only.
-          if (dayState[task.id]) { doneCount = 1; }
+          slotCount = (task.times && task.times.length) ? task.times.length : 1;
+          doneCount = 0;
+          if (scheduled) {
+            if (task.times && task.times.length) {
+              for (var s = 0; s < task.times.length; s += 1) {
+                var cid = task.id + '__' + slugifyTime(task.times[s].label);
+                if (dayState[cid]) { doneCount += 1; }
+              }
+            } else {
+              if (dayState[task.id]) { doneCount = 1; }
+            }
+          } else {
+            // Not scheduled — still count a "ticked" entry if the user
+            // back-completed (rare). Use bare id only.
+            if (dayState[task.id]) { doneCount = 1; }
+          }
         }
 
         row[task.id] = {
