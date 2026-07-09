@@ -567,7 +567,9 @@
     var barHtml = '<div class="measure-bar"><span class="measure-bar-fill ' + fillClass +
       '" style="width:0%"></span></div>';
 
-    var controls, rowHtml;
+    var controls, contentInner;
+    var textBlock = '<div class="measure-text"><span class="habit-title measure-title">' +
+      task.title + '</span>' + readout + '</div>';
     if (useChips) {
       var chipVals = window.TaskProgress.quickAdds(task);
       var chipHtml = '';
@@ -577,14 +579,14 @@
       }
       chipHtml += '<button type="button" class="measure-chip ghost measure-manual">Enter\u2026</button>';
       controls = '<div class="measure-chips">' + chipHtml + '</div>';
-      rowHtml = '<div class="measure-row">' + readout + '</div>' + barHtml + controls;
+      contentInner = '<div class="measure-main">' + textBlock + '</div>' + barHtml + controls;
     } else {
       controls = '<span class="measure-stepper">' +
         '<button type="button" class="measure-btn measure-minus">\u2212</button>' +
         '<button type="button" class="measure-num">0</button>' +
         '<button type="button" class="measure-btn plus measure-plus">+</button>' +
         '</span>';
-      rowHtml = '<div class="measure-row">' + readout + controls + '</div>' + barHtml;
+      contentInner = '<div class="measure-main">' + textBlock + controls + '</div>' + barHtml;
     }
 
     var card = document.createElement('div');
@@ -595,10 +597,7 @@
     card.innerHTML =
       '<div class="habit-card-inner">' +
         '<div class="habit-index ' + accent + '">' + (task.icon || '') + '</div>' +
-        '<div class="habit-content measure-content">' +
-          '<div class="measure-head"><span class="habit-title measure-title">' + task.title + '</span></div>' +
-          rowHtml +
-        '</div>' +
+        '<div class="habit-content measure-content">' + contentInner + '</div>' +
       '</div>';
 
     // Tap the card body to add one step; explicit controls stop propagation.
