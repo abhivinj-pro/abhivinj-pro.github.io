@@ -1501,11 +1501,13 @@
 
   function fitTitlesForGrid(grid, extraGrids) {
     var cards = Array.prototype.slice.call(grid.querySelectorAll('.habit-card'));
-    var allTitles = Array.prototype.slice.call(grid.querySelectorAll('.habit-title'));
+    // Measurable titles are sized by CSS (they must leave room for the
+    // readout/counter/bar), so they are excluded from the auto-fit.
+    var allTitles = Array.prototype.slice.call(grid.querySelectorAll('.habit-title:not(.measure-title)'));
     if (extraGrids && extraGrids.length) {
       for (var g = 0; g < extraGrids.length; g += 1) {
         if (!extraGrids[g]) continue;
-        var moreTitles = extraGrids[g].querySelectorAll('.habit-title');
+        var moreTitles = extraGrids[g].querySelectorAll('.habit-title:not(.measure-title)');
         for (var m = 0; m < moreTitles.length; m += 1) { allTitles.push(moreTitles[m]); }
       }
     }
