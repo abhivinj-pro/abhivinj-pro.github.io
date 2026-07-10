@@ -587,6 +587,24 @@ html, body {
   margin-top: 32px;
 }
 
+.measure-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.measure-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.measure-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .export-output {
   width: 100%;
   padding: 16px;
@@ -616,6 +634,16 @@ html, body {
 select.form-input {
   appearance: auto;
   color-scheme: dark;
+}
+
+/* The native option list on desktop browsers renders in a light popup and
+   inherits the control's light text colour, making options nearly invisible.
+   Force a dark row background with light text so they're readable everywhere.
+   (iOS/iPadOS uses a native picker that ignores these, and already reads fine.) */
+select.form-input option,
+select.form-input optgroup {
+  background-color: #0d111b;
+  color: #f6f8fb;
 }
 
 input[type="date"].form-input {

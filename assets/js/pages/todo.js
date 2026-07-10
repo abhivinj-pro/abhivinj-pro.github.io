@@ -48,6 +48,14 @@
   const taskCategory = document.getElementById('task-category');
   const freqSection = document.getElementById('freq-section');
   const timesSection = document.getElementById('times-section');
+  const goalTypeRadios = document.querySelectorAll('input[name="goal-type"]');
+  const measurePanel = document.getElementById('measure-panel');
+  const goalTypeSection = document.getElementById('goal-type-section');
+  const measureUnit = document.getElementById('measure-unit');
+  const measureCustomField = document.getElementById('measure-custom-field');
+  const measureCustom = document.getElementById('measure-custom');
+  const measureTarget = document.getElementById('measure-target');
+  const measureStep = document.getElementById('measure-step');
   const iconPreview = document.getElementById('icon-preview');
   const openIconPickerBtn = document.getElementById('open-icon-picker-btn');
   const iconPickerPanel = document.getElementById('icon-picker-panel');
@@ -454,6 +462,61 @@
       intervalPanel.classList.add('hidden');
       timesPanel.classList.add('hidden');
     }
+    updateGoalTypeVisibility();
+  }
+
+  function getGoalType() {
+    const checked = document.querySelector('input[name="goal-type"]:checked');
+    return checked ? checked.value : 'simple';
+  }
+
+  function unitPluralFor(key) {
+    const units = (window.TaskProgress && window.TaskProgress.UNITS) || [];
+    for (let i = 0; i < units.length; i += 1) {
+      if (units[i].key === key) { return units[i].plural; }
+    }
+    return '';
+  }
+
+  function populateUnitOptions() {
+    if (!measureUnit || !window.TaskProgress) { return; }
+    const units = window.TaskProgress.UNITS;
+    let html = '';
+    let lastGroup = null;
+    for (let i = 0; i < units.length; i += 1) {
+      const u = units[i];
+      if (u.group !== lastGroup) {
+        if (lastGroup !== null) { html += '</optgroup>'; }
+        html += '<optgroup label="' + u.group + '">';
+        lastGroup = u.group;
+      }
+      const label = u.key === 'custom' ? 'Custom\u2026' : u.plural;
+      html += '<option value="' + u.key + '">' + label + '</option>';
+    }
+    if (lastGroup !== null) { html += '</optgroup>'; }
+    measureUnit.innerHTML = html;
+  }
+
+  function updateMeasureCustomVisibility() {
+    if (!measureUnit || !measureCustomField) { return; }
+    measureCustomField.classList.toggle('hidden', measureUnit.value !== 'custom');
+  }
+
+  // Goal type governs whether the measurable panel shows, and enforces that a
+  // measurable task never also uses multi-slot times.
+  function updateGoalTypeVisibility() {
+    const isMorning = normalizeCategory(taskCategory.value) === MORNING_CATEGORY;
+    if (goalTypeSection) { goalTypeSection.classList.toggle('hidden', isMorning); }
+    const measurable = !isMorning && getGoalType() === 'measurable';
+    if (measurePanel) { measurePanel.classList.toggle('hidden', !measurable); }
+    if (measurable) {
+      if (timesSection) { timesSection.classList.add('hidden'); }
+      timesPanel.classList.add('hidden');
+      timesModeRadios.forEach(r => { r.checked = r.value === 'once'; });
+    } else if (!isMorning) {
+      if (timesSection) { timesSection.classList.remove('hidden'); }
+    }
+    updateMeasureCustomVisibility();
   }
 
   function showEditor(task) {
@@ -519,6 +582,22 @@
     } else {
       timesModeRadios.forEach(r => { r.checked = r.value === 'once'; });
       timesPanel.classList.add('hidden');
+    }
+
+    // Measurable goal config.
+    const measure = task && task.measure;
+    goalTypeRadios.forEach(r => { r.checked = r.value === (measure ? 'measurable' : 'simple'); });
+    if (measure) {
+      measureUnit.value = measure.unit || 'custom';
+      if (!measureUnit.value) { measureUnit.value = 'custom'; }
+      measureCustom.value = (measureUnit.value === 'custom') ? (measure.unitLabel || '') : '';
+      measureTarget.value = measure.target || 8;
+      measureStep.value = measure.step || 1;
+    } else {
+      measureUnit.value = 'glass';
+      measureCustom.value = '';
+      measureTarget.value = 8;
+      measureStep.value = 1;
     }
 
     updateCategoryVisibility();
@@ -653,6 +732,30 @@
 
     result.frequency = frequency;
 
+    // Measurable config is mutually exclusive with multi-slot times.
+    if (getGoalType() === 'measurable') {
+      const target = parseInt(measureTarget.value, 10);
+      const step = parseInt(measureStep.value, 10);
+      if (!(target >= 1)) {
+        alert('Please enter a target of at least 1.');
+        return null;
+      }
+      const unitKey = measureUnit.value;
+      let unitLabel;
+      if (unitKey === 'custom') {
+        unitLabel = (measureCustom.value || '').trim();
+      } else {
+        unitLabel = unitPluralFor(unitKey);
+      }
+      result.measure = {
+        target: target,
+        unit: unitKey,
+        unitLabel: unitLabel,
+        step: (step >= 1) ? step : 1
+      };
+      return result;
+    }
+
     const timesMode = document.querySelector('input[name="times-mode"]:checked').value;
     if (timesMode === 'multiple') {
       const rows = document.querySelectorAll('.time-slot-row');
@@ -692,6 +795,12 @@
           } else {
             delete tasks[idx].times;
           }
+          if (data.measure) {
+            tasks[idx].measure = data.measure;
+            delete tasks[idx].times;
+          } else {
+            delete tasks[idx].measure;
+          }
           if (data.frequency && data.frequency.type === 'once') {
             // Editing dates clears stale manual intent so the new dates
             // drive the 14-day auto-archive again.
@@ -725,6 +834,9 @@
         newTask.frequency = data.frequency;
         if (data.times) {
           newTask.times = data.times;
+        }
+        if (data.measure) {
+          newTask.measure = data.measure;
         }
         if (data.frequency && data.frequency.type === 'once') {
           newTask.archived = isArchivedOnceTask(newTask, todayKey);
@@ -811,6 +923,9 @@
   cancelBtn.addEventListener('click', hideEditor);
 
   taskCategory.addEventListener('change', updateCategoryVisibility);
+  goalTypeRadios.forEach(r => { r.addEventListener('change', updateGoalTypeVisibility); });
+  if (measureUnit) { measureUnit.addEventListener('change', updateMeasureCustomVisibility); }
+  populateUnitOptions();
 
   freqRadios.forEach(radio => {
     radio.addEventListener('change', () => {
