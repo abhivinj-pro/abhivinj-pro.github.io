@@ -620,7 +620,7 @@ body {
    .habit-title sizes in the media queries below. */
 .habit-card.measure .measure-title {
   margin: 0;
-  font-size: 40px !important;
+  font-size: 52px !important;
   line-height: 1.02;
   font-weight: 900;
   letter-spacing: -0.02em;
@@ -1482,7 +1482,7 @@ body {
   }
 
   .habit-card.measure .measure-title {
-    font-size: 32px !important;
+    font-size: 46px !important;
   }
 
   .measure-value {
