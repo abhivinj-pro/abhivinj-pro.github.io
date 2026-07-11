@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var CACHE_VERSION = 'v3';
+var CACHE_VERSION = 'v4';
 var SHELL_CACHE = 'habit-shell-' + CACHE_VERSION;
 var RUNTIME_CACHE = 'habit-runtime-' + CACHE_VERSION;
 var FONT_CACHE = 'habit-fonts-' + CACHE_VERSION;
@@ -34,6 +34,11 @@ var SHELL_ASSETS = [
 
 // Hosts whose responses must never be cached (auth + live data).
 var BYPASS_HOST_RE = /(firestore\.googleapis\.com|identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com|firebase)/i;
+
+// Media files must be served straight from the network. iOS Safari plays audio
+// via HTTP Range requests and expects 206 Partial Content responses; returning
+// a full 200 body from the Cache API corrupts playback (white noise on iOS 12).
+var MEDIA_EXT_RE = /\.(wav|mp3|m4a|aac|ogg|oga|opus|flac|mp4|webm|mov)$/i;
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
@@ -70,6 +75,13 @@ self.addEventListener('fetch', function (event) {
 
   // Never intercept auth / Firestore — always straight to the network.
   if (BYPASS_HOST_RE.test(url.hostname) || BYPASS_HOST_RE.test(url.href)) {
+    return;
+  }
+
+  // Never intercept media or Range requests. iOS Safari media playback relies on
+  // Range/206 responses that the Cache API does not satisfy; let the browser
+  // fetch these directly so audio/video decode correctly.
+  if (req.headers.get('range') || MEDIA_EXT_RE.test(url.pathname)) {
     return;
   }
 
