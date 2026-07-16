@@ -492,6 +492,12 @@ body {
   opacity: 0.92;
 }
 
+.habit-index img {
+  width: 58px;
+  height: 58px;
+  opacity: 0.92;
+}
+
 .habit-content {
   display: -webkit-box;
   display: -ms-flexbox;

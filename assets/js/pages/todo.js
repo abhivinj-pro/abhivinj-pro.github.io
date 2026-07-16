@@ -14,6 +14,9 @@
   let editingId = null;
   let activeFilters = new Set();
   let selectedIcon = DEFAULT_ICON;
+  // Tracks which library entry is currently selected so emoji tiles (whose
+  // stored SVG differs from the raw file) can still show a selected state.
+  let selectedIconId = null;
   let iconPickerOpen = false;
   let iconCategoryFilter = 'All';
   // Working set of explicit occurrence dates (YYYY-MM-DD) for a `once` task in
@@ -80,7 +83,49 @@
 
   // ── Icon picker ───────────────────────────────────────────────────────────
 
-  const ICON_CATEGORIES = ['All', ...new Set((window.ICON_LIBRARY || []).map(i => i.category))];
+  // Hand-made line icons (inline `svg`) merged with curated OpenMoji emojis
+  // (file-referenced `file`). Both kinds share {id, name, category, tags}.
+  const ALL_ICONS = [
+    ...(window.ICON_LIBRARY || []),
+    ...(window.OPENMOJI_LIBRARY || [])
+  ];
+  const ICON_CATEGORIES = ['All', ...new Set(ALL_ICONS.map(i => i.category))];
+
+  // OpenMoji color SVGs use flat fills with no url(#) references, so stripping
+  // `id` attributes is safe and keeps the DOM clean when the same emoji renders
+  // on several cards. Also unwraps any stray prolog by taking just <svg>…</svg>.
+  function sanitizeEmojiSvg(text) {
+    const match = /<svg[\s\S]*<\/svg>/i.exec(text);
+    const svg = match ? match[0] : text;
+    return svg.replace(/\sid="[^"]*"/g, '').trim();
+  }
+
+  function selectIcon(icon) {
+    if (icon.file) {
+      // Emoji: fetch and inline the SVG so the task stores a self-contained
+      // icon (consistent with the built-in icons, works offline once cached).
+      fetch(icon.file)
+        .then(res => (res.ok ? res.text() : Promise.reject(new Error('HTTP ' + res.status))))
+        .then(text => {
+          selectedIcon = sanitizeEmojiSvg(text);
+          selectedIconId = icon.id;
+          updateIconPreview();
+          closeIconPicker();
+        })
+        .catch(() => {
+          // Fallback: reference the file directly if the fetch fails.
+          selectedIcon = '<img src="' + icon.file + '" alt="" class="task-emoji-img">';
+          selectedIconId = icon.id;
+          updateIconPreview();
+          closeIconPicker();
+        });
+      return;
+    }
+    selectedIcon = icon.svg;
+    selectedIconId = icon.id || null;
+    updateIconPreview();
+    closeIconPicker();
+  }
 
   function buildIconFilterChips() {
     iconFilterChips.innerHTML = '';
@@ -99,8 +144,7 @@
   }
 
   function renderIconGrid(query) {
-    const lib = window.ICON_LIBRARY || [];
-    const filtered = lib.filter(icon => {
+    const filtered = ALL_ICONS.filter(icon => {
       const matchCat = iconCategoryFilter === 'All' || icon.category === iconCategoryFilter;
       if (!matchCat) return false;
       if (!query) return true;
@@ -119,16 +163,17 @@
     }
 
     filtered.forEach(icon => {
+      const isEmoji = !!icon.file;
+      const isSelected = isEmoji ? (selectedIconId === icon.id) : (selectedIcon === icon.svg);
       const tile = document.createElement('button');
       tile.type = 'button';
-      tile.className = 'icon-tile' + (selectedIcon === icon.svg ? ' selected' : '');
+      tile.className = 'icon-tile' + (isSelected ? ' selected' : '');
       tile.title = icon.name;
-      tile.innerHTML = icon.svg + '<span class="icon-tile-label">' + escapeHtml(icon.name) + '</span>';
-      tile.addEventListener('click', () => {
-        selectedIcon = icon.svg;
-        updateIconPreview();
-        closeIconPicker();
-      });
+      const visual = isEmoji
+        ? '<img class="icon-tile-img" src="' + icon.file + '" alt="" loading="lazy" decoding="async">'
+        : icon.svg;
+      tile.innerHTML = visual + '<span class="icon-tile-label">' + escapeHtml(icon.name) + '</span>';
+      tile.addEventListener('click', () => { selectIcon(icon); });
       iconGrid.appendChild(tile);
     });
   }
@@ -602,6 +647,7 @@
 
     updateCategoryVisibility();
     selectedIcon = (task && task.icon) ? task.icon : DEFAULT_ICON;
+    selectedIconId = null;
     closeIconPicker();
     iconCategoryFilter = 'All';
     updateIconPreview();
