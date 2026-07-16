@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenMoji on the Habit Board — Preview</title>
+
+  <!-- Reuse the real board styles so cards match production exactly. -->
+  <link rel="stylesheet" href="../assets/css/styles.css">
+
+  <style>
+    /*
+     * THROWAWAY PREVIEW ONLY. Not linked from the app, not shipped.
+     * Purpose: show how OpenMoji emojis look on the real MyDay habit card
+     * before wiring them into the icon picker. Delete after review.
+     *
+     * The real card CSS only sizes `.habit-index svg` (the current line
+     * icons). Emojis will be stored as inline <svg> in production, but for a
+     * faithful *visual* preview we render them as <img> here — the artwork is
+     * identical either way — so we mirror the 58px sizing for <img> too.
+     */
+    body { padding: 32px 20px 80px; }
+    .pv-wrap { max-width: 760px; margin: 0 auto; }
+    .pv-h1 { font-size: 26px; font-weight: 800; margin: 0 0 4px; }
+    .pv-sub { color: var(--muted); margin: 0 0 28px; font-size: 15px; line-height: 1.5; }
+    .pv-section-title {
+      font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); margin: 34px 0 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .pv-note { color: var(--muted); font-size: 13px; margin: 0 0 16px; line-height: 1.55; }
+    /* Board is a single-column stack of tall cards, like index.html. */
+    .pv-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    /* Give each preview card a real, board-like height. */
+    .pv-grid .habit-card { height: 132px; }
+    /* Mirror `.habit-index svg` sizing so <img> emojis match line icons. */
+    .habit-index img { width: 58px; height: 58px; display: block; }
+    /* Neutral tile variant used only in the comparison section below. */
+    .accent-neutral { background: rgba(255,255,255,0.08); }
+  </style>
+</head>
+<body>
+  <div class="pv-wrap">
+    <h1 class="pv-h1">OpenMoji on the Habit Board (MyDay)</h1>
+    <p class="pv-sub">
+      Real card markup and styles from <code>index.html</code> / <code>styles.css</code>.
+      These are actual OpenMoji SVGs from <code>resources/openmoji-svg-color/</code>.
+    </p>
+
+    <div class="pv-section-title">1 · Emoji on the accent tile (how the board renders today)</div>
+    <p class="pv-note">
+      The icon tile keeps its colored accent gradient. Full-color emojis sit on top of it —
+      note where the emoji color clashes with the tile color (e.g. yellow faces on the amber tile).
+    </p>
+    <div class="pv-grid" id="grid-accent"></div>
+
+    <div class="pv-section-title">2 · Line icon vs. emoji, side by side</div>
+    <p class="pv-note">Same accent tile, current line-art icon (left) vs. an OpenMoji (right).</p>
+    <div class="pv-grid" id="grid-compare"></div>
+
+    <div class="pv-section-title">3 · Emoji on a neutral tile (alternative)</div>
+    <p class="pv-note">
+      Optional: give emoji-based tasks a neutral tile instead of an accent gradient, so the
+      emoji's own colors read cleanly. Shown here for comparison only.
+    </p>
+    <div class="pv-grid" id="grid-neutral"></div>
+  </div>
+
+  <script>
+    var EMOJI_DIR = '../resources/openmoji-svg-color/';
+
+    // Sample habit -> emoji mapping (all files verified to exist).
+    var SAMPLES = [
+      { title: 'Drink water',    hex: '1F4A7', accent: 'accent-blue',   done: true  },
+      { title: 'Go for a run',   hex: '1F3C3', accent: 'accent-green',  done: false },
+      { title: 'Read',           hex: '1F4DA', accent: 'accent-amber',  done: false },
+      { title: 'Sleep on time',  hex: '1F634', accent: 'accent-purple', done: true  },
+      { title: 'Meditate',       hex: '1F9D8', accent: 'accent-cyan',   done: false },
+      { title: 'Eat fruit',      hex: '1F34E', accent: 'accent-pink',   done: false },
+      { title: 'Workout',        hex: '1F4AA', accent: 'accent-blue',   done: false },
+      { title: 'Brush teeth',    hex: '1F9B7', accent: 'accent-cyan',   done: false },
+      { title: 'Morning coffee', hex: '2615',  accent: 'accent-amber',  done: false }
+    ];
+
+    // A current line-style icon (Water Drop from the existing icon library)
+    // used for the side-by-side comparison.
+    var LINE_ICON_SVG =
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      '<defs><linearGradient id="c_wd" x1="0.3" y1="0" x2="0.7" y2="1">' +
+      '<stop offset="0%" stop-color="#81d4fa"/><stop offset="100%" stop-color="#0277bd"/>' +
+      '</linearGradient></defs>' +
+      '<path d="M12 2C8.5 7.5 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3.5-7.5-7-13z" fill="url(#c_wd)"/>' +
+      '<path d="M9.5 12.5c.3-2 1.4-3.8 2.3-5.2" stroke="#e1f5fe" stroke-width="1.3" ' +
+      'stroke-linecap="round" fill="none" opacity="0.65"/>' +
+      '<ellipse cx="10.5" cy="17" rx="1.2" ry="1.8" fill="#ffffff" opacity="0.2"/></svg>';
+
+    function emojiImg(hex, title) {
+      return '<img src="' + EMOJI_DIR + hex + '.svg" alt="' + title + '" loading="lazy">';
+    }
+
+    function card(iconHtml, title, accent, done) {
+      var el = document.createElement('div');
+      el.className = 'habit-card' + (done ? ' completed' : '');
+      el.setAttribute('role', 'group');
+      el.setAttribute('aria-label', title);
+      el.innerHTML =
+        '<div class="habit-card-inner">' +
+          '<div class="habit-index ' + accent + '">' + iconHtml + '</div>' +
+          '<div class="habit-content"><div class="habit-title">' + title + '</div></div>' +
+        '</div>';
+      return el;
+    }
+
+    // Section 1: emoji on accent tile.
+    (function () {
+      var grid = document.getElementById('grid-accent');
+      SAMPLES.forEach(function (s) {
+        grid.appendChild(card(emojiImg(s.hex, s.title), s.title, s.accent, s.done));
+      });
+    }());
+
+    // Section 2: line icon vs emoji.
+    (function () {
+      var grid = document.getElementById('grid-compare');
+      grid.appendChild(card(LINE_ICON_SVG, 'Drink water · line icon', 'accent-blue', false));
+      grid.appendChild(card(emojiImg('1F4A7', 'droplet'), 'Drink water · emoji', 'accent-blue', false));
+    }());
+
+    // Section 3: emoji on neutral tile.
+    (function () {
+      var grid = document.getElementById('grid-neutral');
+      SAMPLES.slice(0, 5).forEach(function (s) {
+        grid.appendChild(card(emojiImg(s.hex, s.title), s.title, 'accent-neutral', s.done));
+      });
+    }());
+  </script>
+</body>
+</html>
